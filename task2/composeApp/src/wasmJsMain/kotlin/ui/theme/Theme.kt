@@ -16,13 +16,13 @@ private val DarkColorPalette = darkColors(
     onSecondary = Color.White,
     onBackground = AppColors.TextPrimary,
     onSurface = AppColors.TextPrimary,
-    onError = Color.White
+    onError = Color.White,
 )
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colors = DarkColorPalette,
-        content = content
+        content = content,
     )
 }

@@ -1,0 +1,31 @@
+buildUponDefaultConfig: true
+
+config:
+  validation: true
+
+formatting:
+  active: false
+
+style:
+  MaxLineLength:
+    active: false
+  ImportOrdering:
+    active: false
+  NewLineAtEndOfFile:
+    active: false
+  TrailingWhitespace:
+    active: false
+  Indentation:
+    active: false
+
+complexity:
+  LongMethod:
+    threshold: 60
+  LongParameterList:
+    threshold: 6
+  NestedBlockDepth:
+    threshold: 4
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false

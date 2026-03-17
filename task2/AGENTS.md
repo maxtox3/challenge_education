@@ -43,3 +43,14 @@ composeApp/src/wasmJsMain/kotlin/
 
 - Endpoint: `https://api.z.ai/api/coding/paas/v4/chat/completions`
 - Model: `glm-5`
+
+## Lint Commands
+
+```bash
+./gradlew ktlintCheck      # Проверка стиля кода
+./gradlew ktlintFormat     # Автоисправление стиля
+./gradlew detekt           # Статический анализ
+./gradlew check            # Все проверки (tests + ktlint + detekt)
+```
+
+Pre-commit hook автоматически запускает проверки перед коммитом.

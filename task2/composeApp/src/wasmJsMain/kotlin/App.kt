@@ -69,7 +69,7 @@ fun App() {
                 onSave = { newSettings ->
                     settings = newSettings
                     showSettings = false
-                }
+                },
             )
         }
 
@@ -77,39 +77,42 @@ fun App() {
             modifier = Modifier
                 .fillMaxSize()
                 .background(AppColors.Background)
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
                     Text(
                         text = "Z.ai Chat",
                         style = MaterialTheme.typography.h5,
-                        color = AppColors.TextPrimary
+                        color = AppColors.TextPrimary,
                     )
                     Text(
                         text = "Model: ${settings.model}",
                         style = MaterialTheme.typography.caption,
-                        color = AppColors.TextMuted
+                        color = AppColors.TextMuted,
                     )
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconButton(
-                        onClick = { messages = emptyList(); errorMessage = null },
+                        onClick = {
+                            messages = emptyList()
+                            errorMessage = null
+                        },
                         modifier = Modifier
                             .background(AppColors.SurfaceLight, CircleShape)
-                            .size(40.dp)
+                            .size(40.dp),
                     ) {
                         androidx.compose.material.Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Clear chat",
-                            tint = AppColors.TextSecondary
+                            tint = AppColors.TextSecondary,
                         )
                     }
 
@@ -117,12 +120,12 @@ fun App() {
                         onClick = { showSettings = true },
                         modifier = Modifier
                             .background(AppColors.Primary, CircleShape)
-                            .size(40.dp)
+                            .size(40.dp),
                     ) {
                         androidx.compose.material.Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Settings",
-                            tint = Color.White
+                            tint = Color.White,
                         )
                     }
                 }
@@ -133,23 +136,23 @@ fun App() {
                     .weight(1f)
                     .fillMaxWidth()
                     .background(AppColors.Surface, RoundedCornerShape(16.dp))
-                    .padding(12.dp)
+                    .padding(12.dp),
             ) {
                 if (messages.isEmpty() && !isLoading) {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
                             text = "Start a conversation",
                             color = AppColors.TextSecondary,
-                            style = MaterialTheme.typography.h6
+                            style = MaterialTheme.typography.h6,
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Press Enter to send",
                             color = AppColors.TextMuted,
-                            style = MaterialTheme.typography.caption
+                            style = MaterialTheme.typography.caption,
                         )
                     }
                 } else {
@@ -157,7 +160,7 @@ fun App() {
                         modifier = Modifier.fillMaxSize(),
                         state = listState,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(vertical = 8.dp)
+                        contentPadding = PaddingValues(vertical = 8.dp),
                     ) {
                         items(messages) { message ->
                             MessageBubble(message = message)
@@ -176,13 +179,13 @@ fun App() {
                 Surface(
                     color = AppColors.Error.copy(alpha = 0.2f),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
                 ) {
                     Text(
                         text = error,
                         color = AppColors.Error,
                         modifier = Modifier.padding(12.dp),
-                        style = MaterialTheme.typography.body2
+                        style = MaterialTheme.typography.body2,
                     )
                 }
             }
@@ -196,7 +199,7 @@ fun App() {
                     if (inputText.isNotBlank() && !isLoading) {
                         val userMessage = ChatMessage(
                             role = "user",
-                            content = inputText
+                            content = inputText,
                         )
                         messages = messages + userMessage
                         inputText = ""
@@ -210,7 +213,7 @@ fun App() {
                                 apiKey = settings.apiKey,
                                 model = settings.model,
                                 messages = messages,
-                                constraints = constraints
+                                constraints = constraints,
                             )
 
                             isLoading = false
@@ -220,12 +223,12 @@ fun App() {
                                 },
                                 onFailure = { error ->
                                     errorMessage = error.message
-                                }
+                                },
                             )
                         }
                     }
                 },
-                isLoading = isLoading
+                isLoading = isLoading,
             )
         }
     }

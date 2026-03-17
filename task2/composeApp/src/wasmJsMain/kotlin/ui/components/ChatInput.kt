@@ -17,11 +17,11 @@ fun ChatInput(
     onValueChange: (String) -> Unit,
     onSend: () -> Unit,
     isLoading: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         OutlinedTextField(
             value = value,
@@ -41,40 +41,40 @@ fun ChatInput(
                         false
                     }
                 },
-            placeholder = { 
+            placeholder = {
                 Text(
                     "Type a message... (Enter to send)",
-                    color = AppColors.TextMuted
-                ) 
+                    color = AppColors.TextMuted,
+                )
             },
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 textColor = AppColors.TextPrimary,
                 backgroundColor = AppColors.SurfaceLight,
                 focusedBorderColor = AppColors.Primary,
                 unfocusedBorderColor = AppColors.Border,
-                cursorColor = AppColors.Primary
+                cursorColor = AppColors.Primary,
             ),
             shape = RoundedCornerShape(24.dp),
-            maxLines = 4
+            maxLines = 4,
         )
-        
+
         Spacer(modifier = Modifier.width(12.dp))
-        
+
         Button(
             onClick = onSend,
             enabled = !isLoading && value.isNotBlank(),
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = AppColors.Primary,
-                disabledBackgroundColor = AppColors.SurfaceLight
+                disabledBackgroundColor = AppColors.SurfaceLight,
             ),
             shape = RoundedCornerShape(24.dp),
-            modifier = Modifier.height(52.dp)
+            modifier = Modifier.height(52.dp),
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
                     color = Color.White,
-                    strokeWidth = 2.dp
+                    strokeWidth = 2.dp,
                 )
             } else {
                 Text("Send", color = Color.White)

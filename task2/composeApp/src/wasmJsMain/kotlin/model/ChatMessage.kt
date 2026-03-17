@@ -7,5 +7,5 @@ data class ChatMessage(
     val mode: String = "free",
     val tokensUsed: Int? = null,
     val maxTokens: Int? = null,
-    val finishReason: String? = null
+    val finishReason: String? = null,
 )

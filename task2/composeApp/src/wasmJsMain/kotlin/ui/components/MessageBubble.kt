@@ -30,10 +30,7 @@ import ui.animations.slideInAnimation
 import ui.theme.AppColors
 
 @Composable
-fun MessageBubble(
-    message: ChatMessage,
-    modifier: Modifier = Modifier
-) {
+fun MessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
     val isUser = message.role == "user"
 
     var visible by remember { mutableStateOf(false) }
@@ -44,7 +41,7 @@ fun MessageBubble(
     val alpha by animateFloatAsState(
         targetValue = if (visible) 1f else 0f,
         animationSpec = tween(300),
-        label = "alpha"
+        label = "alpha",
     )
 
     Row(
@@ -52,7 +49,7 @@ fun MessageBubble(
             .fillMaxWidth()
             .alpha(alpha)
             .then(slideInAnimation()),
-        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
     ) {
         Surface(
             color = when {
@@ -64,9 +61,9 @@ fun MessageBubble(
                 topStart = 16.dp,
                 topEnd = 16.dp,
                 bottomStart = if (isUser) 16.dp else 4.dp,
-                bottomEnd = if (isUser) 4.dp else 16.dp
+                bottomEnd = if (isUser) 4.dp else 16.dp,
             ),
-            modifier = Modifier.fillMaxWidth(0.85f)
+            modifier = Modifier.fillMaxWidth(0.85f),
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Text(
@@ -79,7 +76,7 @@ fun MessageBubble(
                         isUser -> AppColors.PrimaryContainer
                         else -> AppColors.Secondary
                     },
-                    style = MaterialTheme.typography.caption
+                    style = MaterialTheme.typography.caption,
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -87,25 +84,25 @@ fun MessageBubble(
                 Text(
                     text = message.content,
                     color = AppColors.TextPrimary,
-                    style = MaterialTheme.typography.body2
+                    style = MaterialTheme.typography.body2,
                 )
 
                 message.tokensUsed?.let { tokens ->
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                     ) {
                         Text(
                             text = "$tokens tokens",
                             color = AppColors.TextMuted,
-                            style = MaterialTheme.typography.caption
+                            style = MaterialTheme.typography.caption,
                         )
 
                         message.finishReason?.let { reason ->
                             Text(
                                 text = " • ${if (reason == "stop") "complete" else "truncated"}",
                                 color = if (reason == "stop") AppColors.Success else AppColors.Warning,
-                                style = MaterialTheme.typography.caption
+                                style = MaterialTheme.typography.caption,
                             )
                         }
                     }
@@ -123,13 +120,13 @@ fun TypingIndicator() {
             topStart = 4.dp,
             topEnd = 16.dp,
             bottomStart = 16.dp,
-            bottomEnd = 16.dp
+            bottomEnd = 16.dp,
         ),
-        modifier = Modifier.fillMaxWidth(0.3f)
+        modifier = Modifier.fillMaxWidth(0.3f),
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             repeat(3) {
                 Box(

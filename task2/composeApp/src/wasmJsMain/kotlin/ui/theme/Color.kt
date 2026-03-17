@@ -10,15 +10,15 @@ object AppColors {
     val PrimaryContainer = Color(0xFFEADDFF)
     val Secondary = Color(0xFF4A90D9)
     val Accent = Color(0xFF7D5FFF)
-    
+
     val UserBubble = Color(0xFF6750A4)
     val AssistantBubble = Color(0xFF2D2D2D)
     val SystemBubble = Color(0xFF3D3D3D)
-    
+
     val TextPrimary = Color.White
     val TextSecondary = Color(0xFFB0B0B0)
     val TextMuted = Color(0xFF808080)
-    
+
     val Error = Color(0xFFCF6679)
     val Success = Color(0xFF4CAF50)
     val Warning = Color(0xFFFFB74D)

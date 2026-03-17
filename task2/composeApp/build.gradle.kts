@@ -1,10 +1,14 @@
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+@file:Suppress("UNUSED_VARIABLE")
+
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("io.gitlab.arturbosch.detekt")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 group = "com.zai"
@@ -17,6 +21,8 @@ repositories {
 }
 
 kotlin {
+    jvmToolchain(17)
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         moduleName = "composeApp"
@@ -27,7 +33,7 @@ kotlin {
         }
         binaries.executable()
     }
-    
+
     sourceSets {
         val wasmJsMain by getting {
             dependencies {
@@ -46,6 +52,32 @@ kotlin {
     }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
+detekt {
+    config.setFrom(files("$rootDir/detekt.yml"))
+    buildUponDefaultConfig = true
+    allRules = false
+}
+
+ktlint {
+    android.set(false)
+    outputColorName.set("RED")
+    filter {
+        exclude("**/generated/**")
+    }
+    additionalEditorconfig.set(
+        mapOf(
+            "ktlint_code_style" to "intellij_idea",
+            "ktlint_experimental" to "enabled",
+            "ktlint_standard_filename" to "disabled",
+            "ktlint_standard_function-naming" to "disabled",
+            "ktlint_standard_no-wildcard-imports" to "disabled",
+            "ktlint_standard_trailing-comma-on-call-site" to "disabled",
+            "ktlint_standard_trailing-comma-on-declaration-site" to "disabled",
+        ),
+    )
+}
+
+tasks.named("check") {
+    dependsOn("ktlintCheck")
+    dependsOn("detekt")
 }

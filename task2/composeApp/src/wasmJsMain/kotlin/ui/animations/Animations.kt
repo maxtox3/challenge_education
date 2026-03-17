@@ -22,7 +22,7 @@ fun slideInAnimation(): Modifier {
     val offsetY by animateFloatAsState(
         targetValue = if (animated) 0f else 20f,
         animationSpec = tween(300, easing = FastOutSlowInEasing),
-        label = "offsetY"
+        label = "offsetY",
     )
     return Modifier.offset { IntOffset(0, offsetY.roundToInt()) }
 }
