@@ -8,7 +8,17 @@ data class ZAiRequest(
     val model: String = "glm-5",
     val messages: List<Message>,
     val stream: Boolean = false,
-    val temperature: Double = 1.0
+    val temperature: Double = 1.0,
+    @SerialName("max_tokens")
+    val maxTokens: Int? = null,
+    val stop: List<String>? = null,
+    @SerialName("response_format")
+    val responseFormat: ResponseFormat? = null
+)
+
+@Serializable
+data class ResponseFormat(
+    val type: String
 )
 
 @Serializable

@@ -8,6 +8,13 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import model.*
 
+data class ResponseConstraints(
+    val maxTokens: Int? = null,
+    val stop: List<String>? = null,
+    val responseFormat: ResponseFormat? = null,
+    val temperature: Double? = null
+)
+
 class ChatClient {
     private val json = Json {
         ignoreUnknownKeys = true
@@ -25,12 +32,18 @@ class ChatClient {
     
     suspend fun sendMessage(
         apiKey: String,
-        messages: List<ChatMessage>
-    ): Result<String> {
+        model: String,
+        messages: List<ChatMessage>,
+        constraints: ResponseConstraints = ResponseConstraints()
+    ): Result<ChatMessage> {
         return try {
             val request = ZAiRequest(
-                model = "glm-5",
-                messages = messages.map { Message(it.role, it.content) }
+                model = model,
+                messages = messages.map { Message(it.role, it.content) },
+                maxTokens = constraints.maxTokens,
+                stop = constraints.stop,
+                responseFormat = constraints.responseFormat,
+                temperature = constraints.temperature ?: 1.0
             )
             
             val requestBody = json.encodeToString(request)
@@ -64,10 +77,23 @@ class ChatClient {
                 return Result.failure(Exception("Empty response from API"))
             }
             
-            val content = zaiResponse.choices.first().message.content
+            val choice = zaiResponse.choices.first()
+            val content = choice.message.content
+            val finishReason = choice.finishReason
+            val tokensUsed = zaiResponse.usage?.completionTokens
+            
+            val mode = if (constraints.maxTokens != null || constraints.stop != null) "constrained" else "free"
+            
             println("[ChatClient] Success, response length: ${content.length}")
             
-            Result.success(content)
+            Result.success(ChatMessage(
+                role = "assistant",
+                content = content,
+                mode = mode,
+                tokensUsed = tokensUsed,
+                maxTokens = constraints.maxTokens,
+                finishReason = finishReason
+            ))
         } catch (e: Exception) {
             println("[ChatClient] Exception: ${e.message}")
             e.printStackTrace()
