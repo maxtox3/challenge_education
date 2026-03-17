@@ -1,10 +1,10 @@
 @file:OptIn(ExperimentalComposeUiApi::class)
 
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.window.CanvasBasedWindow
+import androidx.compose.ui.window.ComposeViewport
 
 fun main() {
-    CanvasBasedWindow("Z.ai Chat") {
+    ComposeViewport("ComposeTarget") {
         App()
     }
 }

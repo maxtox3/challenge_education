@@ -15,13 +15,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,6 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import model.ChatMessage
+import ui.Delete
+import ui.Settings
 import ui.components.ChatInput
 import ui.components.MessageBubble
 import ui.components.SettingsDialog
@@ -109,8 +109,8 @@ fun App() {
                             .background(AppColors.SurfaceLight, CircleShape)
                             .size(40.dp),
                     ) {
-                        androidx.compose.material.Icon(
-                            imageVector = Icons.Default.Delete,
+                        Icon(
+                            imageVector = Delete,
                             contentDescription = "Clear chat",
                             tint = AppColors.TextSecondary,
                         )
@@ -122,8 +122,8 @@ fun App() {
                             .background(AppColors.Primary, CircleShape)
                             .size(40.dp),
                     ) {
-                        androidx.compose.material.Icon(
-                            imageVector = Icons.Default.Settings,
+                        Icon(
+                            imageVector = Settings,
                             contentDescription = "Settings",
                             tint = Color.White,
                         )
