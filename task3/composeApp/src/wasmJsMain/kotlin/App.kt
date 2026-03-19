@@ -36,12 +36,17 @@ import kotlinx.coroutines.launch
 import model.ChatMessage
 import model.ConstraintsInfo
 import model.MetricRecord
+import model.ReasoningComparison
+import model.ReasoningMode
+import model.ReasoningResult
+import ui.Brain
 import ui.Chart
 import ui.Delete
 import ui.Settings
 import ui.components.ChatInput
 import ui.components.MessageBubble
 import ui.components.MetricsDialog
+import ui.components.ReasoningDialog
 import ui.components.SettingsDialog
 import ui.components.TypingIndicator
 import ui.theme.AppColors
@@ -55,9 +60,21 @@ fun App() {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var showSettings by remember { mutableStateOf(false) }
     var showMetrics by remember { mutableStateOf(false) }
+    var showReasoning by remember { mutableStateOf(false) }
     var metrics by remember { mutableStateOf<List<MetricRecord>>(emptyList()) }
     var metricCounter by remember { mutableStateOf(0) }
     var settings by remember { mutableStateOf(ApiSettings()) }
+    var reasoningComparison by remember {
+        mutableStateOf(
+            ReasoningComparison(
+                task = "У тебя есть 12 монет, одна из которых фальшивая " +
+                    "(легче или тяжелее — неизвестно). У тебя есть чашечные весы. " +
+                    "Как найти фальшивую монету за минимальное количество взвешиваний?",
+                results = emptyMap(),
+            ),
+        )
+    }
+    var isReasoningLoading by remember { mutableStateOf(false) }
 
     val client = remember { ChatClient() }
     val scope = rememberCoroutineScope()
@@ -85,6 +102,27 @@ fun App() {
             MetricsDialog(
                 metrics = metrics,
                 onDismiss = { showMetrics = false },
+            )
+        }
+
+        if (showReasoning) {
+            ReasoningDialog(
+                comparison = reasoningComparison,
+                isLoading = isReasoningLoading,
+                onDismiss = { showReasoning = false },
+                onRunComparison = { task ->
+                    runReasoningComparison(
+                        task = task,
+                        apiKey = settings.apiKey,
+                        model = settings.model,
+                        client = client,
+                        scope = scope,
+                        onUpdate = { newComparison, loading ->
+                            reasoningComparison = newComparison
+                            isReasoningLoading = loading
+                        },
+                    )
+                },
             )
         }
 
@@ -144,6 +182,19 @@ fun App() {
                             imageVector = Chart,
                             contentDescription = "Metrics",
                             tint = if (metrics.isNotEmpty()) Color.White else AppColors.TextSecondary,
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { showReasoning = true },
+                        modifier = Modifier
+                            .background(AppColors.SurfaceLight, CircleShape)
+                            .size(40.dp),
+                    ) {
+                        Icon(
+                            imageVector = Brain,
+                            contentDescription = "Reasoning comparison",
+                            tint = AppColors.TextSecondary,
                         )
                     }
 
@@ -285,6 +336,93 @@ fun App() {
                     }
                 },
                 isLoading = isLoading,
+            )
+        }
+    }
+}
+
+private fun getSystemPromptForMode(mode: ReasoningMode, task: String): String = when (mode) {
+    ReasoningMode.DIRECT -> ""
+
+    ReasoningMode.STEP_BY_STEP -> "Решай пошагово. Объясняй каждый шаг рассуждения подробно."
+
+    ReasoningMode.META_PROMPT ->
+        "Перед тем как ответить на задачу, сначала составь " +
+            "оптимальный промпт для её решения, а затем используй его для получения ответа."
+
+    ReasoningMode.EXPERT_PANEL -> """
+            Ты группа из трёх экспертов:
+            1. Аналитик - анализирует условие задачи и выделяет ключевые моменты
+            2. Инженер - предлагает конкретное решение
+            3. Критик - проверяет решение на ошибки и предлагает улучшения
+            
+            Каждый эксперт должен дать своё мнение по очереди. В конце дай итоговое решение.
+    """.trimIndent()
+}
+
+private fun runReasoningComparison(
+    task: String,
+    apiKey: String,
+    model: String,
+    client: ChatClient,
+    scope: kotlinx.coroutines.CoroutineScope,
+    onUpdate: (ReasoningComparison, Boolean) -> Unit,
+) {
+    val currentResults = mutableMapOf<ReasoningMode, ReasoningResult>()
+    val loadingResults = ReasoningMode.entries.associateWith { mode ->
+        ReasoningResult(
+            mode = mode,
+            systemPrompt = getSystemPromptForMode(mode, task),
+            actualPrompt = task,
+            isLoading = true,
+        )
+    }
+    currentResults.putAll(loadingResults)
+    onUpdate(ReasoningComparison(task, currentResults.toMap()), true)
+
+    ReasoningMode.entries.forEach { mode ->
+        scope.launch {
+            val systemPrompt = getSystemPromptForMode(mode, task)
+            val startTime = getTimeMillis()
+
+            val result = client.sendMessage(
+                apiKey = apiKey,
+                model = model,
+                messages = listOf(ChatMessage(role = "user", content = task)),
+                systemPrompt = systemPrompt,
+            )
+
+            val responseTime = getTimeMillis() - startTime
+
+            result.fold(
+                onSuccess = { response ->
+                    currentResults[mode] = ReasoningResult(
+                        mode = mode,
+                        systemPrompt = systemPrompt,
+                        actualPrompt = task,
+                        response = response.content,
+                        responseTimeMs = responseTime,
+                        tokensUsed = response.tokensUsed,
+                        isLoading = false,
+                    )
+                    onUpdate(
+                        ReasoningComparison(task, currentResults.toMap()),
+                        currentResults.values.any { it.isLoading },
+                    )
+                },
+                onFailure = { error ->
+                    currentResults[mode] = ReasoningResult(
+                        mode = mode,
+                        systemPrompt = systemPrompt,
+                        actualPrompt = task,
+                        isLoading = false,
+                        error = error.message,
+                    )
+                    onUpdate(
+                        ReasoningComparison(task, currentResults.toMap()),
+                        currentResults.values.any { it.isLoading },
+                    )
+                },
             )
         }
     }

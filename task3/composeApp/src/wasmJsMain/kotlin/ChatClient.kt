@@ -44,11 +44,20 @@ class ChatClient {
         model: String,
         messages: List<ChatMessage>,
         constraints: ResponseConstraints = ResponseConstraints(),
+        systemPrompt: String? = null,
     ): Result<ChatMessage> {
         return try {
+            val allMessages = buildList {
+                systemPrompt?.let { prompt ->
+                    if (prompt.isNotBlank()) {
+                        add(Message("system", prompt))
+                    }
+                }
+                addAll(messages.map { Message(it.role, it.content) })
+            }
             val request = ZAiRequest(
                 model = model,
-                messages = messages.map { Message(it.role, it.content) },
+                messages = allMessages,
                 maxTokens = constraints.maxTokens,
                 stop = constraints.stop,
                 responseFormat = constraints.responseFormat,
