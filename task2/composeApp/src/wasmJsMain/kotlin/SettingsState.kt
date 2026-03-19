@@ -1,7 +1,7 @@
 import model.ResponseFormat
 
 data class ApiSettings(
-    val apiKey: String = "f76bd9902aba4fdeacb1de73574705a3.gHu2Rx9EuPkqQ9bZ",
+    val apiKey: String = "",
     val model: String = "glm-5",
     val maxTokens: Int? = null,
     val temperature: Double = 1.0,

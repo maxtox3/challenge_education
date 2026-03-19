@@ -40,6 +40,7 @@ kotlin {
                 implementation("org.jetbrains.compose.foundation:foundation:1.10.2")
                 implementation("org.jetbrains.compose.material:material:1.10.2")
                 implementation("org.jetbrains.compose.material3:material3:1.10.0-alpha05")
+                implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.39.2")
                 implementation("org.jetbrains.compose.ui:ui:1.10.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")

@@ -20,7 +20,12 @@ data class ZAiRequest(
 data class ResponseFormat(val type: String)
 
 @Serializable
-data class Message(val role: String, val content: String)
+data class Message(
+    val role: String,
+    val content: String,
+    @SerialName("reasoning_content")
+    val reasoningContent: String? = null,
+)
 
 @Serializable
 data class ZAiResponse(val id: String? = null, val choices: List<Choice>, val usage: Usage? = null)

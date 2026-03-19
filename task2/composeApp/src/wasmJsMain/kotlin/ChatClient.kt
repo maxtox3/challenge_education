@@ -1,12 +1,21 @@
-import io.ktor.client.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.encodeToString
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.headers
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import model.*
+import model.ChatMessage
+import model.Message
+import model.ResponseFormat
+import model.ZAiErrorResponse
+import model.ZAiRequest
+import model.ZAiResponse
 
 data class ResponseConstraints(
     val maxTokens: Int? = null,
@@ -82,7 +91,8 @@ class ChatClient {
             }
 
             val choice = zaiResponse.choices.first()
-            val content = choice.message.content
+            val isReasoning = choice.message.content.isEmpty() && !choice.message.reasoningContent.isNullOrEmpty()
+            val content = choice.message.content.ifEmpty { choice.message.reasoningContent ?: "" }
             val finishReason = choice.finishReason
             val tokensUsed = zaiResponse.usage?.completionTokens
 
@@ -98,6 +108,7 @@ class ChatClient {
                     tokensUsed = tokensUsed,
                     maxTokens = constraints.maxTokens,
                     finishReason = finishReason,
+                    isReasoningContent = isReasoning,
                 ),
             )
         } catch (e: Exception) {

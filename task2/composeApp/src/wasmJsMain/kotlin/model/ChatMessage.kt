@@ -8,4 +8,5 @@ data class ChatMessage(
     val tokensUsed: Int? = null,
     val maxTokens: Int? = null,
     val finishReason: String? = null,
+    val isReasoningContent: Boolean = false,
 )

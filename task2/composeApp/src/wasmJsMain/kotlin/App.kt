@@ -31,12 +31,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import io.ktor.util.date.getTimeMillis
 import kotlinx.coroutines.launch
 import model.ChatMessage
+import model.ConstraintsInfo
+import model.MetricRecord
+import ui.Chart
 import ui.Delete
 import ui.Settings
 import ui.components.ChatInput
 import ui.components.MessageBubble
+import ui.components.MetricsDialog
 import ui.components.SettingsDialog
 import ui.components.TypingIndicator
 import ui.theme.AppColors
@@ -49,6 +54,9 @@ fun App() {
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var showSettings by remember { mutableStateOf(false) }
+    var showMetrics by remember { mutableStateOf(false) }
+    var metrics by remember { mutableStateOf<List<MetricRecord>>(emptyList()) }
+    var metricCounter by remember { mutableStateOf(0) }
     var settings by remember { mutableStateOf(ApiSettings()) }
 
     val client = remember { ChatClient() }
@@ -70,6 +78,13 @@ fun App() {
                     settings = newSettings
                     showSettings = false
                 },
+            )
+        }
+
+        if (showMetrics) {
+            MetricsDialog(
+                metrics = metrics,
+                onDismiss = { showMetrics = false },
             )
         }
 
@@ -113,6 +128,22 @@ fun App() {
                             imageVector = Delete,
                             contentDescription = "Clear chat",
                             tint = AppColors.TextSecondary,
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { showMetrics = true },
+                        modifier = Modifier
+                            .background(
+                                if (metrics.isNotEmpty()) AppColors.Primary else AppColors.SurfaceLight,
+                                CircleShape,
+                            )
+                            .size(40.dp),
+                    ) {
+                        Icon(
+                            imageVector = Chart,
+                            contentDescription = "Metrics",
+                            tint = if (metrics.isNotEmpty()) Color.White else AppColors.TextSecondary,
                         )
                     }
 
@@ -197,6 +228,7 @@ fun App() {
                 onValueChange = { inputText = it },
                 onSend = {
                     if (inputText.isNotBlank() && !isLoading) {
+                        val promptText = inputText
                         val userMessage = ChatMessage(
                             role = "user",
                             content = inputText,
@@ -207,6 +239,7 @@ fun App() {
                         errorMessage = null
 
                         val constraints = settings.toResponseConstraints()
+                        val startTime = getTimeMillis()
 
                         scope.launch {
                             val result = client.sendMessage(
@@ -216,10 +249,33 @@ fun App() {
                                 constraints = constraints,
                             )
 
+                            val responseTime = getTimeMillis() - startTime
                             isLoading = false
                             result.fold(
                                 onSuccess = { response ->
                                     messages = messages + response
+                                    metricCounter++
+                                    val record = MetricRecord(
+                                        id = metricCounter,
+                                        prompt = promptText,
+                                        response = response.content,
+                                        mode = response.mode,
+                                        responseLength = response.content.length,
+                                        tokensUsed = response.tokensUsed,
+                                        maxTokens = response.maxTokens,
+                                        finishReason = response.finishReason,
+                                        responseTimeMs = responseTime,
+                                        constraints = ConstraintsInfo(
+                                            maxTokens = settings.maxTokens,
+                                            stopSequences = settings.stopSequences
+                                                .split(",")
+                                                .map { it.trim() }
+                                                .filter { it.isNotEmpty() },
+                                            responseFormat = settings.responseFormat,
+                                            temperature = settings.temperature,
+                                        ),
+                                    )
+                                    metrics = metrics + record
                                 },
                                 onFailure = { error ->
                                     errorMessage = error.message
