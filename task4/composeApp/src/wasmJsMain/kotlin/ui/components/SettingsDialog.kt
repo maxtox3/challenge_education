@@ -26,9 +26,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
     var responseFormat by remember { mutableStateOf(currentSettings.responseFormat) }
 
     Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            color = AppColors.Surface,
-            shape = RoundedCornerShape(16.dp),
+        DialogSurface(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
@@ -51,7 +49,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                     onValueChange = { apiKey = it },
                     label = { Text("API Key", color = AppColors.TextSecondary) },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = textFieldColors(),
+                    colors = primaryTextFieldColors(),
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -61,7 +59,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                     onValueChange = { model = it },
                     label = { Text("Model", color = AppColors.TextSecondary) },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = textFieldColors(),
+                    colors = primaryTextFieldColors(),
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -75,7 +73,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                     },
                     label = { Text("Max Tokens (empty = unlimited)", color = AppColors.TextSecondary) },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = textFieldColors(),
+                    colors = primaryTextFieldColors(),
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -104,7 +102,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                     onValueChange = { stopSequences = it },
                     label = { Text("Stop Sequences (comma-separated)", color = AppColors.TextSecondary) },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = textFieldColors(),
+                    colors = primaryTextFieldColors(),
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -158,9 +156,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                                 ),
                             )
                         },
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = AppColors.Primary,
-                        ),
+                        colors = primaryButtonColors(),
                     ) {
                         Text("Save", color = Color.White)
                     }
@@ -185,12 +181,3 @@ private fun ResponseFormatChip(selected: Boolean, onClick: () -> Unit, label: St
         )
     }
 }
-
-@Composable
-private fun textFieldColors() = TextFieldDefaults.outlinedTextFieldColors(
-    textColor = AppColors.TextPrimary,
-    backgroundColor = AppColors.SurfaceLight,
-    focusedBorderColor = AppColors.Primary,
-    unfocusedBorderColor = AppColors.Border,
-    cursorColor = AppColors.Primary,
-)

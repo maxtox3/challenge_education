@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
@@ -100,10 +99,7 @@ fun ReasoningDialog(
                     onClick = { onRunComparison(taskInput) },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading && taskInput.isNotBlank(),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = AppColors.Primary,
-                        disabledBackgroundColor = AppColors.SurfaceLight,
-                    ),
+                    colors = primaryButtonColors(),
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(

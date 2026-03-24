@@ -6,7 +6,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.unit.dp
 import ui.theme.AppColors
@@ -47,13 +46,7 @@ fun ChatInput(
                     color = AppColors.TextMuted,
                 )
             },
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                textColor = AppColors.TextPrimary,
-                backgroundColor = AppColors.SurfaceLight,
-                focusedBorderColor = AppColors.Primary,
-                unfocusedBorderColor = AppColors.Border,
-                cursorColor = AppColors.Primary,
-            ),
+            colors = primaryTextFieldColors(),
             shape = RoundedCornerShape(24.dp),
             maxLines = 4,
         )
@@ -63,22 +56,15 @@ fun ChatInput(
         Button(
             onClick = onSend,
             enabled = !isLoading && value.isNotBlank(),
-            colors = ButtonDefaults.buttonColors(
-                backgroundColor = AppColors.Primary,
-                disabledBackgroundColor = AppColors.SurfaceLight,
-            ),
+            colors = primaryButtonColors(),
             shape = RoundedCornerShape(24.dp),
             modifier = Modifier.height(52.dp),
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp,
-                )
-            } else {
-                Text("Send", color = Color.White)
-            }
+            LoadingButtonContent(
+                isLoading = isLoading,
+                loadingText = "Sending...",
+                buttonText = "Send",
+            )
         }
     }
 }

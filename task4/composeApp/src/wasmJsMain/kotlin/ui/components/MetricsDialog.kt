@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import model.MetricRecord
 import ui.theme.AppColors
+
 @Composable
 fun MetricsDialog(metrics: List<MetricRecord>, onDismiss: () -> Unit,) {
     val groupedByPrompt = metrics.groupBy { it.prompt }
 
     Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            color = AppColors.Surface,
+        DialogSurface(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.8f)
@@ -26,34 +26,17 @@ fun MetricsDialog(metrics: List<MetricRecord>, onDismiss: () -> Unit,) {
             Column(
                 modifier = Modifier.padding(20.dp),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        text = "Metrics Comparison",
-                        style = MaterialTheme.typography.h6,
-                        color = AppColors.TextPrimary,
-                    )
+                DialogHeader(
+                    title = "Metrics Comparison",
+                    onDismiss = onDismiss,
+                )
 
-                    TextButton(onClick = onDismiss) {
-                        Text("Close", color = AppColors.TextSecondary)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
+                SectionSpacer(16)
 
                 if (metrics.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = androidx.compose.ui.Alignment.Center,
-                    ) {
-                        Text(
-                            text = "No metrics yet.\nSend some messages to see comparison.",
-                            color = AppColors.TextMuted,
-                            style = MaterialTheme.typography.body1,
-                        )
-                    }
+                    EmptyStateBox(
+                        message = "No metrics yet.\nSend some messages to see comparison.",
+                    )
                 } else {
                     Column(
                         modifier = Modifier
@@ -71,7 +54,7 @@ fun MetricsDialog(metrics: List<MetricRecord>, onDismiss: () -> Unit,) {
 
                             MetricsTable(records)
 
-                            Spacer(modifier = Modifier.height(24.dp))
+                            SectionSpacer(24)
                         }
                     }
                 }
