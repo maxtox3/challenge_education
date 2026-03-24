@@ -6,17 +6,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import io.ktor.util.date.getTimeMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import model.ChatMessage
-import model.ConstraintsInfo
 import model.MetricRecord
 import model.ReasoningComparison
-import model.ReasoningMode
-import model.ReasoningResult
 
-class ChatStateHolder(val client: ChatClient, val scope: CoroutineScope, val listState: LazyListState,) {
+class ChatStateHolder(
+    private val repository: ChatRepository,
+    val scope: CoroutineScope,
+    val listState: LazyListState,
+) {
     var inputText by mutableStateOf("")
     var messages by mutableStateOf<List<ChatMessage>>(emptyList())
     var isLoading by mutableStateOf(false)
@@ -59,128 +59,44 @@ class ChatStateHolder(val client: ChatClient, val scope: CoroutineScope, val lis
             isLoading = true
             errorMessage = null
 
-            val constraints = settings.toResponseConstraints()
-            val startTime = getTimeMillis()
-
             scope.launch {
-                val result = client.sendMessage(
-                    apiKey = settings.apiKey,
-                    model = settings.model,
+                val result = repository.sendMessage(
+                    prompt = promptText,
                     messages = messages,
-                    constraints = constraints,
+                    settings = settings,
                 )
 
-                val responseTime = getTimeMillis() - startTime
                 isLoading = false
-                result.fold(
-                    onSuccess = { response ->
-                        messages = messages + response
+
+                when (result) {
+                    is SendMessageResult.Success -> {
+                        messages = messages + result.response
                         metricCounter++
-                        val record = MetricRecord(
-                            id = metricCounter,
-                            prompt = promptText,
-                            response = response.content,
-                            mode = response.mode,
-                            responseLength = response.content.length,
-                            tokensUsed = response.tokensUsed,
-                            maxTokens = response.maxTokens,
-                            finishReason = response.finishReason,
-                            responseTimeMs = responseTime,
-                            constraints = ConstraintsInfo(
-                                maxTokens = settings.maxTokens,
-                                stopSequences = settings.stopSequences
-                                    .split(",")
-                                    .map { it.trim() }
-                                    .filter { it.isNotEmpty() },
-                                responseFormat = settings.responseFormat,
-                                temperature = settings.temperature,
-                            ),
-                        )
-                        metrics = metrics + record
-                    },
-                    onFailure = { error ->
-                        errorMessage = error.message
-                    },
-                )
+                        val metric = result.metric.copy(id = metricCounter)
+                        metrics = metrics + metric
+                    }
+
+                    is SendMessageResult.Error -> {
+                        errorMessage = result.message
+                    }
+                }
             }
         }
     }
 
     fun runReasoningComparison(task: String) {
-        val currentResults = mutableMapOf<ReasoningMode, ReasoningResult>()
-        val loadingResults = ReasoningMode.entries.associateWith { mode ->
-            ReasoningResult(
-                mode = mode,
-                systemPrompt = getSystemPromptForMode(mode, task),
-                actualPrompt = task,
-                isLoading = true,
-            )
-        }
-        currentResults.putAll(loadingResults)
-        reasoningComparison = ReasoningComparison(task, currentResults.toMap())
         isReasoningLoading = true
 
-        ReasoningMode.entries.forEach { mode ->
-            scope.launch {
-                val systemPrompt = getSystemPromptForMode(mode, task)
-                val startTime = getTimeMillis()
-
-                val result = client.sendMessage(
-                    apiKey = settings.apiKey,
-                    model = settings.model,
-                    messages = listOf(ChatMessage(role = "user", content = task)),
-                    systemPrompt = systemPrompt,
-                )
-
-                val responseTime = getTimeMillis() - startTime
-
-                result.fold(
-                    onSuccess = { response ->
-                        currentResults[mode] = ReasoningResult(
-                            mode = mode,
-                            systemPrompt = systemPrompt,
-                            actualPrompt = task,
-                            response = response.content,
-                            responseTimeMs = responseTime,
-                            tokensUsed = response.tokensUsed,
-                            isLoading = false,
-                        )
-                        reasoningComparison = ReasoningComparison(task, currentResults.toMap())
-                        isReasoningLoading = currentResults.values.any { it.isLoading }
-                    },
-                    onFailure = { error ->
-                        currentResults[mode] = ReasoningResult(
-                            mode = mode,
-                            systemPrompt = systemPrompt,
-                            actualPrompt = task,
-                            isLoading = false,
-                            error = error.message,
-                        )
-                        reasoningComparison = ReasoningComparison(task, currentResults.toMap())
-                        isReasoningLoading = currentResults.values.any { it.isLoading }
-                    },
-                )
-            }
+        scope.launch {
+            repository.runReasoningComparison(
+                task = task,
+                settings = settings,
+                onProgress = { comparison ->
+                    reasoningComparison = comparison
+                    isReasoningLoading = comparison.results.values.any { it.isLoading }
+                },
+            )
         }
-    }
-
-    private fun getSystemPromptForMode(mode: ReasoningMode, task: String): String = when (mode) {
-        ReasoningMode.DIRECT -> ""
-
-        ReasoningMode.STEP_BY_STEP -> "Решай пошагово. Объясняй каждый шаг рассуждения подробно."
-
-        ReasoningMode.META_PROMPT ->
-            "Перед тем как ответить на задачу, сначала составь " +
-                "оптимальный промпт для её решения, а затем используй его для получения ответа."
-
-        ReasoningMode.EXPERT_PANEL -> """
-            Ты группа из трёх экспертов:
-            1. Аналитик - анализирует условие задачи и выделяет ключевые моменты
-            2. Инженер - предлагает конкретное решение
-            3. Критик - проверяет решение на ошибки и предлагает улучшения
-            
-            Каждый эксперт должен дать своё мнение по очереди. В конце дай итоговое решение.
-        """.trimIndent()
     }
 }
 
@@ -189,8 +105,9 @@ fun rememberChatStateHolder(): ChatStateHolder {
     val client = remember { ChatClient() }
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+    val repository = remember(client) { ChatRepositoryImpl(client, scope) }
 
-    return remember(client, scope, listState) {
-        ChatStateHolder(client, scope, listState)
+    return remember(repository, scope, listState) {
+        ChatStateHolder(repository, scope, listState)
     }
 }
