@@ -1,3 +1,15 @@
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import model.ResponseFormat
 
 data class ApiSettings(
@@ -26,5 +38,159 @@ data class ApiSettings(
             responseFormat = format,
             temperature = temperature,
         )
+    }
+}
+
+data class SettingsState(
+    val settings: ApiSettings = ApiSettings(),
+    val isLoading: Boolean = false,
+    val validationError: String? = null,
+    val isApiKeyVisible: Boolean = false,
+)
+
+sealed class SettingsIntent {
+    data class UpdateApiKey(val apiKey: String) : SettingsIntent()
+    data class UpdateModel(val model: String) : SettingsIntent()
+    data class UpdateMaxTokens(val maxTokens: Int?) : SettingsIntent()
+    data class UpdateTemperature(val temperature: Double) : SettingsIntent()
+    data class UpdateStopSequences(val stopSequences: String) : SettingsIntent()
+    data class UpdateResponseFormat(val responseFormat: String) : SettingsIntent()
+    data class UpdateSettings(val settings: ApiSettings) : SettingsIntent()
+    data object SaveSettings : SettingsIntent()
+    data object ResetSettings : SettingsIntent()
+    data object ClearValidationError : SettingsIntent()
+    data object ToggleApiKeyVisibility : SettingsIntent()
+    data class ValidateApiKey(val apiKey: String) : SettingsIntent()
+}
+
+sealed class SettingsSideEffect {
+    data class ShowToast(val message: String) : SettingsSideEffect()
+    data object SettingsSaved : SettingsSideEffect()
+    data class ValidationError(val error: String) : SettingsSideEffect()
+}
+
+class SettingsViewModel(
+    private val viewModelScope: CoroutineScope,
+    private val onSettingsSaved: (ApiSettings) -> Unit = {},
+) {
+    private val _uiState = MutableStateFlow(SettingsState())
+    val uiState: StateFlow<SettingsState> = _uiState.asStateFlow()
+
+    private val _sideEffects = MutableSharedFlow<SettingsSideEffect>()
+    val sideEffects: SharedFlow<SettingsSideEffect> = _sideEffects.asSharedFlow()
+
+    val state: SettingsState get() = _uiState.value
+
+    var settings: ApiSettings
+        get() = _uiState.value.settings
+        set(value) = _uiState.update { it.copy(settings = value) }
+
+    var isLoading: Boolean
+        get() = _uiState.value.isLoading
+        set(value) = _uiState.update { it.copy(isLoading = value) }
+
+    var validationError: String?
+        get() = _uiState.value.validationError
+        set(value) = _uiState.update { it.copy(validationError = value) }
+
+    var isApiKeyVisible: Boolean
+        get() = _uiState.value.isApiKeyVisible
+        set(value) = _uiState.update { it.copy(isApiKeyVisible = value) }
+
+    fun processIntent(intent: SettingsIntent) {
+        when (intent) {
+            is SettingsIntent.UpdateApiKey -> updateApiKey(intent.apiKey)
+            is SettingsIntent.UpdateModel -> updateModel(intent.model)
+            is SettingsIntent.UpdateMaxTokens -> updateMaxTokens(intent.maxTokens)
+            is SettingsIntent.UpdateTemperature -> updateTemperature(intent.temperature)
+            is SettingsIntent.UpdateStopSequences -> updateStopSequences(intent.stopSequences)
+            is SettingsIntent.UpdateResponseFormat -> updateResponseFormat(intent.responseFormat)
+            is SettingsIntent.UpdateSettings -> updateSettings(intent.settings)
+            is SettingsIntent.SaveSettings -> saveSettings()
+            is SettingsIntent.ResetSettings -> resetSettings()
+            is SettingsIntent.ClearValidationError -> clearValidationError()
+            is SettingsIntent.ToggleApiKeyVisibility -> toggleApiKeyVisibility()
+            is SettingsIntent.ValidateApiKey -> validateApiKey(intent.apiKey)
+        }
+    }
+
+    private fun updateApiKey(apiKey: String) {
+        _uiState.update { it.copy(settings = it.settings.copy(apiKey = apiKey)) }
+    }
+
+    private fun updateModel(model: String) {
+        _uiState.update { it.copy(settings = it.settings.copy(model = model)) }
+    }
+
+    private fun updateMaxTokens(maxTokens: Int?) {
+        _uiState.update { it.copy(settings = it.settings.copy(maxTokens = maxTokens)) }
+    }
+
+    private fun updateTemperature(temperature: Double) {
+        _uiState.update { it.copy(settings = it.settings.copy(temperature = temperature)) }
+    }
+
+    private fun updateStopSequences(stopSequences: String) {
+        _uiState.update { it.copy(settings = it.settings.copy(stopSequences = stopSequences)) }
+    }
+
+    private fun updateResponseFormat(responseFormat: String) {
+        _uiState.update { it.copy(settings = it.settings.copy(responseFormat = responseFormat)) }
+    }
+
+    fun updateSettings(newSettings: ApiSettings) {
+        _uiState.update { it.copy(settings = newSettings) }
+    }
+
+    private fun saveSettings() {
+        val currentSettings = _uiState.value.settings
+        if (validateSettings(currentSettings)) {
+            onSettingsSaved(currentSettings)
+            viewModelScope.launch {
+                _sideEffects.emit(SettingsSideEffect.SettingsSaved)
+            }
+        }
+    }
+
+    private fun resetSettings() {
+        _uiState.update { it.copy(settings = ApiSettings(), validationError = null) }
+    }
+
+    private fun clearValidationError() {
+        _uiState.update { it.copy(validationError = null) }
+    }
+
+    private fun toggleApiKeyVisibility() {
+        _uiState.update { it.copy(isApiKeyVisible = !it.isApiKeyVisible) }
+    }
+
+    private fun validateApiKey(apiKey: String) {
+        val error = if (apiKey.isBlank()) "API key cannot be empty" else null
+        _uiState.update { it.copy(validationError = error) }
+    }
+
+    private fun validateSettings(settings: ApiSettings): Boolean {
+        if (settings.apiKey.isBlank()) {
+            _uiState.update { it.copy(validationError = "API key is required") }
+            return false
+        }
+        if (settings.temperature < 0.0 || settings.temperature > 2.0) {
+            _uiState.update { it.copy(validationError = "Temperature must be between 0.0 and 2.0") }
+            return false
+        }
+        _uiState.update { it.copy(validationError = null) }
+        return true
+    }
+
+    fun loadSettings(settings: ApiSettings) {
+        _uiState.update { it.copy(settings = settings) }
+    }
+}
+
+@Composable
+fun rememberSettingsViewModel(onSettingsSaved: (ApiSettings) -> Unit = {},): SettingsViewModel {
+    val scope = rememberCoroutineScope()
+    return remember(scope, onSettingsSaved) {
+        SettingsViewModel(scope, onSettingsSaved)
     }
 }
