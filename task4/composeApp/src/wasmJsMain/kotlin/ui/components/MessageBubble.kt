@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,11 +39,25 @@ import model.ChatMessage
 import ui.animations.slideInAnimation
 import ui.theme.AppColors
 
+object MessageBubbleTags {
+    const val ROOT = "message_bubble_root"
+    const val SURFACE = "message_bubble_surface"
+    const val ROLE_TEXT = "message_bubble_role_text"
+    const val REASONING_INDICATOR = "message_bubble_reasoning_indicator"
+    const val REASONING_TEXT = "message_bubble_reasoning_text"
+    const val REASONING_EXPAND_ICON = "message_bubble_reasoning_expand_icon"
+    const val MARKDOWN_CONTENT = "message_bubble_markdown_content"
+    const val TOKENS_INFO = "message_bubble_tokens_info"
+    const val TYPING_INDICATOR = "typing_indicator"
+}
+
 @Composable
 fun MessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
     val isUser = message.role == "user"
 
     var visible by remember { mutableStateOf(false) }
+    var isReasoningExpanded by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         visible = true
     }
@@ -51,10 +68,17 @@ fun MessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
         label = "alpha",
     )
 
+    val rotation by animateFloatAsState(
+        targetValue = if (isReasoningExpanded) 90f else 0f,
+        animationSpec = tween(200),
+        label = "rotation",
+    )
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .alpha(alpha)
+            .testTag(MessageBubbleTags.ROOT)
             .then(slideInAnimation()),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
     ) {
@@ -72,6 +96,7 @@ fun MessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
             ),
             modifier = Modifier
                 .fillMaxWidth(0.85f)
+                .testTag(MessageBubbleTags.SURFACE)
                 .then(
                     if (message.isReasoningContent) {
                         Modifier.border(2.dp, AppColors.Warning, RoundedCornerShape(16.dp))
@@ -92,12 +117,18 @@ fun MessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
                         else -> AppColors.Secondary
                     },
                     style = MaterialTheme.typography.caption,
+                    modifier = Modifier.testTag(MessageBubbleTags.ROLE_TEXT),
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
 
                 if (message.isReasoningContent) {
-                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        modifier = Modifier
+                            .testTag(MessageBubbleTags.REASONING_INDICATOR)
+                            .clickable { isReasoningExpanded = !isReasoningExpanded },
+                    ) {
                         Text(
                             text = "\u26A0\uFE0F",
                             fontSize = 14.sp,
@@ -108,21 +139,34 @@ fun MessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
                             color = AppColors.Warning,
                             style = MaterialTheme.typography.caption,
                             fontWeight = FontWeight.Bold,
+                            modifier = Modifier.testTag(MessageBubbleTags.REASONING_TEXT),
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "\u25B6",
+                            fontSize = 10.sp,
+                            modifier = Modifier
+                                .testTag(MessageBubbleTags.REASONING_EXPAND_ICON)
+                                .rotate(rotation),
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                Markdown(
-                    content = message.content,
-                    colors = markdownColor(text = AppColors.TextPrimary),
-                    typography = markdownTypography(),
-                )
+                if (!message.isReasoningContent || isReasoningExpanded) {
+                    Markdown(
+                        content = message.content,
+                        colors = markdownColor(text = AppColors.TextPrimary),
+                        typography = markdownTypography(),
+                        modifier = Modifier.testTag(MessageBubbleTags.MARKDOWN_CONTENT),
+                    )
+                }
 
                 message.tokensUsed?.let { tokens ->
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        modifier = Modifier.testTag(MessageBubbleTags.TOKENS_INFO),
                     ) {
                         Text(
                             text = "$tokens tokens",
@@ -154,7 +198,9 @@ fun TypingIndicator() {
             bottomStart = 16.dp,
             bottomEnd = 16.dp,
         ),
-        modifier = Modifier.fillMaxWidth(0.3f),
+        modifier = Modifier
+            .fillMaxWidth(0.3f)
+            .testTag(MessageBubbleTags.TYPING_INDICATOR),
     ) {
         Row(
             modifier = Modifier.padding(14.dp),

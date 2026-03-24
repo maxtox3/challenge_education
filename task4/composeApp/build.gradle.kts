@@ -53,6 +53,7 @@ kotlin {
         val wasmJsTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation("org.jetbrains.compose.ui:ui-test:1.10.2")
             }
         }
     }

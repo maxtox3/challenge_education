@@ -7,10 +7,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import model.MetricRecord
 import ui.theme.AppColors
+
+object MetricsDialogTags {
+    const val ROOT = "metrics_dialog_root"
+    const val CONTENT_COLUMN = "metrics_dialog_content"
+    const val METRICS_LIST = "metrics_dialog_list"
+    const val EMPTY_STATE = "metrics_dialog_empty_state"
+    const val METRICS_TABLE = "metrics_table"
+    const val PROMPT_TEXT = "metrics_prompt_text"
+}
 
 @Composable
 fun MetricsDialog(metrics: List<MetricRecord>, onDismiss: () -> Unit,) {
@@ -21,10 +31,13 @@ fun MetricsDialog(metrics: List<MetricRecord>, onDismiss: () -> Unit,) {
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.8f)
-                .padding(16.dp),
+                .padding(16.dp)
+                .testTag(MetricsDialogTags.ROOT),
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier
+                    .padding(20.dp)
+                    .testTag(MetricsDialogTags.CONTENT_COLUMN),
             ) {
                 DialogHeader(
                     title = "Metrics Comparison",
@@ -36,20 +49,24 @@ fun MetricsDialog(metrics: List<MetricRecord>, onDismiss: () -> Unit,) {
                 if (metrics.isEmpty()) {
                     EmptyStateBox(
                         message = "No metrics yet.\nSend some messages to see comparison.",
+                        modifier = Modifier.testTag(MetricsDialogTags.EMPTY_STATE),
                     )
                 } else {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
-                            .horizontalScroll(rememberScrollState()),
+                            .horizontalScroll(rememberScrollState())
+                            .testTag(MetricsDialogTags.METRICS_LIST),
                     ) {
                         groupedByPrompt.forEach { (prompt, records) ->
                             Text(
                                 text = "Prompt: \"${prompt.take(50)}${if (prompt.length > 50) "..." else ""}\"",
                                 style = MaterialTheme.typography.subtitle2,
                                 color = AppColors.TextSecondary,
-                                modifier = Modifier.padding(bottom = 8.dp),
+                                modifier = Modifier
+                                    .padding(bottom = 8.dp)
+                                    .testTag(MetricsDialogTags.PROMPT_TEXT),
                             )
 
                             MetricsTable(records)
@@ -67,7 +84,7 @@ fun MetricsDialog(metrics: List<MetricRecord>, onDismiss: () -> Unit,) {
 private fun MetricsTable(records: List<MetricRecord>) {
     val headers = listOf("Metric") + records.map { it.constraints.toDisplayString() }
 
-    Column {
+    Column(modifier = Modifier.testTag(MetricsDialogTags.METRICS_TABLE)) {
         Row {
             headers.forEachIndexed { index, header ->
                 Box(

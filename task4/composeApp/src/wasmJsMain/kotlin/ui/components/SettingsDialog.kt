@@ -10,10 +10,26 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import ui.theme.AppColors
 import kotlin.math.roundToInt
+
+object SettingsDialogTags {
+    const val ROOT = "settings_dialog_root"
+    const val DIALOG_SURFACE = "settings_dialog_surface"
+    const val TITLE = "settings_dialog_title"
+    const val API_KEY_FIELD = "settings_dialog_api_key_field"
+    const val MODEL_FIELD = "settings_dialog_model_field"
+    const val MAX_TOKENS_FIELD = "settings_dialog_max_tokens_field"
+    const val TEMPERATURE_SLIDER = "settings_dialog_temperature_slider"
+    const val STOP_SEQUENCES_FIELD = "settings_dialog_stop_sequences_field"
+    const val TEXT_FORMAT_CHIP = "settings_dialog_text_format_chip"
+    const val JSON_FORMAT_CHIP = "settings_dialog_json_format_chip"
+    const val CANCEL_BUTTON = "settings_dialog_cancel_button"
+    const val SAVE_BUTTON = "settings_dialog_save_button"
+}
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -29,17 +45,20 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
         DialogSurface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(16.dp)
+                .testTag(SettingsDialogTags.DIALOG_SURFACE),
         ) {
             Column(
                 modifier = Modifier
                     .padding(20.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScroll(rememberScrollState())
+                    .testTag(SettingsDialogTags.ROOT),
             ) {
                 Text(
                     text = "API Settings",
                     style = MaterialTheme.typography.h6,
                     color = AppColors.TextPrimary,
+                    modifier = Modifier.testTag(SettingsDialogTags.TITLE),
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -48,7 +67,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                     value = apiKey,
                     onValueChange = { apiKey = it },
                     label = { Text("API Key", color = AppColors.TextSecondary) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag(SettingsDialogTags.API_KEY_FIELD),
                     colors = primaryTextFieldColors(),
                 )
 
@@ -58,7 +77,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                     value = model,
                     onValueChange = { model = it },
                     label = { Text("Model", color = AppColors.TextSecondary) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag(SettingsDialogTags.MODEL_FIELD),
                     colors = primaryTextFieldColors(),
                 )
 
@@ -72,7 +91,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                         }
                     },
                     label = { Text("Max Tokens (empty = unlimited)", color = AppColors.TextSecondary) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag(SettingsDialogTags.MAX_TOKENS_FIELD),
                     colors = primaryTextFieldColors(),
                 )
 
@@ -88,7 +107,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                     value = temperature.toFloat(),
                     onValueChange = { temperature = it.toDouble() },
                     valueRange = 0f..2f,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag(SettingsDialogTags.TEMPERATURE_SLIDER),
                     colors = SliderDefaults.colors(
                         thumbColor = AppColors.Primary,
                         activeTrackColor = AppColors.Primary,
@@ -101,7 +120,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                     value = stopSequences,
                     onValueChange = { stopSequences = it },
                     label = { Text("Stop Sequences (comma-separated)", color = AppColors.TextSecondary) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag(SettingsDialogTags.STOP_SEQUENCES_FIELD),
                     colors = primaryTextFieldColors(),
                 )
 
@@ -121,11 +140,13 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                         selected = responseFormat == "text",
                         onClick = { responseFormat = "text" },
                         label = "Text",
+                        modifier = Modifier.testTag(SettingsDialogTags.TEXT_FORMAT_CHIP),
                     )
                     ResponseFormatChip(
                         selected = responseFormat == "json",
                         onClick = { responseFormat = "json" },
                         label = "JSON",
+                        modifier = Modifier.testTag(SettingsDialogTags.JSON_FORMAT_CHIP),
                     )
                 }
 
@@ -136,7 +157,10 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(onClick = onDismiss) {
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.testTag(SettingsDialogTags.CANCEL_BUTTON),
+                    ) {
                         Text("Cancel", color = AppColors.TextSecondary)
                     }
 
@@ -157,6 +181,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                             )
                         },
                         colors = primaryButtonColors(),
+                        modifier = Modifier.testTag(SettingsDialogTags.SAVE_BUTTON),
                     ) {
                         Text("Save", color = Color.White)
                     }
@@ -168,11 +193,12 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun ResponseFormatChip(selected: Boolean, onClick: () -> Unit, label: String) {
+private fun ResponseFormatChip(selected: Boolean, onClick: () -> Unit, label: String, modifier: Modifier = Modifier,) {
     Surface(
         color = if (selected) AppColors.Primary else AppColors.SurfaceLight,
         shape = RoundedCornerShape(16.dp),
         onClick = onClick,
+        modifier = modifier,
     ) {
         Text(
             text = label,

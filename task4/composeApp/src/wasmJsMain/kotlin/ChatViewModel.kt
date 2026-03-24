@@ -218,7 +218,7 @@ class ChatViewModel(
 
 @Composable
 fun rememberChatViewModel(): ChatViewModel {
-    val client = remember { ChatClient() }
+    val client = remember { ChatClientImpl() }
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val repository = remember(client) { ChatRepositoryImpl(client, scope) }

@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -40,6 +41,21 @@ import com.mikepenz.markdown.m3.markdownColor
 import model.ReasoningComparison
 import model.ReasoningMode
 import ui.theme.AppColors
+
+object ReasoningDialogTags {
+    const val ROOT = "reasoning_dialog_root"
+    const val DIALOG_SURFACE = "reasoning_dialog_surface"
+    const val TITLE = "reasoning_dialog_title"
+    const val CLOSE_BUTTON = "reasoning_dialog_close_button"
+    const val TASK_INPUT_FIELD = "reasoning_dialog_task_input"
+    const val RUN_BUTTON = "reasoning_dialog_run_button"
+    const val TAB_ROW = "reasoning_dialog_tab_row"
+    const val CONTENT_AREA = "reasoning_dialog_content_area"
+    const val LOADING_INDICATOR = "reasoning_dialog_loading"
+    const val ERROR_TEXT = "reasoning_dialog_error"
+    const val EMPTY_STATE = "reasoning_dialog_empty_state"
+    const val COMPARISON_TABLE = "reasoning_dialog_comparison_table"
+}
 
 @Composable
 fun ReasoningDialog(
@@ -60,12 +76,15 @@ fun ReasoningDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.9f)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 24.dp)
+                .testTag(ReasoningDialogTags.DIALOG_SURFACE),
             shape = RoundedCornerShape(16.dp),
             color = AppColors.Background,
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .testTag(ReasoningDialogTags.ROOT),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -77,8 +96,12 @@ fun ReasoningDialog(
                         style = MaterialTheme.typography.h6,
                         color = AppColors.TextPrimary,
                         fontWeight = FontWeight.Bold,
+                        modifier = Modifier.testTag(ReasoningDialogTags.TITLE),
                     )
-                    TextButton(onClick = onDismiss) {
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.testTag(ReasoningDialogTags.CLOSE_BUTTON),
+                    ) {
                         Text("Закрыть", color = AppColors.Primary)
                     }
                 }
@@ -89,7 +112,9 @@ fun ReasoningDialog(
                     value = taskInput,
                     onValueChange = { taskInput = it },
                     label = { Text("Задача") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(ReasoningDialogTags.TASK_INPUT_FIELD),
                     textStyle = MaterialTheme.typography.body2,
                 )
 
@@ -97,7 +122,9 @@ fun ReasoningDialog(
 
                 Button(
                     onClick = { onRunComparison(taskInput) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(ReasoningDialogTags.RUN_BUTTON),
                     enabled = !isLoading && taskInput.isNotBlank(),
                     colors = primaryButtonColors(),
                 ) {
@@ -123,6 +150,7 @@ fun ReasoningDialog(
                         contentColor = AppColors.Primary,
                         indicator = { },
                         divider = { },
+                        modifier = Modifier.testTag(ReasoningDialogTags.TAB_ROW),
                     ) {
                         ReasoningMode.entries.forEachIndexed { index, mode ->
                             Tab(
@@ -158,12 +186,15 @@ fun ReasoningDialog(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth()
-                            .background(AppColors.Surface, RoundedCornerShape(8.dp)),
+                            .background(AppColors.Surface, RoundedCornerShape(8.dp))
+                            .testTag(ReasoningDialogTags.CONTENT_AREA),
                     ) {
                         when {
                             currentResult?.isLoading == true -> {
                                 Column(
-                                    modifier = Modifier.align(Alignment.Center),
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .testTag(ReasoningDialogTags.LOADING_INDICATOR),
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                 ) {
                                     CircularProgressIndicator(color = AppColors.Primary)
@@ -174,7 +205,9 @@ fun ReasoningDialog(
 
                             currentResult?.error != null -> {
                                 Column(
-                                    modifier = Modifier.padding(16.dp),
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .testTag(ReasoningDialogTags.ERROR_TEXT),
                                 ) {
                                     Text("Ошибка", color = AppColors.Error, fontWeight = FontWeight.Bold)
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -249,13 +282,17 @@ fun ReasoningDialog(
 
                     if (comparison.isComplete) {
                         Spacer(modifier = Modifier.height(12.dp))
-                        ComparisonTable(comparison)
+                        ComparisonTable(
+                            comparison = comparison,
+                            modifier = Modifier.testTag(ReasoningDialogTags.COMPARISON_TABLE),
+                        )
                     }
                 } else {
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .testTag(ReasoningDialogTags.EMPTY_STATE),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -295,9 +332,9 @@ private fun MetricBadge(label: String, value: String) {
 }
 
 @Composable
-private fun ComparisonTable(comparison: ReasoningComparison) {
+private fun ComparisonTable(comparison: ReasoningComparison, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         backgroundColor = AppColors.Surface,
         elevation = 4.dp,
     ) {

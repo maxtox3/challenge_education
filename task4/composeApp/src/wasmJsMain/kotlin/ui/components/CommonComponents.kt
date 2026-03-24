@@ -7,16 +7,38 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ui.theme.AppColors
+
+object DialogSurfaceTags {
+    const val ROOT = "dialog_surface_root"
+}
+
+object DialogHeaderTags {
+    const val ROOT = "dialog_header_root"
+    const val TITLE = "dialog_header_title"
+    const val CLOSE_BUTTON = "dialog_header_close_button"
+}
+
+object LoadingButtonContentTags {
+    const val ROOT = "loading_button_content_root"
+    const val LOADING_INDICATOR = "loading_button_indicator"
+    const val BUTTON_TEXT = "loading_button_text"
+}
+
+object EmptyStateBoxTags {
+    const val ROOT = "empty_state_box_root"
+    const val MESSAGE = "empty_state_box_message"
+}
 
 @Composable
 fun DialogSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Surface(
         color = AppColors.Surface,
         shape = RoundedCornerShape(16.dp),
-        modifier = modifier,
+        modifier = modifier.testTag(DialogSurfaceTags.ROOT),
         content = content,
     )
 }
@@ -24,7 +46,7 @@ fun DialogSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit
 @Composable
 fun DialogHeader(title: String, onDismiss: () -> Unit, dismissText: String = "Close",) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag(DialogHeaderTags.ROOT),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -33,8 +55,12 @@ fun DialogHeader(title: String, onDismiss: () -> Unit, dismissText: String = "Cl
             style = MaterialTheme.typography.h6,
             color = AppColors.TextPrimary,
             fontWeight = FontWeight.Bold,
+            modifier = Modifier.testTag(DialogHeaderTags.TITLE),
         )
-        TextButton(onClick = onDismiss) {
+        TextButton(
+            onClick = onDismiss,
+            modifier = Modifier.testTag(DialogHeaderTags.CLOSE_BUTTON),
+        ) {
             Text(dismissText, color = AppColors.TextSecondary)
         }
     }
@@ -57,29 +83,36 @@ fun primaryButtonColors() = ButtonDefaults.buttonColors(
 
 @Composable
 fun LoadingButtonContent(isLoading: Boolean, loadingText: String = "Loading...", buttonText: String = "Submit",) {
-    if (isLoading) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(20.dp),
-            color = Color.White,
-            strokeWidth = 2.dp,
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(loadingText, color = Color.White)
-    } else {
-        Text(buttonText, color = Color.White)
+    Row(
+        modifier = Modifier.testTag(LoadingButtonContentTags.ROOT),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp).testTag(LoadingButtonContentTags.LOADING_INDICATOR),
+                color = Color.White,
+                strokeWidth = 2.dp,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(loadingText, color = Color.White, modifier = Modifier.testTag(LoadingButtonContentTags.BUTTON_TEXT))
+        } else {
+            Text(buttonText, color = Color.White, modifier = Modifier.testTag(LoadingButtonContentTags.BUTTON_TEXT))
+        }
     }
 }
 
 @Composable
 fun EmptyStateBox(message: String, modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().testTag(EmptyStateBoxTags.ROOT),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = message,
             color = AppColors.TextMuted,
             style = MaterialTheme.typography.body1,
+            modifier = Modifier.testTag(EmptyStateBoxTags.MESSAGE),
         )
     }
 }

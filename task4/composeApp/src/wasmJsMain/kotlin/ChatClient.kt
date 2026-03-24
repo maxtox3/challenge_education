@@ -24,7 +24,17 @@ data class ResponseConstraints(
     val temperature: Double? = null,
 )
 
-class ChatClient {
+interface ChatClient {
+    suspend fun sendMessage(
+        apiKey: String,
+        model: String,
+        messages: List<ChatMessage>,
+        constraints: ResponseConstraints = ResponseConstraints(),
+        systemPrompt: String? = null,
+    ): Result<ChatMessage>
+}
+
+class ChatClientImpl : ChatClient {
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
@@ -39,12 +49,12 @@ class ChatClient {
 
     private val baseUrl = "https://api.z.ai/api/coding/paas/v4/chat/completions"
 
-    suspend fun sendMessage(
+    override suspend fun sendMessage(
         apiKey: String,
         model: String,
         messages: List<ChatMessage>,
-        constraints: ResponseConstraints = ResponseConstraints(),
-        systemPrompt: String? = null,
+        constraints: ResponseConstraints,
+        systemPrompt: String?,
     ): Result<ChatMessage> {
         return try {
             val allMessages = buildList {
