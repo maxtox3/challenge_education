@@ -48,38 +48,39 @@ class ChatStateHolder(
     }
 
     fun sendMessage() {
-        if (inputText.isNotBlank() && !isLoading) {
-            val promptText = inputText
-            val userMessage = ChatMessage(
-                role = "user",
-                content = inputText,
-            )
-            messages = messages + userMessage
-            inputText = ""
-            isLoading = true
-            errorMessage = null
+        when (val result = MessageHandler.validateAndPrepare(inputText, isLoading)) {
+            is MessageHandler.ValidationResult.Valid -> {
+                messages = messages + result.message
+                inputText = ""
+                isLoading = true
+                errorMessage = null
 
-            scope.launch {
-                val result = repository.sendMessage(
-                    prompt = promptText,
-                    messages = messages,
-                    settings = settings,
-                )
+                scope.launch {
+                    val apiResult = repository.sendMessage(
+                        prompt = result.prompt,
+                        messages = messages,
+                        settings = settings,
+                    )
 
-                isLoading = false
+                    isLoading = false
 
-                when (result) {
-                    is SendMessageResult.Success -> {
-                        messages = messages + result.response
-                        metricCounter++
-                        val metric = result.metric.copy(id = metricCounter)
-                        metrics = metrics + metric
-                    }
+                    when (apiResult) {
+                        is SendMessageResult.Success -> {
+                            messages = messages + apiResult.response
+                            metricCounter++
+                            val metric = apiResult.metric.copy(id = metricCounter)
+                            metrics = metrics + metric
+                        }
 
-                    is SendMessageResult.Error -> {
-                        errorMessage = result.message
+                        is SendMessageResult.Error -> {
+                            errorMessage = apiResult.message
+                        }
                     }
                 }
+            }
+
+            is MessageHandler.ValidationResult.Invalid -> {
+                // Input is blank or already loading - do nothing
             }
         }
     }
