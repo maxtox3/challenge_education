@@ -22,6 +22,8 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -60,11 +62,12 @@ object AppTags {
 
 @Composable
 fun App() {
-    val state = rememberChatViewModel()
+    val viewModel = rememberChatViewModel()
+    val state by viewModel.uiState.collectAsState()
 
     LaunchedEffect(state.messages.size) {
         if (state.messages.isNotEmpty()) {
-            state.listState.animateScrollToItem(state.messages.size - 1)
+            viewModel.listState.animateScrollToItem(state.messages.size - 1)
         }
     }
 
@@ -72,15 +75,15 @@ fun App() {
         if (state.showSettings) {
             SettingsDialog(
                 currentSettings = state.settings,
-                onDismiss = { state.showSettings = false },
-                onSave = { newSettings -> state.updateSettings(newSettings) },
+                onDismiss = { viewModel.processIntent(ChatIntent.ToggleSettings(false)) },
+                onSave = { newSettings -> viewModel.processIntent(ChatIntent.UpdateSettings(newSettings)) },
             )
         }
 
         if (state.showMetrics) {
             MetricsDialog(
                 metrics = state.metrics,
-                onDismiss = { state.showMetrics = false },
+                onDismiss = { viewModel.processIntent(ChatIntent.ToggleMetrics(false)) },
             )
         }
 
@@ -88,8 +91,8 @@ fun App() {
             ReasoningDialog(
                 comparison = state.reasoningComparison,
                 isLoading = state.isReasoningLoading,
-                onDismiss = { state.showReasoning = false },
-                onRunComparison = { task -> state.runReasoningComparison(task) },
+                onDismiss = { viewModel.processIntent(ChatIntent.ToggleReasoning(false)) },
+                onRunComparison = { task -> viewModel.processIntent(ChatIntent.RunReasoningComparison(task)) },
             )
         }
 
@@ -125,7 +128,7 @@ fun App() {
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconButton(
-                        onClick = { state.clearChat() },
+                        onClick = { viewModel.processIntent(ChatIntent.ClearChat) },
                         modifier = Modifier
                             .background(AppColors.SurfaceLight, CircleShape)
                             .size(40.dp)
@@ -139,7 +142,7 @@ fun App() {
                     }
 
                     IconButton(
-                        onClick = { state.showMetrics = true },
+                        onClick = { viewModel.processIntent(ChatIntent.ToggleMetrics(true)) },
                         modifier = Modifier
                             .background(
                                 if (state.metrics.isNotEmpty()) AppColors.Primary else AppColors.SurfaceLight,
@@ -156,7 +159,7 @@ fun App() {
                     }
 
                     IconButton(
-                        onClick = { state.showReasoning = true },
+                        onClick = { viewModel.processIntent(ChatIntent.ToggleReasoning(true)) },
                         modifier = Modifier
                             .background(AppColors.SurfaceLight, CircleShape)
                             .size(40.dp)
@@ -170,7 +173,7 @@ fun App() {
                     }
 
                     IconButton(
-                        onClick = { state.showSettings = true },
+                        onClick = { viewModel.processIntent(ChatIntent.ToggleSettings(true)) },
                         modifier = Modifier
                             .background(AppColors.Primary, CircleShape)
                             .size(40.dp)
@@ -216,7 +219,7 @@ fun App() {
                         modifier = Modifier
                             .fillMaxSize()
                             .testTag(AppTags.MESSAGE_LIST),
-                        state = state.listState,
+                        state = viewModel.listState,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(vertical = 8.dp),
                     ) {
@@ -258,7 +261,7 @@ fun App() {
                             style = MaterialTheme.typography.body2,
                         )
                         IconButton(
-                            onClick = { state.processIntent(ChatIntent.ClearError) },
+                            onClick = { viewModel.processIntent(ChatIntent.ClearError) },
                             modifier = Modifier.testTag(AppTags.ERROR_DISMISS_BUTTON),
                         ) {
                             Icon(
@@ -275,8 +278,8 @@ fun App() {
 
             ChatInput(
                 value = state.inputText,
-                onValueChange = { state.inputText = it },
-                onSend = { state.sendMessage() },
+                onValueChange = { viewModel.processIntent(ChatIntent.UpdateInputText(it)) },
+                onSend = { viewModel.processIntent(ChatIntent.SendMessage) },
                 isLoading = state.isLoading,
             )
         }
@@ -284,10 +287,12 @@ fun App() {
 }
 
 @Composable
-fun AppWithState(state: ChatViewModel) {
+fun AppWithState(viewModel: ChatViewModel) {
+    val state by viewModel.uiState.collectAsState()
+
     LaunchedEffect(state.messages.size) {
         if (state.messages.isNotEmpty()) {
-            state.listState.animateScrollToItem(state.messages.size - 1)
+            viewModel.listState.animateScrollToItem(state.messages.size - 1)
         }
     }
 
@@ -295,15 +300,15 @@ fun AppWithState(state: ChatViewModel) {
         if (state.showSettings) {
             SettingsDialog(
                 currentSettings = state.settings,
-                onDismiss = { state.showSettings = false },
-                onSave = { newSettings -> state.updateSettings(newSettings) },
+                onDismiss = { viewModel.processIntent(ChatIntent.ToggleSettings(false)) },
+                onSave = { newSettings -> viewModel.processIntent(ChatIntent.UpdateSettings(newSettings)) },
             )
         }
 
         if (state.showMetrics) {
             MetricsDialog(
                 metrics = state.metrics,
-                onDismiss = { state.showMetrics = false },
+                onDismiss = { viewModel.processIntent(ChatIntent.ToggleMetrics(false)) },
             )
         }
 
@@ -311,8 +316,8 @@ fun AppWithState(state: ChatViewModel) {
             ReasoningDialog(
                 comparison = state.reasoningComparison,
                 isLoading = state.isReasoningLoading,
-                onDismiss = { state.showReasoning = false },
-                onRunComparison = { task -> state.runReasoningComparison(task) },
+                onDismiss = { viewModel.processIntent(ChatIntent.ToggleReasoning(false)) },
+                onRunComparison = { task -> viewModel.processIntent(ChatIntent.RunReasoningComparison(task)) },
             )
         }
 
@@ -348,7 +353,7 @@ fun AppWithState(state: ChatViewModel) {
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconButton(
-                        onClick = { state.clearChat() },
+                        onClick = { viewModel.processIntent(ChatIntent.ClearChat) },
                         modifier = Modifier
                             .background(AppColors.SurfaceLight, CircleShape)
                             .size(40.dp)
@@ -362,7 +367,7 @@ fun AppWithState(state: ChatViewModel) {
                     }
 
                     IconButton(
-                        onClick = { state.showMetrics = true },
+                        onClick = { viewModel.processIntent(ChatIntent.ToggleMetrics(true)) },
                         modifier = Modifier
                             .background(
                                 if (state.metrics.isNotEmpty()) AppColors.Primary else AppColors.SurfaceLight,
@@ -379,7 +384,7 @@ fun AppWithState(state: ChatViewModel) {
                     }
 
                     IconButton(
-                        onClick = { state.showReasoning = true },
+                        onClick = { viewModel.processIntent(ChatIntent.ToggleReasoning(true)) },
                         modifier = Modifier
                             .background(AppColors.SurfaceLight, CircleShape)
                             .size(40.dp)
@@ -393,7 +398,7 @@ fun AppWithState(state: ChatViewModel) {
                     }
 
                     IconButton(
-                        onClick = { state.showSettings = true },
+                        onClick = { viewModel.processIntent(ChatIntent.ToggleSettings(true)) },
                         modifier = Modifier
                             .background(AppColors.Primary, CircleShape)
                             .size(40.dp)
@@ -439,7 +444,7 @@ fun AppWithState(state: ChatViewModel) {
                         modifier = Modifier
                             .fillMaxSize()
                             .testTag(AppTags.MESSAGE_LIST),
-                        state = state.listState,
+                        state = viewModel.listState,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(vertical = 8.dp),
                     ) {
@@ -481,7 +486,7 @@ fun AppWithState(state: ChatViewModel) {
                             style = MaterialTheme.typography.body2,
                         )
                         IconButton(
-                            onClick = { state.processIntent(ChatIntent.ClearError) },
+                            onClick = { viewModel.processIntent(ChatIntent.ClearError) },
                             modifier = Modifier.testTag(AppTags.ERROR_DISMISS_BUTTON),
                         ) {
                             Icon(
@@ -498,8 +503,8 @@ fun AppWithState(state: ChatViewModel) {
 
             ChatInput(
                 value = state.inputText,
-                onValueChange = { state.inputText = it },
-                onSend = { state.sendMessage() },
+                onValueChange = { viewModel.processIntent(ChatIntent.UpdateInputText(it)) },
+                onSend = { viewModel.processIntent(ChatIntent.SendMessage) },
                 isLoading = state.isLoading,
             )
         }

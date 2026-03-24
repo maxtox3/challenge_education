@@ -44,7 +44,7 @@ class AppUiRealTest {
     @Test
     fun app_displaysEmptyState_whenNoMessages() = runComposeUiTest {
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ROOT).assertExists()
@@ -74,7 +74,7 @@ class AppUiRealTest {
         )
 
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.MESSAGE_LIST).assertExists()
@@ -84,7 +84,7 @@ class AppUiRealTest {
     @Test
     fun app_clearButton_exists() = runComposeUiTest {
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.CLEAR_BUTTON).assertExists()
@@ -93,7 +93,7 @@ class AppUiRealTest {
     @Test
     fun app_metricsButton_exists() = runComposeUiTest {
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.METRICS_BUTTON).assertExists()
@@ -102,7 +102,7 @@ class AppUiRealTest {
     @Test
     fun app_reasoningButton_exists() = runComposeUiTest {
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.REASONING_BUTTON).assertExists()
@@ -111,7 +111,7 @@ class AppUiRealTest {
     @Test
     fun app_settingsButton_exists() = runComposeUiTest {
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.SETTINGS_BUTTON).assertExists()
@@ -138,7 +138,7 @@ class AppUiRealTest {
         )
 
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.MESSAGE_LIST).assertExists()
@@ -151,7 +151,7 @@ class AppUiRealTest {
     @Test
     fun app_metricsButton_opensMetricsDialog() = runComposeUiTest {
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         assertFalse(viewModel.showMetrics)
@@ -164,7 +164,7 @@ class AppUiRealTest {
     @Test
     fun app_reasoningButton_opensReasoningDialog() = runComposeUiTest {
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         assertFalse(viewModel.showReasoning)
@@ -177,7 +177,7 @@ class AppUiRealTest {
     @Test
     fun app_settingsButton_opensSettingsDialog() = runComposeUiTest {
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         assertFalse(viewModel.showSettings)
@@ -192,7 +192,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Test error message"))
 
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertExists()
@@ -205,7 +205,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Test error"))
 
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ERROR_DISMISS_BUTTON).assertExists()
@@ -216,7 +216,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Test error to dismiss"))
 
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertExists()
@@ -229,7 +229,7 @@ class AppUiRealTest {
     @Test
     fun app_noErrorDisplayed_whenNoError() = runComposeUiTest {
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertDoesNotExist()
@@ -238,7 +238,7 @@ class AppUiRealTest {
     @Test
     fun app_loadingIndicator_notShown_whenNotLoading() = runComposeUiTest {
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         assertFalse(viewModel.isLoading)
@@ -250,7 +250,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetLoading(true))
 
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.LOADING_INDICATOR).assertExists()
@@ -259,7 +259,7 @@ class AppUiRealTest {
     @Test
     fun app_header_displaysTitle() = runComposeUiTest {
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.HEADER).assertExists()
@@ -270,7 +270,7 @@ class AppUiRealTest {
     @Test
     fun app_header_displaysModelName() = runComposeUiTest {
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.MODEL_TEXT).assertExists()
@@ -282,7 +282,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Error to dismiss"))
 
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertExists()
@@ -298,7 +298,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Second error"))
 
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithText("Second error").assertExists()
@@ -327,7 +327,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Error"))
 
         setContent {
-            AppWithState(state = viewModel)
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertExists()
