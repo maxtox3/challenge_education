@@ -40,7 +40,7 @@ import ui.theme.AppTheme
 
 @Composable
 fun App() {
-    val state = rememberChatStateHolder()
+    val state = rememberChatViewModel()
 
     LaunchedEffect(state.messages.size) {
         if (state.messages.isNotEmpty()) {
