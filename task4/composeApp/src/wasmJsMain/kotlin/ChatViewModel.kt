@@ -29,53 +29,65 @@ class ChatViewModel(
 
     val state: ChatState get() = _uiState.value
 
-    var inputText: String
-        get() = _uiState.value.inputText
-        set(value) = _uiState.update { it.copy(inputText = value) }
+    var inputText: String by _uiState.typedProp(
+        getter = { it.inputText },
+        setter = { state, value -> state.copy(inputText = value) }
+    )
 
-    var messages: List<ChatMessage>
-        get() = _uiState.value.messages
-        set(value) = _uiState.update { it.copy(messages = value) }
+    var messages: List<ChatMessage> by _uiState.typedProp(
+        getter = { it.messages },
+        setter = { state, value -> state.copy(messages = value) }
+    )
 
-    var isLoading: Boolean
-        get() = _uiState.value.isLoading
-        set(value) = _uiState.update { it.copy(isLoading = value) }
+    var isLoading: Boolean by _uiState.typedProp(
+        getter = { it.isLoading },
+        setter = { state, value -> state.copy(isLoading = value) }
+    )
 
-    var errorMessage: String?
-        get() = _uiState.value.errorMessage
-        set(value) = _uiState.update { it.copy(errorMessage = value) }
+    var errorMessage: String? by _uiState.typedProp(
+        getter = { it.errorMessage },
+        setter = { state, value -> state.copy(errorMessage = value) }
+    )
 
-    var showSettings: Boolean
-        get() = _uiState.value.showSettings
-        set(value) = _uiState.update { it.copy(showSettings = value) }
+    var showSettings: Boolean by _uiState.typedProp(
+        getter = { it.showSettings },
+        setter = { state, value -> state.copy(showSettings = value) }
+    )
 
-    var showMetrics: Boolean
-        get() = _uiState.value.showMetrics
-        set(value) = _uiState.update { it.copy(showMetrics = value) }
+    var showMetrics: Boolean by _uiState.typedProp(
+        getter = { it.showMetrics },
+        setter = { state, value -> state.copy(showMetrics = value) }
+    )
 
-    var showReasoning: Boolean
-        get() = _uiState.value.showReasoning
-        set(value) = _uiState.update { it.copy(showReasoning = value) }
+    var showReasoning: Boolean by _uiState.typedProp(
+        getter = { it.showReasoning },
+        setter = { state, value -> state.copy(showReasoning = value) }
+    )
 
-    var metrics: List<MetricRecord>
-        get() = _uiState.value.metrics
-        set(value) = _uiState.update { it.copy(metrics = value) }
+    var metrics: List<MetricRecord> by _uiState.typedProp(
+        getter = { it.metrics },
+        setter = { state, value -> state.copy(metrics = value) }
+    )
 
-    var metricCounter: Int
-        get() = _uiState.value.metricCounter
-        set(value) = _uiState.update { it.copy(metricCounter = value) }
+    var metricCounter: Int by _uiState.typedProp(
+        getter = { it.metricCounter },
+        setter = { state, value -> state.copy(metricCounter = value) }
+    )
 
-    var settings: ApiSettings
-        get() = _uiState.value.settings
-        set(value) = _uiState.update { it.copy(settings = value) }
+    var settings: ApiSettings by _uiState.typedProp(
+        getter = { it.settings },
+        setter = { state, value -> state.copy(settings = value) }
+    )
 
-    var reasoningComparison: ReasoningComparison
-        get() = _uiState.value.reasoningComparison
-        set(value) = _uiState.update { it.copy(reasoningComparison = value) }
+    var reasoningComparison: ReasoningComparison by _uiState.typedProp(
+        getter = { it.reasoningComparison },
+        setter = { state, value -> state.copy(reasoningComparison = value) }
+    )
 
-    var isReasoningLoading: Boolean
-        get() = _uiState.value.isReasoningLoading
-        set(value) = _uiState.update { it.copy(isReasoningLoading = value) }
+    var isReasoningLoading: Boolean by _uiState.typedProp(
+        getter = { it.isReasoningLoading },
+        setter = { state, value -> state.copy(isReasoningLoading = value) }
+    )
 
     fun processIntent(intent: ChatIntent) {
         when (intent) {

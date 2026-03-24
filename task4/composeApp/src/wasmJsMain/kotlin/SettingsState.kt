@@ -81,21 +81,25 @@ class SettingsViewModel(
 
     val state: SettingsState get() = _uiState.value
 
-    var settings: ApiSettings
-        get() = _uiState.value.settings
-        set(value) = _uiState.update { it.copy(settings = value) }
+    var settings: ApiSettings by _uiState.typedProp(
+        getter = { it.settings },
+        setter = { state, value -> state.copy(settings = value) }
+    )
 
-    var isLoading: Boolean
-        get() = _uiState.value.isLoading
-        set(value) = _uiState.update { it.copy(isLoading = value) }
+    var isLoading: Boolean by _uiState.typedProp(
+        getter = { it.isLoading },
+        setter = { state, value -> state.copy(isLoading = value) }
+    )
 
-    var validationError: String?
-        get() = _uiState.value.validationError
-        set(value) = _uiState.update { it.copy(validationError = value) }
+    var validationError: String? by _uiState.typedProp(
+        getter = { it.validationError },
+        setter = { state, value -> state.copy(validationError = value) }
+    )
 
-    var isApiKeyVisible: Boolean
-        get() = _uiState.value.isApiKeyVisible
-        set(value) = _uiState.update { it.copy(isApiKeyVisible = value) }
+    var isApiKeyVisible: Boolean by _uiState.typedProp(
+        getter = { it.isApiKeyVisible },
+        setter = { state, value -> state.copy(isApiKeyVisible = value) }
+    )
 
     fun processIntent(intent: SettingsIntent) {
         when (intent) {
@@ -115,27 +119,51 @@ class SettingsViewModel(
     }
 
     private fun updateApiKey(apiKey: String) {
-        _uiState.update { it.copy(settings = it.settings.copy(apiKey = apiKey)) }
+        _uiState.updateNested(
+            nestedGetter = { it.settings },
+            nestedSetter = { state, settings -> state.copy(settings = settings) },
+            block = { it.copy(apiKey = apiKey) }
+        )
     }
 
     private fun updateModel(model: String) {
-        _uiState.update { it.copy(settings = it.settings.copy(model = model)) }
+        _uiState.updateNested(
+            nestedGetter = { it.settings },
+            nestedSetter = { state, settings -> state.copy(settings = settings) },
+            block = { it.copy(model = model) }
+        )
     }
 
     private fun updateMaxTokens(maxTokens: Int?) {
-        _uiState.update { it.copy(settings = it.settings.copy(maxTokens = maxTokens)) }
+        _uiState.updateNested(
+            nestedGetter = { it.settings },
+            nestedSetter = { state, settings -> state.copy(settings = settings) },
+            block = { it.copy(maxTokens = maxTokens) }
+        )
     }
 
     private fun updateTemperature(temperature: Double) {
-        _uiState.update { it.copy(settings = it.settings.copy(temperature = temperature)) }
+        _uiState.updateNested(
+            nestedGetter = { it.settings },
+            nestedSetter = { state, settings -> state.copy(settings = settings) },
+            block = { it.copy(temperature = temperature) }
+        )
     }
 
     private fun updateStopSequences(stopSequences: String) {
-        _uiState.update { it.copy(settings = it.settings.copy(stopSequences = stopSequences)) }
+        _uiState.updateNested(
+            nestedGetter = { it.settings },
+            nestedSetter = { state, settings -> state.copy(settings = settings) },
+            block = { it.copy(stopSequences = stopSequences) }
+        )
     }
 
     private fun updateResponseFormat(responseFormat: String) {
-        _uiState.update { it.copy(settings = it.settings.copy(responseFormat = responseFormat)) }
+        _uiState.updateNested(
+            nestedGetter = { it.settings },
+            nestedSetter = { state, settings -> state.copy(settings = settings) },
+            block = { it.copy(responseFormat = responseFormat) }
+        )
     }
 
     fun updateSettings(newSettings: ApiSettings) {
@@ -161,7 +189,10 @@ class SettingsViewModel(
     }
 
     private fun toggleApiKeyVisibility() {
-        _uiState.update { it.copy(isApiKeyVisible = !it.isApiKeyVisible) }
+        _uiState.toggleBoolean(
+            getter = { it.isApiKeyVisible },
+            setter = { state, value -> state.copy(isApiKeyVisible = value) }
+        )
     }
 
     private fun validateApiKey(apiKey: String) {
