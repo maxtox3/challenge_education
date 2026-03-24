@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
@@ -22,23 +21,10 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import io.ktor.util.date.getTimeMillis
-import kotlinx.coroutines.launch
-import model.ChatMessage
-import model.ConstraintsInfo
-import model.MetricRecord
-import model.ReasoningComparison
-import model.ReasoningMode
-import model.ReasoningResult
 import ui.Brain
 import ui.Chart
 import ui.Delete
@@ -54,75 +40,36 @@ import ui.theme.AppTheme
 
 @Composable
 fun App() {
-    var inputText by remember { mutableStateOf("") }
-    var messages by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var showSettings by remember { mutableStateOf(false) }
-    var showMetrics by remember { mutableStateOf(false) }
-    var showReasoning by remember { mutableStateOf(false) }
-    var metrics by remember { mutableStateOf<List<MetricRecord>>(emptyList()) }
-    var metricCounter by remember { mutableStateOf(0) }
-    var settings by remember { mutableStateOf(ApiSettings()) }
-    var reasoningComparison by remember {
-        mutableStateOf(
-            ReasoningComparison(
-                task = "У тебя есть 12 монет, одна из которых фальшивая " +
-                    "(легче или тяжелее — неизвестно). У тебя есть чашечные весы. " +
-                    "Как найти фальшивую монету за минимальное количество взвешиваний?",
-                results = emptyMap(),
-            ),
-        )
-    }
-    var isReasoningLoading by remember { mutableStateOf(false) }
+    val state = rememberChatStateHolder()
 
-    val client = remember { ChatClient() }
-    val scope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
-
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
+    LaunchedEffect(state.messages.size) {
+        if (state.messages.isNotEmpty()) {
+            state.listState.animateScrollToItem(state.messages.size - 1)
         }
     }
 
     AppTheme {
-        if (showSettings) {
+        if (state.showSettings) {
             SettingsDialog(
-                currentSettings = settings,
-                onDismiss = { showSettings = false },
-                onSave = { newSettings ->
-                    settings = newSettings
-                    showSettings = false
-                },
+                currentSettings = state.settings,
+                onDismiss = { state.showSettings = false },
+                onSave = { newSettings -> state.updateSettings(newSettings) },
             )
         }
 
-        if (showMetrics) {
+        if (state.showMetrics) {
             MetricsDialog(
-                metrics = metrics,
-                onDismiss = { showMetrics = false },
+                metrics = state.metrics,
+                onDismiss = { state.showMetrics = false },
             )
         }
 
-        if (showReasoning) {
+        if (state.showReasoning) {
             ReasoningDialog(
-                comparison = reasoningComparison,
-                isLoading = isReasoningLoading,
-                onDismiss = { showReasoning = false },
-                onRunComparison = { task ->
-                    runReasoningComparison(
-                        task = task,
-                        apiKey = settings.apiKey,
-                        model = settings.model,
-                        client = client,
-                        scope = scope,
-                        onUpdate = { newComparison, loading ->
-                            reasoningComparison = newComparison
-                            isReasoningLoading = loading
-                        },
-                    )
-                },
+                comparison = state.reasoningComparison,
+                isLoading = state.isReasoningLoading,
+                onDismiss = { state.showReasoning = false },
+                onRunComparison = { task -> state.runReasoningComparison(task) },
             )
         }
 
@@ -146,7 +93,7 @@ fun App() {
                         color = AppColors.TextPrimary,
                     )
                     Text(
-                        text = "Model: ${settings.model}",
+                        text = "Model: ${state.settings.model}",
                         style = MaterialTheme.typography.caption,
                         color = AppColors.TextMuted,
                     )
@@ -154,10 +101,7 @@ fun App() {
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconButton(
-                        onClick = {
-                            messages = emptyList()
-                            errorMessage = null
-                        },
+                        onClick = { state.clearChat() },
                         modifier = Modifier
                             .background(AppColors.SurfaceLight, CircleShape)
                             .size(40.dp),
@@ -170,10 +114,10 @@ fun App() {
                     }
 
                     IconButton(
-                        onClick = { showMetrics = true },
+                        onClick = { state.showMetrics = true },
                         modifier = Modifier
                             .background(
-                                if (metrics.isNotEmpty()) AppColors.Primary else AppColors.SurfaceLight,
+                                if (state.metrics.isNotEmpty()) AppColors.Primary else AppColors.SurfaceLight,
                                 CircleShape,
                             )
                             .size(40.dp),
@@ -181,12 +125,12 @@ fun App() {
                         Icon(
                             imageVector = Chart,
                             contentDescription = "Metrics",
-                            tint = if (metrics.isNotEmpty()) Color.White else AppColors.TextSecondary,
+                            tint = if (state.metrics.isNotEmpty()) Color.White else AppColors.TextSecondary,
                         )
                     }
 
                     IconButton(
-                        onClick = { showReasoning = true },
+                        onClick = { state.showReasoning = true },
                         modifier = Modifier
                             .background(AppColors.SurfaceLight, CircleShape)
                             .size(40.dp),
@@ -199,7 +143,7 @@ fun App() {
                     }
 
                     IconButton(
-                        onClick = { showSettings = true },
+                        onClick = { state.showSettings = true },
                         modifier = Modifier
                             .background(AppColors.Primary, CircleShape)
                             .size(40.dp),
@@ -220,7 +164,7 @@ fun App() {
                     .background(AppColors.Surface, RoundedCornerShape(16.dp))
                     .padding(12.dp),
             ) {
-                if (messages.isEmpty() && !isLoading) {
+                if (state.messages.isEmpty() && !state.isLoading) {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -240,15 +184,15 @@ fun App() {
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        state = listState,
+                        state = state.listState,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(vertical = 8.dp),
                     ) {
-                        items(messages) { message ->
+                        items(state.messages) { message ->
                             MessageBubble(message = message)
                         }
 
-                        if (isLoading) {
+                        if (state.isLoading) {
                             item {
                                 TypingIndicator()
                             }
@@ -257,7 +201,7 @@ fun App() {
                 }
             }
 
-            errorMessage?.let { error ->
+            state.errorMessage?.let { error ->
                 Surface(
                     color = AppColors.Error.copy(alpha = 0.2f),
                     shape = RoundedCornerShape(8.dp),
@@ -275,154 +219,10 @@ fun App() {
             Spacer(modifier = Modifier.height(12.dp))
 
             ChatInput(
-                value = inputText,
-                onValueChange = { inputText = it },
-                onSend = {
-                    if (inputText.isNotBlank() && !isLoading) {
-                        val promptText = inputText
-                        val userMessage = ChatMessage(
-                            role = "user",
-                            content = inputText,
-                        )
-                        messages = messages + userMessage
-                        inputText = ""
-                        isLoading = true
-                        errorMessage = null
-
-                        val constraints = settings.toResponseConstraints()
-                        val startTime = getTimeMillis()
-
-                        scope.launch {
-                            val result = client.sendMessage(
-                                apiKey = settings.apiKey,
-                                model = settings.model,
-                                messages = messages,
-                                constraints = constraints,
-                            )
-
-                            val responseTime = getTimeMillis() - startTime
-                            isLoading = false
-                            result.fold(
-                                onSuccess = { response ->
-                                    messages = messages + response
-                                    metricCounter++
-                                    val record = MetricRecord(
-                                        id = metricCounter,
-                                        prompt = promptText,
-                                        response = response.content,
-                                        mode = response.mode,
-                                        responseLength = response.content.length,
-                                        tokensUsed = response.tokensUsed,
-                                        maxTokens = response.maxTokens,
-                                        finishReason = response.finishReason,
-                                        responseTimeMs = responseTime,
-                                        constraints = ConstraintsInfo(
-                                            maxTokens = settings.maxTokens,
-                                            stopSequences = settings.stopSequences
-                                                .split(",")
-                                                .map { it.trim() }
-                                                .filter { it.isNotEmpty() },
-                                            responseFormat = settings.responseFormat,
-                                            temperature = settings.temperature,
-                                        ),
-                                    )
-                                    metrics = metrics + record
-                                },
-                                onFailure = { error ->
-                                    errorMessage = error.message
-                                },
-                            )
-                        }
-                    }
-                },
-                isLoading = isLoading,
-            )
-        }
-    }
-}
-
-private fun getSystemPromptForMode(mode: ReasoningMode, task: String): String = when (mode) {
-    ReasoningMode.DIRECT -> ""
-
-    ReasoningMode.STEP_BY_STEP -> "Решай пошагово. Объясняй каждый шаг рассуждения подробно."
-
-    ReasoningMode.META_PROMPT ->
-        "Перед тем как ответить на задачу, сначала составь " +
-            "оптимальный промпт для её решения, а затем используй его для получения ответа."
-
-    ReasoningMode.EXPERT_PANEL -> """
-            Ты группа из трёх экспертов:
-            1. Аналитик - анализирует условие задачи и выделяет ключевые моменты
-            2. Инженер - предлагает конкретное решение
-            3. Критик - проверяет решение на ошибки и предлагает улучшения
-            
-            Каждый эксперт должен дать своё мнение по очереди. В конце дай итоговое решение.
-    """.trimIndent()
-}
-
-private fun runReasoningComparison(
-    task: String,
-    apiKey: String,
-    model: String,
-    client: ChatClient,
-    scope: kotlinx.coroutines.CoroutineScope,
-    onUpdate: (ReasoningComparison, Boolean) -> Unit,
-) {
-    val currentResults = mutableMapOf<ReasoningMode, ReasoningResult>()
-    val loadingResults = ReasoningMode.entries.associateWith { mode ->
-        ReasoningResult(
-            mode = mode,
-            systemPrompt = getSystemPromptForMode(mode, task),
-            actualPrompt = task,
-            isLoading = true,
-        )
-    }
-    currentResults.putAll(loadingResults)
-    onUpdate(ReasoningComparison(task, currentResults.toMap()), true)
-
-    ReasoningMode.entries.forEach { mode ->
-        scope.launch {
-            val systemPrompt = getSystemPromptForMode(mode, task)
-            val startTime = getTimeMillis()
-
-            val result = client.sendMessage(
-                apiKey = apiKey,
-                model = model,
-                messages = listOf(ChatMessage(role = "user", content = task)),
-                systemPrompt = systemPrompt,
-            )
-
-            val responseTime = getTimeMillis() - startTime
-
-            result.fold(
-                onSuccess = { response ->
-                    currentResults[mode] = ReasoningResult(
-                        mode = mode,
-                        systemPrompt = systemPrompt,
-                        actualPrompt = task,
-                        response = response.content,
-                        responseTimeMs = responseTime,
-                        tokensUsed = response.tokensUsed,
-                        isLoading = false,
-                    )
-                    onUpdate(
-                        ReasoningComparison(task, currentResults.toMap()),
-                        currentResults.values.any { it.isLoading },
-                    )
-                },
-                onFailure = { error ->
-                    currentResults[mode] = ReasoningResult(
-                        mode = mode,
-                        systemPrompt = systemPrompt,
-                        actualPrompt = task,
-                        isLoading = false,
-                        error = error.message,
-                    )
-                    onUpdate(
-                        ReasoningComparison(task, currentResults.toMap()),
-                        currentResults.values.any { it.isLoading },
-                    )
-                },
+                value = state.inputText,
+                onValueChange = { state.inputText = it },
+                onSend = { state.sendMessage() },
+                isLoading = state.isLoading,
             )
         }
     }
