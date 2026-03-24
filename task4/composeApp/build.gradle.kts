@@ -49,6 +49,12 @@ kotlin {
                 implementation("io.ktor:ktor-serialization-kotlinx-json:3.4.1")
             }
         }
+
+        val wasmJsTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
     }
 }
 
