@@ -3,7 +3,6 @@ package ui.theme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 
 private val DarkColorPalette = darkColors(
     primary = AppColors.Primary,
@@ -12,11 +11,11 @@ private val DarkColorPalette = darkColors(
     background = AppColors.Background,
     surface = AppColors.Surface,
     error = AppColors.Error,
-    onPrimary = Color.White,
-    onSecondary = Color.White,
+    onPrimary = AppColors.TextPrimary,
+    onSecondary = AppColors.TextPrimary,
     onBackground = AppColors.TextPrimary,
     onSurface = AppColors.TextPrimary,
-    onError = Color.White,
+    onError = AppColors.TextPrimary,
 )
 
 @Composable
