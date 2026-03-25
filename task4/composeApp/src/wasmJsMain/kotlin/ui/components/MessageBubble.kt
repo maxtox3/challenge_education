@@ -1,10 +1,14 @@
 package ui.components
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -56,7 +60,6 @@ fun MessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
     val isUser = message.role == "user"
 
     var visible by remember { mutableStateOf(false) }
-    var isReasoningExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         visible = true
@@ -66,12 +69,6 @@ fun MessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
         targetValue = if (visible) 1f else 0f,
         animationSpec = tween(300),
         label = "alpha",
-    )
-
-    val rotation by animateFloatAsState(
-        targetValue = if (isReasoningExpanded) 90f else 0f,
-        animationSpec = tween(200),
-        label = "rotation",
     )
 
     Row(
@@ -125,35 +122,32 @@ fun MessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
                 if (message.isReasoningContent) {
                     Row(
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                        modifier = Modifier
-                            .testTag(MessageBubbleTags.REASONING_INDICATOR)
-                            .clickable { isReasoningExpanded = !isReasoningExpanded },
+                        modifier = Modifier.testTag(MessageBubbleTags.REASONING_INDICATOR),
                     ) {
                         Text(
-                            text = "\u26A0\uFE0F",
-                            fontSize = 14.sp,
+                            text = "[!]",
+                            fontSize = 12.sp,
+                            color = AppColors.Warning,
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "Reasoning content",
                             color = AppColors.Warning,
-                            style = MaterialTheme.typography.caption,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.testTag(MessageBubbleTags.REASONING_TEXT),
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "\u25B6",
-                            fontSize = 10.sp,
-                            modifier = Modifier
-                                .testTag(MessageBubbleTags.REASONING_EXPAND_ICON)
-                                .rotate(rotation),
-                        )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                if (!message.isReasoningContent || isReasoningExpanded) {
+                    Markdown(
+                        content = message.content,
+                        colors = markdownColor(text = AppColors.TextMuted),
+                        typography = markdownTypography(),
+                        modifier = Modifier
+                            .testTag(MessageBubbleTags.MARKDOWN_CONTENT)
+                            .alpha(0.8f),
+                    )
+                } else {
                     Markdown(
                         content = message.content,
                         colors = markdownColor(text = AppColors.TextPrimary),
@@ -190,6 +184,8 @@ fun MessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
 
 @Composable
 fun TypingIndicator() {
+    val transition = rememberInfiniteTransition()
+
     Surface(
         color = AppColors.AssistantBubble,
         shape = RoundedCornerShape(
@@ -206,11 +202,26 @@ fun TypingIndicator() {
             modifier = Modifier.padding(14.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            repeat(3) {
+            listOf(0, 100, 200).forEach { delay ->
+                val scale by transition.animateFloat(
+                    initialValue = 0.5f,
+                    targetValue = 1.2f,
+                    animationSpec = infiniteRepeatable(
+                        animation = keyframes {
+                            durationMillis = 1200
+                            0.5f at delay
+                            1.2f at delay + 300
+                            0.5f at delay + 600
+                        },
+                        repeatMode = RepeatMode.Restart,
+                    ),
+                )
+
                 Box(
                     modifier = Modifier
+                        .scale(scale)
                         .size(8.dp)
-                        .background(AppColors.TextSecondary, shape = RoundedCornerShape(50)),
+                        .background(AppColors.TextSecondary, RoundedCornerShape(50)),
                 )
             }
         }

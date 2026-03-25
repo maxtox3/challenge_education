@@ -77,10 +77,10 @@ class MessageBubbleUiTest {
     }
 
     @Test
-    fun messageBubble_reasoningCollapsedByDefault() = runComposeUiTest {
+    fun messageBubble_reasoningContentAlwaysVisible() = runComposeUiTest {
         val message = ChatMessage(
             role = "assistant",
-            content = "Hidden reasoning content",
+            content = "Reasoning content here",
             isReasoningContent = true,
         )
 
@@ -88,62 +88,9 @@ class MessageBubbleUiTest {
             MessageBubble(message = message)
         }
 
-        onNodeWithTag(MessageBubbleTags.MARKDOWN_CONTENT).assertDoesNotExist()
-    }
-
-    @Test
-    fun messageBubble_reasoningExpandsOnClick() = runComposeUiTest {
-        val message = ChatMessage(
-            role = "assistant",
-            content = "Expanded reasoning content",
-            isReasoningContent = true,
-        )
-
-        setContent {
-            MessageBubble(message = message)
-        }
-
-        onNodeWithTag(MessageBubbleTags.MARKDOWN_CONTENT).assertDoesNotExist()
-
-        onNodeWithTag(MessageBubbleTags.REASONING_INDICATOR).performClick()
-
+        onNodeWithTag(MessageBubbleTags.REASONING_INDICATOR).assertExists()
         onNodeWithTag(MessageBubbleTags.MARKDOWN_CONTENT).assertExists()
-        onNodeWithTag(MessageBubbleTags.MARKDOWN_CONTENT, useUnmergedTree = true).assertExists()
-    }
-
-    @Test
-    fun messageBubble_reasoningCollapsesOnSecondClick() = runComposeUiTest {
-        val message = ChatMessage(
-            role = "assistant",
-            content = "Toggle reasoning content",
-            isReasoningContent = true,
-        )
-
-        setContent {
-            MessageBubble(message = message)
-        }
-
-        onNodeWithTag(MessageBubbleTags.REASONING_INDICATOR).performClick()
-        onNodeWithTag(MessageBubbleTags.MARKDOWN_CONTENT).assertExists()
-
-        onNodeWithTag(MessageBubbleTags.REASONING_INDICATOR).performClick()
-        onNodeWithTag(MessageBubbleTags.MARKDOWN_CONTENT).assertDoesNotExist()
-    }
-
-    @Test
-    fun messageBubble_reasoningIndicatorIsClickable() = runComposeUiTest {
-        val message = ChatMessage(
-            role = "assistant",
-            content = "Test content",
-            isReasoningContent = true,
-        )
-
-        setContent {
-            MessageBubble(message = message)
-        }
-
-        onNodeWithTag(MessageBubbleTags.REASONING_INDICATOR)
-            .assertHasClickAction()
+        onNodeWithText("[!]").assertExists()
     }
 
     @Test

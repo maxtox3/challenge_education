@@ -2,10 +2,13 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import model.ChatMessage
 import model.ReasoningComparison
 import model.ReasoningMode
+import model.StreamChunk
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -546,5 +549,18 @@ class FakeChatClient : ChatClient {
         lastMessages = messages
         lastSystemPrompt = systemPrompt
         return sendResult
+    }
+
+    override fun sendMessageStreaming(
+        apiKey: String,
+        model: String,
+        messages: List<ChatMessage>,
+        constraints: ResponseConstraints,
+        systemPrompt: String?,
+    ): Flow<StreamChunk> = flow {
+        emit(StreamChunk.Content("Default "))
+        emit(StreamChunk.Content("streaming "))
+        emit(StreamChunk.Content("response"))
+        emit(StreamChunk.Done)
     }
 }

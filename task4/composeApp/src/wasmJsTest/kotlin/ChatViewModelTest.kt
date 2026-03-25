@@ -2,12 +2,15 @@ import androidx.compose.foundation.lazy.LazyListState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import model.ChatMessage
 import model.ConstraintsInfo
 import model.MetricRecord
 import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
+import model.StreamChunk
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -530,5 +533,15 @@ class FakeChatRepository : ChatRepository {
     ): ReasoningComparison {
         onProgress(reasoningComparisonResult)
         return reasoningComparisonResult
+    }
+
+    override fun sendMessageStreaming(
+        prompt: String,
+        messages: List<ChatMessage>,
+        settings: ApiSettings,
+    ): Flow<StreamChunk> = flow {
+        emit(StreamChunk.Content("Default "))
+        emit(StreamChunk.Content("response"))
+        emit(StreamChunk.Done)
     }
 }

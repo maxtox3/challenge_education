@@ -9,4 +9,5 @@ data class ChatMessage(
     val maxTokens: Int? = null,
     val finishReason: String? = null,
     val isReasoningContent: Boolean = false,
+    val isStreaming: Boolean = false,
 )

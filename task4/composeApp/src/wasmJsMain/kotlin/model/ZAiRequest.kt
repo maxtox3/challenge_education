@@ -52,3 +52,21 @@ data class ZAiErrorResponse(val error: ZAiError)
 
 @Serializable
 data class ZAiError(val code: String, val message: String? = null)
+
+// Streaming response models
+@Serializable
+data class ZAiStreamChunk(val id: String? = null, val choices: List<StreamChoice>,)
+
+@Serializable
+data class StreamChoice(
+    val delta: Delta,
+    @SerialName("finish_reason")
+    val finishReason: String? = null,
+)
+
+@Serializable
+data class Delta(
+    val content: String? = null,
+    @SerialName("reasoning_content")
+    val reasoningContent: String? = null,
+)

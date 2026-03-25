@@ -2,12 +2,14 @@ import io.ktor.util.date.getTimeMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.Flow
 import model.ChatMessage
 import model.ConstraintsInfo
 import model.MetricRecord
 import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
+import model.StreamChunk
 
 interface ChatRepository {
     suspend fun sendMessage(prompt: String, messages: List<ChatMessage>, settings: ApiSettings,): SendMessageResult
@@ -17,6 +19,8 @@ interface ChatRepository {
         settings: ApiSettings,
         onProgress: (ReasoningComparison) -> Unit,
     ): ReasoningComparison
+
+    fun sendMessageStreaming(prompt: String, messages: List<ChatMessage>, settings: ApiSettings,): Flow<StreamChunk>
 }
 
 sealed class SendMessageResult {
@@ -76,6 +80,20 @@ class ChatRepositoryImpl(private val client: ChatClient, private val scope: Coro
         } catch (e: Exception) {
             SendMessageResult.Error(e.message ?: "Unknown error")
         }
+    }
+
+    override fun sendMessageStreaming(
+        prompt: String,
+        messages: List<ChatMessage>,
+        settings: ApiSettings,
+    ): Flow<StreamChunk> {
+        val constraints = settings.toResponseConstraints()
+        return client.sendMessageStreaming(
+            apiKey = settings.apiKey,
+            model = settings.model,
+            messages = messages,
+            constraints = constraints,
+        )
     }
 
     override suspend fun runReasoningComparison(

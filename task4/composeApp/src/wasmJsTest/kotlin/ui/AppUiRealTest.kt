@@ -13,12 +13,15 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.test.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import model.ChatMessage
 import model.ConstraintsInfo
 import model.MetricRecord
 import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
+import model.StreamChunk
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -386,5 +389,15 @@ class MockChatRepositoryForUi : ChatRepository {
             )
         }
         return ReasoningComparison(task = task, results = results)
+    }
+
+    override fun sendMessageStreaming(
+        prompt: String,
+        messages: List<ChatMessage>,
+        settings: ApiSettings,
+    ): Flow<StreamChunk> = flow {
+        emit(StreamChunk.Content("Mock "))
+        emit(StreamChunk.Content("response"))
+        emit(StreamChunk.Done)
     }
 }

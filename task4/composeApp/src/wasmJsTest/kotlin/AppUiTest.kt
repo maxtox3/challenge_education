@@ -7,15 +7,18 @@ import SendMessageResult
 import androidx.compose.foundation.lazy.LazyListState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
 import model.ChatMessage
 import model.ConstraintsInfo
 import model.MetricRecord
 import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
+import model.StreamChunk
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -529,5 +532,16 @@ class MockChatRepository : ChatRepository {
         val comparison = ReasoningComparison(task = task, results = results)
         onProgress(comparison)
         return comparison
+    }
+
+    override fun sendMessageStreaming(
+        prompt: String,
+        messages: List<ChatMessage>,
+        settings: ApiSettings,
+    ): Flow<StreamChunk> = flow {
+        emit(StreamChunk.Content("Mock "))
+        emit(StreamChunk.Content("response "))
+        emit(StreamChunk.Content("for: $prompt"))
+        emit(StreamChunk.Done)
     }
 }

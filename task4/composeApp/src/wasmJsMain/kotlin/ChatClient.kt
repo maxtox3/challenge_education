@@ -1,5 +1,9 @@
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.sse.SSE
+import io.ktor.client.plugins.sse.SSEBufferPolicy
+import io.ktor.client.plugins.sse.sse
+import io.ktor.client.request.header
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -7,15 +11,21 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
+import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.serialization.json.Json
 import model.ChatMessage
 import model.Message
 import model.ResponseFormat
+import model.StreamChunk
 import model.ZAiErrorResponse
 import model.ZAiRequest
 import model.ZAiResponse
+import model.ZAiStreamChunk
 
 data class ResponseConstraints(
     val maxTokens: Int? = null,
@@ -32,6 +42,14 @@ interface ChatClient {
         constraints: ResponseConstraints = ResponseConstraints(),
         systemPrompt: String? = null,
     ): Result<ChatMessage>
+
+    fun sendMessageStreaming(
+        apiKey: String,
+        model: String,
+        messages: List<ChatMessage>,
+        constraints: ResponseConstraints = ResponseConstraints(),
+        systemPrompt: String? = null,
+    ): Flow<StreamChunk>
 }
 
 class ChatClientImpl : ChatClient {
@@ -44,6 +62,11 @@ class ChatClientImpl : ChatClient {
     private val client = HttpClient {
         install(ContentNegotiation) {
             json(json)
+        }
+        install(SSE) {
+            showCommentEvents()
+            showRetryEvents()
+            bufferPolicy = SSEBufferPolicy.All
         }
     }
 
@@ -134,6 +157,79 @@ class ChatClientImpl : ChatClient {
             println("[ChatClient] Exception: ${e.message}")
             e.printStackTrace()
             Result.failure(e)
+        }
+    }
+
+    override fun sendMessageStreaming(
+        apiKey: String,
+        model: String,
+        messages: List<ChatMessage>,
+        constraints: ResponseConstraints,
+        systemPrompt: String?,
+    ): Flow<StreamChunk> = channelFlow {
+        val allMessages = buildList {
+            systemPrompt?.let { prompt ->
+                if (prompt.isNotBlank()) {
+                    add(Message("system", prompt))
+                }
+            }
+            addAll(messages.map { Message(it.role, it.content) })
+        }
+        val request = ZAiRequest(
+            model = model,
+            messages = allMessages,
+            stream = true,
+            maxTokens = constraints.maxTokens,
+            stop = constraints.stop,
+            responseFormat = constraints.responseFormat,
+            temperature = constraints.temperature ?: 1.0,
+        )
+
+        val requestBody = json.encodeToString(request)
+        println("[ChatClient] Sending SSE request to: $baseUrl")
+
+        client.sse(
+            request = {
+                url { takeFrom(baseUrl) }
+                method = HttpMethod.Post
+                contentType(ContentType.Application.Json)
+                header(HttpHeaders.Authorization, "Bearer $apiKey")
+                header(HttpHeaders.AcceptLanguage, "en-US,en")
+                setBody(requestBody)
+            }
+        ) {
+            println("[ChatClient] SSE connection established")
+            incoming.collect { event ->
+                val data = event.data
+                println("[ChatClient] SSE event: $data")
+
+                if (data == null || data == "[DONE]") {
+                    println("[ChatClient] Stream completed")
+                    send(StreamChunk.Done)
+                    return@collect
+                }
+
+                try {
+                    val streamChunk = json.decodeFromString<ZAiStreamChunk>(data)
+                    val choice = streamChunk.choices.firstOrNull()
+                    if (choice != null) {
+                        val delta = choice.delta
+                        if (!delta.reasoningContent.isNullOrEmpty()) {
+                            send(StreamChunk.Reasoning(delta.reasoningContent))
+                        }
+                        if (!delta.content.isNullOrEmpty()) {
+                            println("[ChatClient] Stream data: ${delta.content}")
+                            send(StreamChunk.Content(delta.content))
+                        }
+                        if (choice.finishReason != null) {
+                            println("[ChatClient] Stream finished with reason: ${choice.finishReason}")
+                            send(StreamChunk.Done)
+                        }
+                    }
+                } catch (e: Exception) {
+                    println("[ChatClient] Error parsing stream chunk: ${e.message}")
+                }
+            }
         }
     }
 }

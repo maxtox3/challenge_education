@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import model.ChatMessage
 import model.MetricRecord
 import model.ReasoningComparison
+import model.StreamChunk
 
 class ChatViewModel(
     private val repository: ChatRepository,
@@ -172,31 +173,86 @@ class ChatViewModel(
                 errorMessage = null
 
                 viewModelScope.launch {
-                    val apiResult = repository.sendMessage(
-                        prompt = result.prompt,
-                        messages = messages,
-                        settings = settings,
-                    )
+                    var currentContent = StringBuilder()
+                    var currentReasoning = StringBuilder()
+                    var isReasoningContent = false
 
-                    isLoading = false
+                    try {
+                        repository.sendMessageStreaming(
+                            prompt = result.prompt,
+                            messages = messages,
+                            settings = settings,
+                        ).collect { chunk ->
+                            when (chunk) {
+                                is StreamChunk.Content -> {
+                                    currentContent.append(chunk.text)
+                                    isReasoningContent = false
+                                    updateStreamingMessage(
+                                        content = currentContent.toString(),
+                                        reasoning = currentReasoning.toString(),
+                                        isReasoning = isReasoningContent,
+                                    )
+                                }
 
-                    when (apiResult) {
-                        is SendMessageResult.Success -> {
-                            messages = messages + apiResult.response
-                            metricCounter++
-                            val metric = apiResult.metric.copy(id = metricCounter)
-                            metrics = metrics + metric
+                                is StreamChunk.Reasoning -> {
+                                    currentReasoning.append(chunk.text)
+                                    isReasoningContent = true
+                                    updateStreamingMessage(
+                                        content = currentContent.toString(),
+                                        reasoning = currentReasoning.toString(),
+                                        isReasoning = isReasoningContent,
+                                    )
+                                }
+
+                                is StreamChunk.Done -> {
+                                    // Finalize the message
+                                    val finalContent = currentContent.toString()
+                                        .ifEmpty { currentReasoning.toString() }
+                                    finalizeStreamingMessage(
+                                        content = finalContent,
+                                        isReasoning = currentContent.isEmpty() && currentReasoning.isNotEmpty(),
+                                    )
+                                    isLoading = false
+                                }
+                            }
                         }
-
-                        is SendMessageResult.Error -> {
-                            errorMessage = apiResult.message
-                        }
+                    } catch (e: Exception) {
+                        errorMessage = e.message ?: "Streaming error"
+                        isLoading = false
                     }
                 }
             }
 
             is MessageHandler.ValidationResult.Invalid -> {
             }
+        }
+    }
+
+    private fun updateStreamingMessage(content: String, reasoning: String, isReasoning: Boolean) {
+        val streamingMessage = ChatMessage(
+            role = "assistant",
+            content = content.ifEmpty { reasoning },
+            isReasoningContent = isReasoning,
+            isStreaming = true,
+        )
+        messages = if (messages.isNotEmpty() && messages.last().isStreaming) {
+            messages.dropLast(1) + streamingMessage
+        } else {
+            messages + streamingMessage
+        }
+    }
+
+    private fun finalizeStreamingMessage(content: String, isReasoning: Boolean) {
+        val finalMessage = ChatMessage(
+            role = "assistant",
+            content = content,
+            isReasoningContent = isReasoning,
+            isStreaming = false,
+        )
+        messages = if (messages.isNotEmpty() && messages.last().isStreaming) {
+            messages.dropLast(1) + finalMessage
+        } else {
+            messages + finalMessage
         }
     }
 

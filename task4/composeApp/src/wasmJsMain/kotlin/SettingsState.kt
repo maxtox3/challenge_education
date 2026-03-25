@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import model.ResponseFormat
 
 data class ApiSettings(
-    val apiKey: String = "",
+    val apiKey: String = "9cccc72cda3c456c9263fe143dbae7b1.9ir3VQrPquSuSyvZ",
     val model: String = "glm-5",
     val maxTokens: Int? = null,
     val temperature: Double = 1.0,
