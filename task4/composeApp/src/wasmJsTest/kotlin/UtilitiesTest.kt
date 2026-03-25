@@ -228,7 +228,7 @@ class UtilitiesTest {
     @Test
     fun testStatePropertyFunction() {
         val stateFlow = MutableStateFlow(StringState("test"))
-        val delegate = stateProperty(
+        stateProperty(
             stateFlow,
             getter = { it.value },
             setter = { state, name -> state.copy(value = name) }
@@ -304,7 +304,7 @@ class UtilitiesTest {
     fun testViewModelStateHolderCreateProperty() {
         val holder = ViewModelStateHolder(BooleanState(false))
 
-        val property = holder.createProperty(
+        holder.createProperty(
             getter = { it.flag },
             setter = { state, flag -> state.copy(flag = flag) }
         )

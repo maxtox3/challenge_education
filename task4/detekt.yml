@@ -1,31 +1,82 @@
-buildUponDefaultConfig: true
-
 config:
   validation: true
-
-formatting:
-  active: false
+  warningsAsErrors: false
 
 style:
   MaxLineLength:
-    active: false
-  ImportOrdering:
     active: false
   NewLineAtEndOfFile:
     active: false
   TrailingWhitespace:
     active: false
-  Indentation:
+  UnusedPrivateMember:
+    active: true
+  UnusedPrivateProperty:
+    active: true
+  UnusedParameter:
+    active: false
+  WildcardImport:
+    active: false
+  DataClassContainsFunctions:
+    active: false
+  MagicNumber:
+    active: false
+  ReturnCount:
+    active: false
+  ThrowsCount:
+    active: false
+  LoopWithTooManyJumpStatements:
     active: false
 
 complexity:
   LongMethod:
-    threshold: 60
+    active: false
   LongParameterList:
-    threshold: 6
+    active: false
   NestedBlockDepth:
-    threshold: 4
+    active: true
+    threshold: 5
+  CyclomaticComplexMethod:
+    active: false
+  LargeClass:
+    active: false
+  TooManyFunctions:
+    active: false
+  MethodOverloading:
+    active: false
 
 exceptions:
   TooGenericExceptionCaught:
     active: false
+  SwallowedException:
+    active: false
+  TooGenericExceptionThrown:
+    active: false
+  ThrowingExceptionsWithoutMessageOrCause:
+    active: false
+  PrintStackTrace:
+    active: false
+
+comments:
+  UndocumentedPublicFunction:
+    active: false
+  UndocumentedPublicClass:
+    active: false
+
+empty-blocks:
+  EmptyFunctionBlock:
+    active: false
+  EmptyClassBlock:
+    active: false
+
+naming:
+  FunctionMaxLength:
+    active: false
+  VariableMaxLength:
+    active: false
+  MatchingDeclarationName:
+    active: false
+  FunctionNaming:
+    active: false
+  VariableNaming:
+    active: true
