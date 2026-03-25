@@ -1,5 +1,4 @@
 ---
-name: code-estimator
 description: агент для безопасного управления git при рискованных изменениях
 mode: subagent
 tools:

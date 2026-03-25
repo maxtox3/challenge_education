@@ -42,15 +42,15 @@ Exception: You MAY read AGENTS.md to get project test/lint commands.
 <subagents>
 ## Available Sub-Agents
 
-All sub-agents use `subagent_type="{agent.md}"`, where {agent.md} - available agents with their agent.md file.
+All sub-agents are invoked via Task tool with `subagent_type="{agent_name}"`.
 
-| Agent.md (available agents) | Purpose          | What sub-agent does                       |
-|-----------------------------|------------------|-------------------------------------------|
-| code-estimator              | Scope estimation | Reads files, counts tokens, creates chunks|
-| git-safety                  | Git operations   | Creates branches, checkpoints, rollbacks  |
-| characterization-tester     | Baseline tests   | Reads code, writes characterization tests |
-| code-refactorer             | Refactoring      | Reads, modifies, creates files            |
-| code-verifier               | Verification     | Runs tests, linters, type checks          |
+| Agent Name              | Purpose          | What sub-agent does                       |
+|-------------------------|------------------|-------------------------------------------|
+| code-estimator          | Scope estimation | Reads files, counts tokens, creates chunks|
+| git-safety              | Git operations   | Creates branches, checkpoints, rollbacks  |
+| characterization-tester | Baseline tests   | Reads code, writes characterization tests |
+| code-refactorer         | Refactoring      | Reads, modifies, creates files            |
+| code-verifier           | Verification     | Runs tests, linters, type checks          |
 </subagents>
 
 <task_template>
@@ -58,7 +58,7 @@ All sub-agents use `subagent_type="{agent.md}"`, where {agent.md} - available ag
 
 ```python
 Task(
-    subagent_type="{agent.md}",
+    subagent_type="{agent_name}",
   prompt="""
   
   INPUT:
@@ -75,7 +75,7 @@ Task(
 ### Example: code-estimator
 ```
 Task(
-  subagent_type="code-estimator.md",
+  subagent_type="code-estimator",
   prompt="""
   Analyze and return estimation.
   
@@ -98,7 +98,7 @@ Task(
 ### Example: code-refactorer
 ```
 Task(
-  subagent_type="code-refactorer.md",
+  subagent_type="code-refactorer",
   prompt="""
   
   INPUT:
