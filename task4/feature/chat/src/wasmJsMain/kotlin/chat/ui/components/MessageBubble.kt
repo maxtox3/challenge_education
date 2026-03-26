@@ -16,10 +16,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -29,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
@@ -39,6 +43,8 @@ import androidx.compose.ui.unit.sp
 import com.mikepenz.markdown.compose.Markdown
 import com.mikepenz.markdown.m3.markdownColor
 import com.mikepenz.markdown.m3.markdownTypography
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import model.ChatMessage
 import ui.animations.slideInAnimation
 import ui.theme.AppColors
@@ -111,8 +117,27 @@ private fun RoleLabel(role: String, isUser: Boolean) {
 }
 
 @Composable
-private fun MessageContent(message: ChatMessage) {
-    if (message.isReasoningContent) {
+private fun ReasoningContent(message: ChatMessage) {
+    val scrollState = rememberScrollState()
+    var userScrolledUp by remember { mutableStateOf(false) }
+
+    LaunchedEffect(scrollState) {
+        snapshotFlow { scrollState.value }
+            .onEach { position ->
+                if (position < scrollState.maxValue - MessageBubbleConstants.REASONING_SCROLL_THRESHOLD) {
+                    userScrolledUp = true
+                }
+            }
+            .collect()
+    }
+
+    LaunchedEffect(message.content) {
+        if (!userScrolledUp && scrollState.maxValue > 0) {
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
+
+    Column {
         ReasoningIndicator()
         Spacer(modifier = Modifier.height(8.dp))
         Markdown(
@@ -120,9 +145,18 @@ private fun MessageContent(message: ChatMessage) {
             colors = markdownColor(text = AppColors.TextMuted),
             typography = markdownTypography(),
             modifier = Modifier
+                .heightIn(max = MessageBubbleConstants.REASONING_MAX_HEIGHT.dp)
+                .verticalScroll(scrollState)
                 .testTag(MessageBubbleTags.MARKDOWN_CONTENT)
                 .alpha(MessageBubbleConstants.REASONING_ALPHA),
         )
+    }
+}
+
+@Composable
+private fun MessageContent(message: ChatMessage) {
+    if (message.isReasoningContent) {
+        ReasoningContent(message)
     } else {
         Markdown(
             content = message.content,
@@ -249,7 +283,9 @@ fun TypingIndicator() {
 private object MessageBubbleConstants {
     const val ANIMATION_DURATION_MS = 300
     const val MESSAGE_WIDTH_FRACTION = 0.85f
+    const val REASONING_MAX_HEIGHT = 120
     const val REASONING_ALPHA = 0.8f
+    const val REASONING_SCROLL_THRESHOLD = 10
     const val TYPING_INDICATOR_WIDTH_FRACTION = 0.3f
     const val TYPING_ANIMATION_DURATION_MS = 1200
     const val TYPING_DOT_SCALE_MIN = 0.5f
