@@ -23,7 +23,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-@Suppress("TooManyFunctions", "FunctionNaming", "MagicNumber")
 class ChatViewModelTest {
     private lateinit var fakeRepository: FakeChatRepository
     private lateinit var viewModel: ChatViewModel
