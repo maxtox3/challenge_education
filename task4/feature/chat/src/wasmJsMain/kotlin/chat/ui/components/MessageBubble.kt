@@ -69,7 +69,7 @@ fun MessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .alpha(alpha)
             .testTag(MessageBubbleTags.ROOT)
-            .then(slideInAnimation()),
+            .then(if (!message.isStreaming) slideInAnimation() else Modifier),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
     ) {
         MessageSurface(message, isUser)
@@ -120,6 +120,10 @@ private fun RoleLabel(role: String, isUser: Boolean) {
 private fun ReasoningContent(message: ChatMessage) {
     val scrollState = rememberScrollState()
     var userScrolledUp by remember { mutableStateOf(false) }
+
+    LaunchedEffect(message.content) {
+        userScrolledUp = false
+    }
 
     LaunchedEffect(scrollState) {
         snapshotFlow { scrollState.value }

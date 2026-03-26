@@ -265,7 +265,7 @@ private fun MessageList(state: ChatState, viewModel: ChatViewModel) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(vertical = 8.dp),
     ) {
-        items(state.messages) { message ->
+        items(state.messages, key = { it.timestamp }) { message ->
             MessageBubble(message = message)
         }
 
