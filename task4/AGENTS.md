@@ -36,4 +36,3 @@
 ## Known Issues
 
 - Kotlin/WASM compiler cache issues — используйте `./gradlew clean` при внутренних ошибках компилятора
-- Ktor SSE может буферизировать на WASM — если streaming не работает в реальном времени, может потребоваться JS interop с `fetch()` + `ReadableStream`
