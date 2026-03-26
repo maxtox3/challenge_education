@@ -131,10 +131,14 @@ private fun ReasoningContent(message: ChatMessage) {
             .collect()
     }
 
-    LaunchedEffect(message.content) {
-        if (!userScrolledUp && scrollState.maxValue > 0) {
-            scrollState.animateScrollTo(scrollState.maxValue)
-        }
+    LaunchedEffect(Unit) {
+        snapshotFlow { scrollState.maxValue }
+            .onEach { maxValue ->
+                if (!userScrolledUp && maxValue > 0) {
+                    scrollState.animateScrollTo(maxValue)
+                }
+            }
+            .collect()
     }
 
     Column {
