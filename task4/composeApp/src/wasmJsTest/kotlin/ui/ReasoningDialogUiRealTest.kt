@@ -13,8 +13,8 @@ import androidx.compose.ui.test.runComposeUiTest
 import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
-import ui.components.ReasoningDialog
-import ui.components.ReasoningDialogTags
+import reasoning.ui.ReasoningDialog
+import reasoning.ui.ReasoningDialogTags
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

@@ -1,10 +1,10 @@
 package baseline
 
-import ApiSettings
-import SettingsIntent
-import SettingsSideEffect
-import SettingsState
 import model.ResponseFormat
+import settings.ApiSettings
+import settings.SettingsIntent
+import settings.SettingsSideEffect
+import settings.SettingsState
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

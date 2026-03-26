@@ -1,5 +1,8 @@
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import settings.ApiSettings
+import settings.SettingsIntent
+import settings.SettingsViewModel
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

@@ -1,16 +1,16 @@
 package baseline
 
-import ApiSettings
-import ChatIntent
-import ChatSideEffect
-import ChatState
-import MessageHandler
-import SendMessageResult
+import chat.ChatIntent
+import chat.ChatSideEffect
+import chat.ChatState
+import chat.MessageHandler
+import chat.SendMessageResult
 import model.ChatMessage
 import model.MetricRecord
 import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
+import settings.ApiSettings
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

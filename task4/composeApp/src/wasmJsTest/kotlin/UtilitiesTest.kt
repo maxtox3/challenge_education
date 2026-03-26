@@ -1,3 +1,4 @@
+import chat.MessageHandler
 import core.util.StatePropertyDelegate
 import core.util.stateProperty
 import core.util.toggleBoolean

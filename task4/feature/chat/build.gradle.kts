@@ -34,6 +34,9 @@ kotlin {
                 implementation(project(":core"))
                 implementation(project(":core:model"))
                 implementation(project(":core:network"))
+                implementation(project(":feature:settings"))
+                implementation(project(":feature:metrics"))
+                implementation(project(":feature:reasoning"))
                 implementation("org.jetbrains.compose.runtime:runtime:1.10.2")
                 implementation("org.jetbrains.compose.foundation:foundation:1.10.2")
                 implementation("org.jetbrains.compose.material:material:1.10.2")
@@ -42,6 +45,9 @@ kotlin {
                 implementation("org.jetbrains.compose.ui:ui:1.10.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
+                implementation("io.ktor:ktor-client-core:3.4.1")
+                implementation("io.ktor:ktor-client-content-negotiation:3.4.1")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:3.4.1")
             }
         }
 

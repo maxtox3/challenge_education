@@ -9,10 +9,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
+import metrics.ui.MetricsDialog
+import metrics.ui.MetricsDialogTags
 import model.ConstraintsInfo
 import model.MetricRecord
-import ui.components.MetricsDialog
-import ui.components.MetricsDialogTags
 import kotlin.test.Test
 import kotlin.test.assertTrue
 

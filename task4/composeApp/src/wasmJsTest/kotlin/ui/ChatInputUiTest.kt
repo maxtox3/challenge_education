@@ -11,8 +11,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.runComposeUiTest
-import ui.components.ChatInput
-import ui.components.ChatInputTags
+import chat.ui.components.ChatInput
+import chat.ui.components.ChatInputTags
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

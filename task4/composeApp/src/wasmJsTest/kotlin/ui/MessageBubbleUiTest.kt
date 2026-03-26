@@ -6,10 +6,10 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.runComposeUiTest
+import chat.ui.components.MessageBubble
+import chat.ui.components.MessageBubbleTags
+import chat.ui.components.TypingIndicator
 import model.ChatMessage
-import ui.components.MessageBubble
-import ui.components.MessageBubbleTags
-import ui.components.TypingIndicator
 import kotlin.test.Test
 
 @ExperimentalWasmJsInterop

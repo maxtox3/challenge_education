@@ -2,19 +2,18 @@
 
 package ui
 
-import ApiSettings
-import AppTags
-import AppWithState
-import ChatIntent
-import ChatRepository
-import ChatViewModel
-import SendMessageResult
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
+import chat.ChatIntent
+import chat.ChatRepository
+import chat.ChatViewModel
+import chat.SendMessageResult
+import chat.ui.AppTags
+import chat.ui.AppWithState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -26,6 +25,7 @@ import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
 import model.StreamChunk
+import settings.ApiSettings
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -2,7 +2,6 @@
 
 package ui
 
-import ApiSettings
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -10,8 +9,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.runComposeUiTest
-import ui.components.SettingsDialog
-import ui.components.SettingsDialogTags
+import settings.ApiSettings
+import settings.ui.SettingsDialog
+import settings.ui.SettingsDialogTags
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

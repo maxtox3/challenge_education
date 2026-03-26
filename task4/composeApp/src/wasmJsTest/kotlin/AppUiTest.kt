@@ -1,4 +1,9 @@
 import androidx.compose.foundation.lazy.LazyListState
+import chat.ChatIntent
+import chat.ChatRepository
+import chat.ChatState
+import chat.ChatViewModel
+import chat.SendMessageResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -10,6 +15,7 @@ import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
 import model.StreamChunk
+import settings.ApiSettings
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
