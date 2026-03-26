@@ -200,9 +200,9 @@ class UtilitiesTest {
     // ==================== StatePropertyDelegate via helper class ====================
 
     private class TestDelegateHolder(initialState: String) {
-        private val _state = MutableStateFlow(initialState)
+        private val _stateValue = MutableStateFlow(initialState)
         val stateValue: String by StatePropertyDelegate(
-            _state,
+            _stateValue,
             getter = { it },
             setter = { _, value -> value }
         )

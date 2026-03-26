@@ -77,7 +77,7 @@ class ChatRepositoryImpl(private val client: ChatClient, private val scope: Coro
                     SendMessageResult.Error(error.message ?: "Unknown error")
                 },
             )
-        } catch (e: Exception) {
+        } catch (e: ChatException) {
             SendMessageResult.Error(e.message ?: "Unknown error")
         }
     }

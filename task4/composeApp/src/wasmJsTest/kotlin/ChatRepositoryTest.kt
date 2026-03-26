@@ -543,7 +543,7 @@ class FakeChatClient : ChatClient {
         systemPrompt: String?,
     ): Result<ChatMessage> {
         if (shouldThrow) {
-            error("Test exception")
+            throw ChatException("Test exception")
         }
         lastConstraints = constraints
         lastMessages = messages

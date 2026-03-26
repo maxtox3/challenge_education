@@ -3,6 +3,8 @@ description: агент для безопасного управления git �
 mode: subagent
 tools:
   task: false
+  write: false
+  edit: false
   todowrite: false
 ---
 
@@ -60,3 +62,4 @@ tools:
 - Не force push
 - Не модифицируй .git/config
 - Не удаляй ветки без подтверждения
+- Нельзя самостоятельно редактировать какие-либо файлы, твоя задача проверять и выводить результат проверки

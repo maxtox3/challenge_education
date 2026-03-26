@@ -11,17 +11,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import model.ChatMessage
 import model.MetricRecord
 import model.ReasoningComparison
-import model.StreamChunk
 
-class ChatViewModel(
-    private val repository: ChatRepository,
-    private val viewModelScope: CoroutineScope,
-    val listState: LazyListState,
-) {
+class ChatViewModel(repository: ChatRepository, viewModelScope: CoroutineScope, val listState: LazyListState,) {
+
     private val _uiState = MutableStateFlow(ChatState())
     val uiState: StateFlow<ChatState> = _uiState.asStateFlow()
 
@@ -29,6 +24,9 @@ class ChatViewModel(
     val sideEffects: SharedFlow<ChatSideEffect> = _sideEffects.asSharedFlow()
 
     val state: ChatState get() = _uiState.value
+
+    private val useCases = ChatUseCases(repository, viewModelScope)
+    private val intentHandlers = ChatIntents(this)
 
     var inputText: String by _uiState.typedProp(
         getter = { it.inputText },
@@ -92,68 +90,31 @@ class ChatViewModel(
 
     fun processIntent(intent: ChatIntent) {
         when (intent) {
-            is ChatIntent.UpdateInputText -> updateInputText(intent.text)
-            is ChatIntent.SendMessage -> sendMessage()
-            is ChatIntent.ClearChat -> clearChat()
-            is ChatIntent.UpdateSettings -> updateSettings(intent.settings)
-            is ChatIntent.ToggleSettings -> toggleSettings(intent.show)
-            is ChatIntent.ToggleMetrics -> toggleMetrics(intent.show)
-            is ChatIntent.ToggleReasoning -> toggleReasoning(intent.show)
-            is ChatIntent.RunReasoningComparison -> runReasoningComparison(intent.task)
-            is ChatIntent.MessageSent -> onMessageSent(intent.response, intent.metric)
-            is ChatIntent.MessageSendFailed -> onMessageSendFailed()
-            is ChatIntent.SetError -> setError(intent.message)
-            is ChatIntent.ClearError -> clearError()
-            is ChatIntent.SetLoading -> setLoading(intent.loading)
-            is ChatIntent.UpdateReasoningComparison -> updateReasoningComparison(intent.comparison)
-            is ChatIntent.SetReasoningLoading -> setReasoningLoading(intent.loading)
+            is ChatIntent.UpdateInputText -> intentHandlers.handleInputIntent(intent)
+
+            is ChatIntent.SendMessage, is ChatIntent.MessageSent, is ChatIntent.MessageSendFailed ->
+                intentHandlers.handleMessageIntent(intent)
+
+            is ChatIntent.ClearChat -> intentHandlers.handleClearChatIntent()
+
+            is ChatIntent.UpdateSettings, is ChatIntent.ToggleSettings ->
+                intentHandlers.handleSettingsIntent(intent)
+
+            is ChatIntent.ToggleMetrics -> intentHandlers.handleMetricsIntent(intent)
+
+            is ChatIntent.ToggleReasoning, is ChatIntent.RunReasoningComparison,
+            is ChatIntent.UpdateReasoningComparison, is ChatIntent.SetReasoningLoading ->
+                intentHandlers.handleReasoningIntent(intent)
+
+            is ChatIntent.SetError, is ChatIntent.ClearError, is ChatIntent.SetLoading ->
+                intentHandlers.handleErrorIntent(intent)
         }
     }
 
-    private fun updateInputText(text: String) {
-        inputText = text
-    }
-
-    private fun toggleSettings(show: Boolean) {
-        showSettings = show
-    }
-
-    private fun toggleMetrics(show: Boolean) {
-        showMetrics = show
-    }
-
-    private fun toggleReasoning(show: Boolean) {
-        showReasoning = show
-    }
-
-    private fun setError(message: String?) {
-        errorMessage = message
-    }
-
-    private fun clearError() {
-        errorMessage = null
-    }
-
-    private fun setLoading(loading: Boolean) {
-        isLoading = loading
-    }
-
-    private fun setReasoningLoading(loading: Boolean) {
-        isReasoningLoading = loading
-    }
-
-    private fun updateReasoningComparison(comparison: ReasoningComparison) {
-        reasoningComparison = comparison
-    }
-
-    private fun onMessageSent(response: ChatMessage, metric: MetricRecord) {
+    internal fun handleMessageSent(response: ChatMessage, metric: MetricRecord) {
         messages = messages + response
         metricCounter++
         metrics = metrics + metric.copy(id = metricCounter)
-    }
-
-    private fun onMessageSendFailed() {
-        isLoading = false
     }
 
     fun clearChat() {
@@ -165,110 +126,29 @@ class ChatViewModel(
     }
 
     fun sendMessage() {
-        when (val result = MessageHandler.validateAndPrepare(inputText, isLoading)) {
-            is MessageHandler.ValidationResult.Valid -> {
-                messages = messages + result.message
-                inputText = ""
-                isLoading = true
-                errorMessage = null
-
-                viewModelScope.launch {
-                    val currentContent = StringBuilder()
-                    val currentReasoning = StringBuilder()
-                    var isReasoningContent = false
-
-                    try {
-                        repository.sendMessageStreaming(
-                            prompt = result.prompt,
-                            messages = messages,
-                            settings = settings,
-                        ).collect { chunk ->
-                            when (chunk) {
-                                is StreamChunk.Content -> {
-                                    currentContent.append(chunk.text)
-                                    isReasoningContent = false
-                                    updateStreamingMessage(
-                                        content = currentContent.toString(),
-                                        reasoning = currentReasoning.toString(),
-                                        isReasoning = isReasoningContent,
-                                    )
-                                }
-
-                                is StreamChunk.Reasoning -> {
-                                    currentReasoning.append(chunk.text)
-                                    isReasoningContent = true
-                                    updateStreamingMessage(
-                                        content = currentContent.toString(),
-                                        reasoning = currentReasoning.toString(),
-                                        isReasoning = isReasoningContent,
-                                    )
-                                }
-
-                                is StreamChunk.Done -> {
-                                    // Finalize the message
-                                    val finalContent = currentContent.toString()
-                                        .ifEmpty { currentReasoning.toString() }
-                                    finalizeStreamingMessage(
-                                        content = finalContent,
-                                        isReasoning = currentContent.isEmpty() && currentReasoning.isNotEmpty(),
-                                    )
-                                    isLoading = false
-                                }
-                            }
-                        }
-                    } catch (e: Exception) {
-                        errorMessage = e.message ?: "Streaming error"
-                        isLoading = false
-                    }
-                }
-            }
-
-            is MessageHandler.ValidationResult.Invalid -> {
-            }
-        }
-    }
-
-    private fun updateStreamingMessage(content: String, reasoning: String, isReasoning: Boolean) {
-        val streamingMessage = ChatMessage(
-            role = "assistant",
-            content = content.ifEmpty { reasoning },
-            isReasoningContent = isReasoning,
-            isStreaming = true,
+        useCases.sendMessage(
+            config = ChatUseCases.SendMessageConfig(
+                inputText = inputText,
+                isLoading = isLoading,
+                currentMessages = messages,
+                settings = settings,
+            ),
+            callbacks = ChatUseCases.MessageCallbacks(
+                onMessagesUpdate = { messages = it },
+                onInputTextUpdate = { inputText = it },
+                onLoadingUpdate = { isLoading = it },
+                onErrorUpdate = { errorMessage = it },
+            ),
         )
-        messages = if (messages.isNotEmpty() && messages.last().isStreaming) {
-            messages.dropLast(1) + streamingMessage
-        } else {
-            messages + streamingMessage
-        }
-    }
-
-    private fun finalizeStreamingMessage(content: String, isReasoning: Boolean) {
-        val finalMessage = ChatMessage(
-            role = "assistant",
-            content = content,
-            isReasoningContent = isReasoning,
-            isStreaming = false,
-        )
-        messages = if (messages.isNotEmpty() && messages.last().isStreaming) {
-            messages.dropLast(1) + finalMessage
-        } else {
-            messages + finalMessage
-        }
     }
 
     fun runReasoningComparison(task: String) {
-        isReasoningLoading = true
-
-        viewModelScope.launch {
-            repository.runReasoningComparison(
-                task = task,
-                settings = settings,
-                onProgress = { comparison ->
-                    reasoningComparison = comparison
-                    isReasoningLoading = comparison.results.values.any { it.isLoading }
-                },
-            )
-        }
+        useCases.runReasoningComparison(
+            task = task,
+            settings = settings,
+            onComparisonUpdate = { reasoningComparison = it },
+            onLoadingUpdate = { isReasoningLoading = it },
+        )
     }
 }
 

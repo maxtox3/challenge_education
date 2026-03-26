@@ -1,4 +1,6 @@
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.plugins.sse.SSEBufferPolicy
@@ -17,6 +19,7 @@ import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import model.ChatMessage
 import model.Message
@@ -72,7 +75,7 @@ class ChatClientImpl : ChatClient {
 
     private val baseUrl = "https://api.z.ai/api/coding/paas/v4/chat/completions"
 
-    private fun buildAllMessages(messages: List<ChatMessage>, systemPrompt: String?,): List<Message> = buildList {
+    private fun buildAllMessages(messages: List<ChatMessage>, systemPrompt: String?): List<Message> = buildList {
         systemPrompt?.let { prompt ->
             if (prompt.isNotBlank()) {
                 add(Message("system", prompt))
@@ -122,7 +125,7 @@ class ChatClientImpl : ChatClient {
 
                 else -> null
             }
-        } catch (e: Exception) {
+        } catch (e: SerializationException) {
             println("[ChatClient] Error parsing stream chunk: ${e.message}")
             null
         }
@@ -156,12 +159,27 @@ class ChatClientImpl : ChatClient {
         println("[ChatClient] Response body: $responseBody")
 
         parseResponse(responseBody, constraints)
-    } catch (e: Exception) {
-        println("[ChatClient] Exception: ${e.message}")
+    } catch (e: ClientRequestException) {
+        println("[ChatClient] Client request error: ${e.message}")
+        Result.failure(ChatNetworkException("Client error: ${e.message}", e))
+    } catch (e: ServerResponseException) {
+        println("[ChatClient] Server error: ${e.message}")
+        Result.failure(ChatNetworkException("Server error: ${e.message}", e))
+    } catch (e: SerializationException) {
+        println("[ChatClient] Serialization error: ${e.message}")
+        Result.failure(ChatSerializationException("Failed to parse response: ${e.message}", e))
+    } catch (e: ChatException) {
+        println("[ChatClient] Chat error: ${e.message}")
         Result.failure(e)
+    } catch (e: IllegalStateException) {
+        println("[ChatClient] Illegal state: ${e.message}")
+        Result.failure(ChatNetworkException("Connection error: ${e.message}", e))
+    } catch (e: IllegalArgumentException) {
+        println("[ChatClient] Invalid argument: ${e.message}")
+        Result.failure(ChatNetworkException("Invalid request: ${e.message}", e))
     }
 
-    private fun parseResponse(responseBody: String, constraints: ResponseConstraints,): Result<ChatMessage> {
+    private fun parseResponse(responseBody: String, constraints: ResponseConstraints): Result<ChatMessage> {
         if (responseBody.contains("\"error\"")) {
             val errorResponse = json.decodeFromString<ZAiErrorResponse>(responseBody)
             println("[ChatClient] API Error: $errorResponse")
@@ -234,4 +252,4 @@ class ChatClientImpl : ChatClient {
     }
 }
 
-class ChatClientException(message: String) : Exception(message)
+class ChatClientException(message: String) : ChatApiException(message)
