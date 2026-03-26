@@ -1,4 +1,17 @@
 rootProject.name = "zai-chat"
+
+// Core modules
+include(":core")
+include(":core:model")
+include(":core:network")
+
+// Feature modules
+include(":feature:chat")
+include(":feature:settings")
+include(":feature:metrics")
+include(":feature:reasoning")
+
+// App entry point
 include(":composeApp")
 
 pluginManagement {
