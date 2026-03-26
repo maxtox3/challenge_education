@@ -1,3 +1,5 @@
+package core.util
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.reflect.KProperty

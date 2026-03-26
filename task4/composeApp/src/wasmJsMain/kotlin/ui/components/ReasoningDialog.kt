@@ -253,6 +253,7 @@ private fun ColumnScope.ResultContentArea(currentResult: ReasoningResult?, listS
             }
 
             currentResult?.error != null -> {
+                val error = currentResult.error
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
@@ -260,7 +261,9 @@ private fun ColumnScope.ResultContentArea(currentResult: ReasoningResult?, listS
                 ) {
                     Text("Ошибка", color = AppColors.Error, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(currentResult.error, color = AppColors.TextSecondary)
+                    if (error != null) {
+                        Text(error, color = AppColors.TextSecondary)
+                    }
                 }
             }
 

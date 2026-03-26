@@ -1,3 +1,6 @@
+import core.exception.ChatException
+import core.exception.ChatNetworkException
+import core.exception.ChatStreamingException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import model.ChatMessage

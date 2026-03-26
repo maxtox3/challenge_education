@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform")
+    id("org.jetbrains.compose")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("io.gitlab.arturbosch.detekt")
     id("org.jlleitschuh.gradle.ktlint")
 }
@@ -28,6 +30,10 @@ kotlin {
     sourceSets {
         val wasmJsMain by getting {
             dependencies {
+                implementation("org.jetbrains.compose.runtime:runtime:1.10.2")
+                implementation("org.jetbrains.compose.foundation:foundation:1.10.2")
+                implementation("org.jetbrains.compose.ui:ui:1.10.2")
+                implementation("org.jetbrains.compose.material:material:1.10.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
             }
         }

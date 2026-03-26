@@ -1,3 +1,4 @@
+import core.exception.ChatException
 import io.ktor.util.date.getTimeMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -10,6 +11,7 @@ import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
 import model.StreamChunk
+import network.ChatClient
 
 interface ChatRepository {
     suspend fun sendMessage(prompt: String, messages: List<ChatMessage>, settings: ApiSettings): SendMessageResult

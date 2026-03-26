@@ -1,3 +1,5 @@
+package core.exception
+
 /**
  * Base exception for all chat-related errors.
  */
@@ -23,3 +25,8 @@ open class ChatSerializationException(message: String, cause: Throwable? = null,
  * Streaming/SSE errors (connection drops, stream parsing failures).
  */
 open class ChatStreamingException(message: String, cause: Throwable? = null,) : ChatException(message, cause)
+
+/**
+ * Client-specific API errors.
+ */
+class ChatClientException(message: String) : ChatApiException(message)

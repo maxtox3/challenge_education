@@ -3,6 +3,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import core.util.typedProp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import model.ChatMessage
 import model.MetricRecord
 import model.ReasoningComparison
+import network.ChatClientImpl
 
 class ChatViewModel(repository: ChatRepository, viewModelScope: CoroutineScope, val listState: LazyListState,) {
 

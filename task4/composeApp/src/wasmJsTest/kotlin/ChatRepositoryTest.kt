@@ -1,3 +1,4 @@
+import core.exception.ChatException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Runnable
@@ -9,6 +10,8 @@ import model.ChatMessage
 import model.ReasoningComparison
 import model.ReasoningMode
 import model.StreamChunk
+import network.ChatClient
+import network.ResponseConstraints
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.Test

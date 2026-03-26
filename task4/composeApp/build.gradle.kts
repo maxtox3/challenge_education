@@ -36,6 +36,9 @@ kotlin {
     sourceSets {
         val wasmJsMain by getting {
             dependencies {
+                implementation(project(":core"))
+                implementation(project(":core:model"))
+                implementation(project(":core:network"))
                 implementation("org.jetbrains.compose.runtime:runtime:1.10.2")
                 implementation("org.jetbrains.compose.foundation:foundation:1.10.2")
                 implementation("org.jetbrains.compose.material:material:1.10.2")

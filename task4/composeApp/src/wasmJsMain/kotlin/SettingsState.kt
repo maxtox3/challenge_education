@@ -1,6 +1,9 @@
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import core.util.toggleBoolean
+import core.util.typedProp
+import core.util.updateNested
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import model.ResponseFormat
+import network.ResponseConstraints
 
 data class ApiSettings(
     val apiKey: String = "",

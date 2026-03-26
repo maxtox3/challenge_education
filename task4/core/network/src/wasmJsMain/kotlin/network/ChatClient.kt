@@ -1,3 +1,9 @@
+package network
+
+import core.exception.ChatClientException
+import core.exception.ChatException
+import core.exception.ChatNetworkException
+import core.exception.ChatSerializationException
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ServerResponseException
@@ -110,12 +116,15 @@ class ChatClientImpl : ChatClient {
             when {
                 choice == null -> null
 
-                !choice.delta.reasoningContent.isNullOrEmpty() ->
-                    StreamChunk.Reasoning(choice.delta.reasoningContent)
+                !choice.delta.reasoningContent.isNullOrEmpty() -> {
+                    val reasoning = choice.delta.reasoningContent
+                    if (reasoning != null) StreamChunk.Reasoning(reasoning) else null
+                }
 
                 !choice.delta.content.isNullOrEmpty() -> {
-                    println("[ChatClient] Stream data: ${choice.delta.content}")
-                    StreamChunk.Content(choice.delta.content)
+                    val content = choice.delta.content
+                    println("[ChatClient] Stream data: $content")
+                    if (content != null) StreamChunk.Content(content) else null
                 }
 
                 choice.finishReason != null -> {
@@ -251,5 +260,3 @@ class ChatClientImpl : ChatClient {
         }
     }
 }
-
-class ChatClientException(message: String) : ChatApiException(message)
