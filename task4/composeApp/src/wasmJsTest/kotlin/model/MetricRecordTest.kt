@@ -5,6 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class MetricRecordTest {
+
     @Test
     fun testMetricRecord() {
         val constraints = ConstraintsInfo(

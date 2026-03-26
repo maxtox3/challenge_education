@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import model.ResponseFormat
 
 data class ApiSettings(
-    val apiKey: String = "9cccc72cda3c456c9263fe143dbae7b1.9ir3VQrPquSuSyvZ",
+    val apiKey: String = "",
     val model: String = "glm-5",
     val maxTokens: Int? = null,
     val temperature: Double = 1.0,
@@ -103,66 +103,41 @@ class SettingsViewModel(
 
     fun processIntent(intent: SettingsIntent) {
         when (intent) {
-            is SettingsIntent.UpdateApiKey -> updateApiKey(intent.apiKey)
-            is SettingsIntent.UpdateModel -> updateModel(intent.model)
-            is SettingsIntent.UpdateMaxTokens -> updateMaxTokens(intent.maxTokens)
-            is SettingsIntent.UpdateTemperature -> updateTemperature(intent.temperature)
-            is SettingsIntent.UpdateStopSequences -> updateStopSequences(intent.stopSequences)
-            is SettingsIntent.UpdateResponseFormat -> updateResponseFormat(intent.responseFormat)
+            is SettingsIntent.UpdateApiKey -> updateSettingsField { it.copy(apiKey = intent.apiKey) }
+
+            is SettingsIntent.UpdateModel -> updateSettingsField { it.copy(model = intent.model) }
+
+            is SettingsIntent.UpdateMaxTokens -> updateSettingsField { it.copy(maxTokens = intent.maxTokens) }
+
+            is SettingsIntent.UpdateTemperature -> updateSettingsField { it.copy(temperature = intent.temperature) }
+
+            is SettingsIntent.UpdateStopSequences -> updateSettingsField {
+                it.copy(stopSequences = intent.stopSequences)
+            }
+
+            is SettingsIntent.UpdateResponseFormat -> updateSettingsField {
+                it.copy(responseFormat = intent.responseFormat)
+            }
+
             is SettingsIntent.UpdateSettings -> updateSettings(intent.settings)
+
             is SettingsIntent.SaveSettings -> saveSettings()
+
             is SettingsIntent.ResetSettings -> resetSettings()
+
             is SettingsIntent.ClearValidationError -> clearValidationError()
+
             is SettingsIntent.ToggleApiKeyVisibility -> toggleApiKeyVisibility()
+
             is SettingsIntent.ValidateApiKey -> validateApiKey(intent.apiKey)
         }
     }
 
-    private fun updateApiKey(apiKey: String) {
+    private inline fun updateSettingsField(noinline block: (ApiSettings) -> ApiSettings) {
         _uiState.updateNested(
             nestedGetter = { it.settings },
             nestedSetter = { state, settings -> state.copy(settings = settings) },
-            block = { it.copy(apiKey = apiKey) }
-        )
-    }
-
-    private fun updateModel(model: String) {
-        _uiState.updateNested(
-            nestedGetter = { it.settings },
-            nestedSetter = { state, settings -> state.copy(settings = settings) },
-            block = { it.copy(model = model) }
-        )
-    }
-
-    private fun updateMaxTokens(maxTokens: Int?) {
-        _uiState.updateNested(
-            nestedGetter = { it.settings },
-            nestedSetter = { state, settings -> state.copy(settings = settings) },
-            block = { it.copy(maxTokens = maxTokens) }
-        )
-    }
-
-    private fun updateTemperature(temperature: Double) {
-        _uiState.updateNested(
-            nestedGetter = { it.settings },
-            nestedSetter = { state, settings -> state.copy(settings = settings) },
-            block = { it.copy(temperature = temperature) }
-        )
-    }
-
-    private fun updateStopSequences(stopSequences: String) {
-        _uiState.updateNested(
-            nestedGetter = { it.settings },
-            nestedSetter = { state, settings -> state.copy(settings = settings) },
-            block = { it.copy(stopSequences = stopSequences) }
-        )
-    }
-
-    private fun updateResponseFormat(responseFormat: String) {
-        _uiState.updateNested(
-            nestedGetter = { it.settings },
-            nestedSetter = { state, settings -> state.copy(settings = settings) },
-            block = { it.copy(responseFormat = responseFormat) }
+            block = block
         )
     }
 
@@ -201,16 +176,13 @@ class SettingsViewModel(
     }
 
     private fun validateSettings(settings: ApiSettings): Boolean {
-        if (settings.apiKey.isBlank()) {
-            _uiState.update { it.copy(validationError = "API key is required") }
-            return false
+        val error = when {
+            settings.apiKey.isBlank() -> "API key is required"
+            settings.temperature !in 0.0..2.0 -> "Temperature must be between 0.0 and 2.0"
+            else -> null
         }
-        if (settings.temperature < 0.0 || settings.temperature > 2.0) {
-            _uiState.update { it.copy(validationError = "Temperature must be between 0.0 and 2.0") }
-            return false
-        }
-        _uiState.update { it.copy(validationError = null) }
-        return true
+        _uiState.update { it.copy(validationError = error) }
+        return error == null
     }
 
     fun loadSettings(settings: ApiSettings) {

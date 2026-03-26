@@ -6,6 +6,12 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 
 class ChatMessageTest {
+    companion object {
+        private const val TEST_TIMESTAMP = 12345L
+        private const val TEST_TOKENS_USED = 100
+        private const val TEST_MAX_TOKENS = 1000
+    }
+
     @Test
     fun testChatMessageDefaults() {
         val msg = ChatMessage(role = "user", content = "Hello")
@@ -24,19 +30,19 @@ class ChatMessageTest {
         val msg = ChatMessage(
             role = "assistant",
             content = "Response",
-            timestamp = 12345L,
+            timestamp = TEST_TIMESTAMP,
             mode = "reasoning",
-            tokensUsed = 100,
-            maxTokens = 1000,
+            tokensUsed = TEST_TOKENS_USED,
+            maxTokens = TEST_MAX_TOKENS,
             finishReason = "stop",
             isReasoningContent = true,
         )
         assertEquals("assistant", msg.role)
         assertEquals("Response", msg.content)
-        assertEquals(12345L, msg.timestamp)
+        assertEquals(TEST_TIMESTAMP, msg.timestamp)
         assertEquals("reasoning", msg.mode)
-        assertEquals(100, msg.tokensUsed)
-        assertEquals(1000, msg.maxTokens)
+        assertEquals(TEST_TOKENS_USED, msg.tokensUsed)
+        assertEquals(TEST_MAX_TOKENS, msg.maxTokens)
         assertEquals("stop", msg.finishReason)
     }
 }

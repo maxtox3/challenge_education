@@ -1,16 +1,7 @@
-import ApiSettings
-import ChatIntent
-import ChatRepository
-import ChatState
-import ChatViewModel
-import SendMessageResult
 import androidx.compose.foundation.lazy.LazyListState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import model.ChatMessage
 import model.ConstraintsInfo
@@ -44,7 +35,7 @@ class AppUiTest {
     }
 
     @Test
-    fun initialState_rendersCorrectly() {
+    fun initialStateRendersCorrectly() {
         val state = viewModel.state
 
         assertEquals("", state.inputText)
@@ -60,7 +51,7 @@ class AppUiTest {
     }
 
     @Test
-    fun messageList_displaysAllMessages() {
+    fun messageListDisplaysAllMessages() {
         val messages = listOf(
             ChatMessage(role = "user", content = "Hello"),
             ChatMessage(role = "assistant", content = "Hi there!"),
@@ -94,7 +85,7 @@ class AppUiTest {
     }
 
     @Test
-    fun loadingState_showsIndicator() {
+    fun loadingStateShowsIndicator() {
         assertFalse(viewModel.isLoading)
 
         viewModel.processIntent(ChatIntent.SetLoading(true))
@@ -105,7 +96,7 @@ class AppUiTest {
     }
 
     @Test
-    fun errorMessage_displaysInSnackbar() {
+    fun errorMessageDisplaysInSnackbar() {
         assertNull(viewModel.errorMessage)
 
         viewModel.processIntent(ChatIntent.SetError("Network error"))
@@ -116,7 +107,7 @@ class AppUiTest {
     }
 
     @Test
-    fun settingsDialog_opensAndCloses() {
+    fun settingsDialogOpensAndCloses() {
         assertFalse(viewModel.showSettings)
 
         viewModel.processIntent(ChatIntent.ToggleSettings(true))
@@ -127,7 +118,7 @@ class AppUiTest {
     }
 
     @Test
-    fun metricsDialog_opensAndCloses() {
+    fun metricsDialogOpensAndCloses() {
         assertFalse(viewModel.showMetrics)
 
         viewModel.processIntent(ChatIntent.ToggleMetrics(true))
@@ -138,7 +129,7 @@ class AppUiTest {
     }
 
     @Test
-    fun reasoningDialog_opensAndCloses() {
+    fun reasoningDialogOpensAndCloses() {
         assertFalse(viewModel.showReasoning)
 
         viewModel.processIntent(ChatIntent.ToggleReasoning(true))
@@ -149,7 +140,7 @@ class AppUiTest {
     }
 
     @Test
-    fun clearChatButton_works() {
+    fun clearChatButtonWorks() {
         viewModel.processIntent(
             ChatIntent.MessageSent(
                 response = ChatMessage(role = "user", content = "Test"),
@@ -179,7 +170,7 @@ class AppUiTest {
     }
 
     @Test
-    fun sendMessageInteraction_validInput() {
+    fun sendMessageInteractionValidInput() {
         viewModel.processIntent(ChatIntent.UpdateInputText("Hello, world!"))
         assertEquals("Hello, world!", viewModel.inputText)
 
@@ -190,7 +181,7 @@ class AppUiTest {
     }
 
     @Test
-    fun sendMessageInteraction_emptyInput_doesNotSend() {
+    fun sendMessageInteractionEmptyInputDoesNotSend() {
         val initialMessageCount = viewModel.messages.size
 
         viewModel.processIntent(ChatIntent.UpdateInputText(""))
@@ -200,7 +191,7 @@ class AppUiTest {
     }
 
     @Test
-    fun sendMessageInteraction_whitespaceOnly_doesNotSend() {
+    fun sendMessageInteractionWhitespaceOnlyDoesNotSend() {
         val initialMessageCount = viewModel.messages.size
 
         viewModel.processIntent(ChatIntent.UpdateInputText("   "))
@@ -210,7 +201,7 @@ class AppUiTest {
     }
 
     @Test
-    fun inputField_updatesOnTyping() {
+    fun inputFieldUpdatesOnTyping() {
         assertEquals("", viewModel.inputText)
 
         viewModel.processIntent(ChatIntent.UpdateInputText("H"))
@@ -224,7 +215,7 @@ class AppUiTest {
     }
 
     @Test
-    fun updateSettings_savesCorrectly() {
+    fun updateSettingsSavesCorrectly() {
         val newSettings = ApiSettings(
             apiKey = "new-api-key",
             model = "custom-model",
@@ -246,7 +237,7 @@ class AppUiTest {
     }
 
     @Test
-    fun reasoningComparison_updatesCorrectly() {
+    fun reasoningComparisonUpdatesCorrectly() {
         val comparison = ReasoningComparison(
             task = "Test task",
             results = mapOf(
@@ -268,7 +259,7 @@ class AppUiTest {
     }
 
     @Test
-    fun reasoningLoadingState_toggles() {
+    fun reasoningLoadingStateToggles() {
         assertFalse(viewModel.isReasoningLoading)
 
         viewModel.processIntent(ChatIntent.SetReasoningLoading(true))
@@ -279,7 +270,7 @@ class AppUiTest {
     }
 
     @Test
-    fun metrics_accumulateCorrectly() {
+    fun metricsAccumulateCorrectly() {
         assertEquals(0, viewModel.metrics.size)
         assertEquals(0, viewModel.metricCounter)
 
@@ -327,7 +318,7 @@ class AppUiTest {
     }
 
     @Test
-    fun chatState_defaultValues() {
+    fun chatStateDefaultValues() {
         val state = ChatState()
 
         assertEquals("", state.inputText)
@@ -343,7 +334,7 @@ class AppUiTest {
     }
 
     @Test
-    fun chatState_customValues() {
+    fun chatStateCustomValues() {
         val messages = listOf(ChatMessage(role = "user", content = "Test"))
         val metrics = listOf(
             MetricRecord(
@@ -386,7 +377,7 @@ class AppUiTest {
     }
 
     @Test
-    fun apiSettings_defaultValues() {
+    fun apiSettingsDefaultValues() {
         val settings = ApiSettings()
 
         assertEquals("", settings.apiKey)
@@ -398,7 +389,7 @@ class AppUiTest {
     }
 
     @Test
-    fun messageSent_intentUpdatesStateCorrectly() {
+    fun messageSentIntentUpdatesStateCorrectly() {
         val message = ChatMessage(role = "assistant", content = "AI response")
         val metric = MetricRecord(
             id = 0,
@@ -424,7 +415,7 @@ class AppUiTest {
     }
 
     @Test
-    fun messageSendFailed_setsLoadingFalse() {
+    fun messageSendFailedSetsLoadingFalse() {
         viewModel.processIntent(ChatIntent.SetLoading(true))
         assertTrue(viewModel.isLoading)
 
@@ -433,7 +424,7 @@ class AppUiTest {
     }
 
     @Test
-    fun clearChat_viaViewModelMethod() {
+    fun clearChatViaViewModelMethod() {
         viewModel.processIntent(
             ChatIntent.MessageSent(
                 response = ChatMessage(role = "user", content = "Test message"),
@@ -463,7 +454,7 @@ class AppUiTest {
     }
 
     @Test
-    fun updateSettings_viaViewModelMethod() {
+    fun updateSettingsViaViewModelMethod() {
         val newSettings = ApiSettings(
             apiKey = "test-key",
             model = "test-model",
@@ -480,8 +471,6 @@ class AppUiTest {
 }
 
 class MockChatRepository : ChatRepository {
-    private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
-    val messages: StateFlow<List<ChatMessage>> = _messages.asStateFlow()
 
     override suspend fun sendMessage(
         prompt: String,

@@ -1,13 +1,7 @@
-import ApiSettings
-import ChatIntent
-import ChatSideEffect
-import ChatState
 import model.ChatMessage
 import model.ConstraintsInfo
 import model.MetricRecord
 import model.ReasoningComparison
-import model.ReasoningMode
-import model.ReasoningResult
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -20,13 +14,13 @@ class StateModelsTest {
     fun testChatStateDefaultValues() {
         val state = ChatState()
         assertEquals("", state.inputText)
-        assertEquals(emptyList<ChatMessage>(), state.messages)
+        assertEquals(emptyList(), state.messages)
         assertFalse(state.isLoading)
         assertNull(state.errorMessage)
         assertFalse(state.showSettings)
         assertFalse(state.showMetrics)
         assertFalse(state.showReasoning)
-        assertEquals(emptyList<MetricRecord>(), state.metrics)
+        assertEquals(emptyList(), state.metrics)
         assertEquals(0, state.metricCounter)
         assertEquals(ApiSettings(), state.settings)
         assertFalse(state.isReasoningLoading)
@@ -36,7 +30,7 @@ class StateModelsTest {
     fun testChatStateDefaultReasoningComparison() {
         val state = ChatState()
         assertTrue(state.reasoningComparison.task.isNotEmpty())
-        assertEquals(emptyMap<ReasoningMode, ReasoningResult>(), state.reasoningComparison.results)
+        assertEquals(emptyMap(), state.reasoningComparison.results)
     }
 
     @Test
@@ -52,7 +46,7 @@ class StateModelsTest {
         val message = ChatMessage(role = "user", content = "test")
         val original = ChatState()
         val copied = original.copy(messages = listOf(message))
-        assertEquals(emptyList<ChatMessage>(), original.messages)
+        assertEquals(emptyList(), original.messages)
         assertEquals(1, copied.messages.size)
         assertEquals("user", copied.messages[0].role)
         assertEquals("test", copied.messages[0].content)
@@ -114,7 +108,7 @@ class StateModelsTest {
         )
         val original = ChatState()
         val copied = original.copy(metrics = listOf(metric))
-        assertEquals(emptyList<MetricRecord>(), original.metrics)
+        assertEquals(emptyList(), original.metrics)
         assertEquals(1, copied.metrics.size)
         assertEquals(1, copied.metrics[0].id)
     }

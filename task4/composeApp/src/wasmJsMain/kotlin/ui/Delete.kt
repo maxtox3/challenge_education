@@ -6,12 +6,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
-@Suppress("ObjectPropertyName")
-private var _delete: ImageVector? = null
+private var localDelete: ImageVector? = null
 
 val Delete: ImageVector
     get() {
-        val current = _delete
+        val current = localDelete
         if (current != null) return current
 
         return ImageVector.Builder(
@@ -21,6 +20,7 @@ val Delete: ImageVector
             viewportWidth = 24f,
             viewportHeight = 24f,
         ).apply {
+            @Suppress("MagicNumber")
             path(
                 fill = SolidColor(androidx.compose.ui.graphics.Color.Black),
                 pathFillType = PathFillType.NonZero,

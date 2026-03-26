@@ -1,8 +1,12 @@
-import ApiSettings
-import model.*
+import model.ConstraintsInfo
+import model.MetricRecord
+import model.ReasoningComparison
+import model.ReasoningMode
+import model.ReasoningResult
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -10,55 +14,55 @@ import kotlin.test.assertTrue
 class DialogsUiTest {
 
     @Test
-    fun testSettingsDialog_fieldBinding_apiKey() {
+    fun testSettingsDialogFieldBindingApiKey() {
         val settings = ApiSettings(apiKey = "test-api-key-123")
         assertEquals("test-api-key-123", settings.apiKey)
     }
 
     @Test
-    fun testSettingsDialog_fieldBinding_model() {
+    fun testSettingsDialogFieldBindingModel() {
         val settings = ApiSettings(model = "custom-model")
         assertEquals("custom-model", settings.model)
     }
 
     @Test
-    fun testSettingsDialog_fieldBinding_maxTokens() {
+    fun testSettingsDialogFieldBindingMaxTokens() {
         val settings = ApiSettings(maxTokens = 2000)
         assertEquals(2000, settings.maxTokens)
     }
 
     @Test
-    fun testSettingsDialog_fieldBinding_maxTokensNull() {
+    fun testSettingsDialogFieldBindingMaxTokensNull() {
         val settings = ApiSettings(maxTokens = null)
         assertNull(settings.maxTokens)
     }
 
     @Test
-    fun testSettingsDialog_fieldBinding_temperature() {
+    fun testSettingsDialogFieldBindingTemperature() {
         val settings = ApiSettings(temperature = 0.7)
         assertEquals(0.7, settings.temperature)
     }
 
     @Test
-    fun testSettingsDialog_fieldBinding_stopSequences() {
+    fun testSettingsDialogFieldBindingStopSequences() {
         val settings = ApiSettings(stopSequences = "stop1,stop2,stop3")
         assertEquals("stop1,stop2,stop3", settings.stopSequences)
     }
 
     @Test
-    fun testSettingsDialog_fieldBinding_responseFormatText() {
+    fun testSettingsDialogFieldBindingResponseFormatText() {
         val settings = ApiSettings(responseFormat = "text")
         assertEquals("text", settings.responseFormat)
     }
 
     @Test
-    fun testSettingsDialog_fieldBinding_responseFormatJson() {
+    fun testSettingsDialogFieldBindingResponseFormatJson() {
         val settings = ApiSettings(responseFormat = "json")
         assertEquals("json", settings.responseFormat)
     }
 
     @Test
-    fun testSettingsDialog_saveCallback_transformsToApiSettings() {
+    fun testSettingsDialogSaveCallbackTransformsToApiSettings() {
         var savedSettings: ApiSettings? = null
         val onSave: (ApiSettings) -> Unit = { savedSettings = it }
 
@@ -72,8 +76,7 @@ class DialogsUiTest {
         )
         onSave(originalSettings)
 
-        assertNotNull(savedSettings)
-        val settings = savedSettings!!
+        val settings = requireNotNull(savedSettings)
         assertEquals("key123", settings.apiKey)
         assertEquals("glm-5", settings.model)
         assertEquals(1000, settings.maxTokens)
@@ -83,21 +86,21 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testSettingsDialog_saveCallback_emptyMaxTokensBecomesNull() {
+    fun testSettingsDialogSaveCallbackEmptyMaxTokensBecomesNull() {
         val maxTokensText = ""
         val maxTokens = maxTokensText.toIntOrNull()
         assertNull(maxTokens)
     }
 
     @Test
-    fun testSettingsDialog_saveCallback_numericMaxTokensParsed() {
+    fun testSettingsDialogSaveCallbackNumericMaxTokensParsed() {
         val maxTokensText = "500"
         val maxTokens = maxTokensText.toIntOrNull()
         assertEquals(500, maxTokens)
     }
 
     @Test
-    fun testSettingsDialog_temperatureSlider_rangeValidation() {
+    fun testSettingsDialogTemperatureSliderRangeValidation() {
         val validLow = 0.0
         val validHigh = 2.0
         val validMid = 1.0
@@ -108,19 +111,19 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testSettingsDialog_temperatureSlider_invalidLow() {
+    fun testSettingsDialogTemperatureSliderInvalidLow() {
         val invalidTemp = -0.5
         assertFalse(invalidTemp in 0.0..2.0)
     }
 
     @Test
-    fun testSettingsDialog_temperatureSlider_invalidHigh() {
+    fun testSettingsDialogTemperatureSliderInvalidHigh() {
         val invalidTemp = 2.5
         assertFalse(invalidTemp in 0.0..2.0)
     }
 
     @Test
-    fun testSettingsDialog_responseFormatChip_textSelection() {
+    fun testSettingsDialogResponseFormatChipTextSelection() {
         var responseFormat = "text"
         assertEquals("text", responseFormat)
         responseFormat = "text"
@@ -128,25 +131,24 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testSettingsDialog_responseFormatChip_jsonSelection() {
-        var responseFormat = "text"
-        responseFormat = "json"
+    fun testSettingsDialogResponseFormatChipJsonSelection() {
+        val responseFormat = "json"
         assertEquals("json", responseFormat)
     }
 
     @Test
-    fun testSettingsDialog_responseFormatChip_toggle() {
+    fun testSettingsDialogResponseFormatChipToggle() {
         var responseFormat = "text"
-        assertTrue(responseFormat == "text")
-        assertFalse(responseFormat == "json")
+        assertEquals("text", responseFormat)
+        assertNotEquals("json", responseFormat)
 
         responseFormat = "json"
-        assertFalse(responseFormat == "text")
-        assertTrue(responseFormat == "json")
+        assertNotEquals("text", responseFormat)
+        assertEquals("json", responseFormat)
     }
 
     @Test
-    fun testSettingsDialog_dismissCallback_invoked() {
+    fun testSettingsDialogDismissCallbackInvoked() {
         var dismissCalled = false
         val onDismiss: () -> Unit = { dismissCalled = true }
         onDismiss()
@@ -154,34 +156,34 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testSettingsDialog_maxTokensInput_onlyDigitsAllowed() {
+    fun testSettingsDialogMaxTokensInputOnlyDigitsAllowed() {
         val validInput = "12345"
         val isValid = validInput.isEmpty() || validInput.all { it.isDigit() }
         assertTrue(isValid)
     }
 
     @Test
-    fun testSettingsDialog_maxTokensInput_emptyAllowed() {
+    fun testSettingsDialogMaxTokensInputEmptyAllowed() {
         val emptyInput = ""
         val isValid = emptyInput.isEmpty() || emptyInput.all { it.isDigit() }
         assertTrue(isValid)
     }
 
     @Test
-    fun testSettingsDialog_maxTokensInput_lettersRejected() {
+    fun testSettingsDialogMaxTokensInputLettersRejected() {
         val invalidInput = "abc123"
         val isValid = invalidInput.isEmpty() || invalidInput.all { it.isDigit() }
         assertFalse(isValid)
     }
 
     @Test
-    fun testMetricsDialog_emptyState_display() {
+    fun testMetricsDialogEmptyStateDisplay() {
         val metrics = emptyList<MetricRecord>()
         assertTrue(metrics.isEmpty())
     }
 
     @Test
-    fun testMetricsDialog_emptyState_message() {
+    fun testMetricsDialogEmptyStateMessage() {
         val metrics = emptyList<MetricRecord>()
         val expectedMessage = "No metrics yet.\nSend some messages to see comparison."
         assertTrue(metrics.isEmpty())
@@ -189,7 +191,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testMetricsDialog_groupedByPrompt_singlePrompt() {
+    fun testMetricsDialogGroupedByPromptSinglePrompt() {
         val constraints = ConstraintsInfo(null, emptyList(), "text", 1.0)
         val metrics = listOf(
             MetricRecord(1, "Hello", "Hi there", "free", 8, 10, null, "stop", 100L, constraints),
@@ -202,7 +204,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testMetricsDialog_groupedByPrompt_multiplePrompts() {
+    fun testMetricsDialogGroupedByPromptMultiplePrompts() {
         val constraints = ConstraintsInfo(null, emptyList(), "text", 1.0)
         val metrics = listOf(
             MetricRecord(1, "Hello", "Hi", "free", 2, 5, null, "stop", 100L, constraints),
@@ -217,7 +219,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testMetricsDialog_groupedByPrompt_truncatedPromptDisplay() {
+    fun testMetricsDialogGroupedByPromptTruncatedPromptDisplay() {
         val longPrompt = "A".repeat(100)
         val displayText = "\"${longPrompt.take(50)}${if (longPrompt.length > 50) "..." else ""}\""
         assertEquals(55, displayText.length)
@@ -225,7 +227,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testMetricsDialog_groupedByPrompt_shortPromptNoTruncation() {
+    fun testMetricsDialogGroupedByPromptShortPromptNoTruncation() {
         val shortPrompt = "Hello"
         val displayText = "\"${shortPrompt.take(50)}${if (shortPrompt.length > 50) "..." else ""}\""
         assertEquals("\"Hello\"", displayText)
@@ -233,7 +235,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testMetricsTable_headers_includeConstraints() {
+    fun testMetricsTableHeadersIncludeConstraints() {
         val constraints1 = ConstraintsInfo(null, emptyList(), "text", 1.0)
         val constraints2 = ConstraintsInfo(100, emptyList(), "json", 0.5)
         val records = listOf(
@@ -251,7 +253,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testMetricsTable_rendering_lengthChars() {
+    fun testMetricsTableRenderingLengthChars() {
         val record = MetricRecord(
             1, "test", "response", "free", 8, 10, null, "stop", 100L,
             ConstraintsInfo(null, emptyList(), "text", 1.0)
@@ -260,7 +262,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testMetricsTable_rendering_tokensUsed() {
+    fun testMetricsTableRenderingTokensUsed() {
         val recordWithTokens = MetricRecord(
             1, "test", "response", "free", 8, 50, null, "stop", 100L,
             ConstraintsInfo(null, emptyList(), "text", 1.0)
@@ -275,7 +277,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testMetricsTable_rendering_maxTokens() {
+    fun testMetricsTableRenderingMaxTokens() {
         val recordWithLimit = MetricRecord(
             1, "test", "response", "free", 8, 50, 1000, "stop", 100L,
             ConstraintsInfo(null, emptyList(), "text", 1.0)
@@ -290,7 +292,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testMetricsTable_rendering_finishReason() {
+    fun testMetricsTableRenderingFinishReason() {
         val recordWithReason = MetricRecord(
             1, "test", "response", "free", 8, 50, null, "stop", 100L,
             ConstraintsInfo(null, emptyList(), "text", 1.0)
@@ -305,7 +307,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testMetricsTable_rendering_responseTime() {
+    fun testMetricsTableRenderingResponseTime() {
         val record = MetricRecord(
             1, "test", "response", "free", 8, 50, null, "stop", 1500L,
             ConstraintsInfo(null, emptyList(), "text", 1.0)
@@ -314,7 +316,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testMetricsDialog_dismissCallback() {
+    fun testMetricsDialogDismissCallback() {
         var dismissCalled = false
         val onDismiss: () -> Unit = { dismissCalled = true }
         onDismiss()
@@ -322,34 +324,27 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningDialog_tabSelection_default() {
-        var selectedTab = 0
-        assertEquals(ReasoningMode.DIRECT, ReasoningMode.entries.getOrNull(selectedTab))
+    fun testReasoningDialogTabSelectionDefault() {
+        assertEquals(ReasoningMode.DIRECT, ReasoningMode.entries.getOrNull(0))
     }
 
     @Test
-    fun testReasoningDialog_tabSelection_changeToStepByStep() {
-        var selectedTab = 0
-        selectedTab = 1
-        assertEquals(ReasoningMode.STEP_BY_STEP, ReasoningMode.entries.getOrNull(selectedTab))
+    fun testReasoningDialogTabSelectionChangeToStepByStep() {
+        assertEquals(ReasoningMode.STEP_BY_STEP, ReasoningMode.entries.getOrNull(1))
     }
 
     @Test
-    fun testReasoningDialog_tabSelection_changeToMetaPrompt() {
-        var selectedTab = 0
-        selectedTab = 2
-        assertEquals(ReasoningMode.META_PROMPT, ReasoningMode.entries.getOrNull(selectedTab))
+    fun testReasoningDialogTabSelectionChangeToMetaPrompt() {
+        assertEquals(ReasoningMode.META_PROMPT, ReasoningMode.entries.getOrNull(2))
     }
 
     @Test
-    fun testReasoningDialog_tabSelection_changeToExpertPanel() {
-        var selectedTab = 0
-        selectedTab = 3
-        assertEquals(ReasoningMode.EXPERT_PANEL, ReasoningMode.entries.getOrNull(selectedTab))
+    fun testReasoningDialogTabSelectionChangeToExpertPanel() {
+        assertEquals(ReasoningMode.EXPERT_PANEL, ReasoningMode.entries.getOrNull(3))
     }
 
     @Test
-    fun testReasoningDialog_tabSelection_allModesAccessible() {
+    fun testReasoningDialogTabSelectionAllModesAccessible() {
         val modes = ReasoningMode.entries
         assertEquals(4, modes.size)
         assertEquals(ReasoningMode.DIRECT, modes[0])
@@ -359,7 +354,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningDialog_comparisonRunButton_enabledWhenTaskNotBlank() {
+    fun testReasoningDialogComparisonRunButtonEnabledWhenTaskNotBlank() {
         val taskInput = "Test task"
         val isLoading = false
         val isEnabled = !isLoading && taskInput.isNotBlank()
@@ -367,7 +362,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningDialog_comparisonRunButton_disabledWhenTaskBlank() {
+    fun testReasoningDialogComparisonRunButtonDisabledWhenTaskBlank() {
         val taskInput = ""
         val isLoading = false
         val isEnabled = !isLoading && taskInput.isNotBlank()
@@ -375,7 +370,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningDialog_comparisonRunButton_disabledWhenLoading() {
+    fun testReasoningDialogComparisonRunButtonDisabledWhenLoading() {
         val taskInput = "Test task"
         val isLoading = true
         val isEnabled = !isLoading && taskInput.isNotBlank()
@@ -383,7 +378,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningDialog_comparisonRunButton_disabledWhenBlankAndLoading() {
+    fun testReasoningDialogComparisonRunButtonDisabledWhenBlankAndLoading() {
         val taskInput = "   "
         val isLoading = true
         val isEnabled = !isLoading && taskInput.isNotBlank()
@@ -391,7 +386,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningDialog_comparisonRunButton_callbackInvoked() {
+    fun testReasoningDialogComparisonRunButtonCallbackInvoked() {
         var runComparisonTask: String? = null
         val onRunComparison: (String) -> Unit = { task -> runComparisonTask = task }
         val taskInput = "Solve this problem"
@@ -400,14 +395,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningDialog_taskInput_updatesValue() {
-        var taskInput = "Initial task"
-        taskInput = "Updated task"
-        assertEquals("Updated task", taskInput)
-    }
-
-    @Test
-    fun testReasoningDialog_dismissCallback() {
+    fun testReasoningDialogDismissCallback() {
         var dismissCalled = false
         val onDismiss: () -> Unit = { dismissCalled = true }
         onDismiss()
@@ -415,7 +403,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningComparison_hasAnyResult_falseWhenEmpty() {
+    fun testReasoningComparisonHasAnyResultFalseWhenEmpty() {
         val comparison = ReasoningComparison(
             task = "test",
             results = emptyMap()
@@ -424,7 +412,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningComparison_hasAnyResult_trueWhenHasResponse() {
+    fun testReasoningComparisonHasAnyResultTrueWhenHasResponse() {
         val comparison = ReasoningComparison(
             task = "test",
             results = mapOf(
@@ -440,7 +428,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningComparison_isComplete_trueWhenAllHaveResponses() {
+    fun testReasoningComparisonIsCompleteTrueWhenAllHaveResponses() {
         val comparison = ReasoningComparison(
             task = "test",
             results = mapOf(
@@ -462,7 +450,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningComparison_isComplete_falseWhenLoading() {
+    fun testReasoningComparisonIsCompleteFalseWhenLoading() {
         val comparison = ReasoningComparison(
             task = "test",
             results = mapOf(
@@ -479,7 +467,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningComparison_isComplete_falseWhenHasError() {
+    fun testReasoningComparisonIsCompleteFalseWhenHasError() {
         val comparison = ReasoningComparison(
             task = "test",
             results = mapOf(
@@ -496,7 +484,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningComparison_isComplete_falseWhenEmptyResponse() {
+    fun testReasoningComparisonIsCompleteFalseWhenEmptyResponse() {
         val comparison = ReasoningComparison(
             task = "test",
             results = mapOf(
@@ -512,7 +500,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningResult_loadingState() {
+    fun testReasoningResultLoadingState() {
         val result = ReasoningResult(
             mode = ReasoningMode.DIRECT,
             systemPrompt = "system",
@@ -525,7 +513,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningResult_errorState() {
+    fun testReasoningResultErrorState() {
         val result = ReasoningResult(
             mode = ReasoningMode.DIRECT,
             systemPrompt = "system",
@@ -538,7 +526,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testReasoningResult_successState() {
+    fun testReasoningResultSuccessState() {
         val result = ReasoningResult(
             mode = ReasoningMode.DIRECT,
             systemPrompt = "You are helpful",
@@ -555,7 +543,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testComparisonTable_rendering_withCompleteData() {
+    fun testComparisonTableRenderingWithCompleteData() {
         val comparison = ReasoningComparison(
             task = "test task",
             results = mapOf(
@@ -594,7 +582,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testComparisonTable_rendering_withNullTokens() {
+    fun testComparisonTableRenderingWithNullTokens() {
         val result = ReasoningResult(
             mode = ReasoningMode.DIRECT,
             systemPrompt = "system",
@@ -608,7 +596,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testComparisonTable_rendering_emptyResponseLength() {
+    fun testComparisonTableRenderingEmptyResponseLength() {
         val result = ReasoningResult(
             mode = ReasoningMode.DIRECT,
             systemPrompt = "system",
@@ -620,7 +608,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testComparisonTable_allModesPresent() {
+    fun testComparisonTableAllModesPresent() {
         val comparison = ReasoningComparison(
             task = "test",
             results = ReasoningMode.entries.associateWith { mode ->
@@ -641,7 +629,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testTabStatus_loading() {
+    fun testTabStatusLoading() {
         val result = ReasoningResult(
             mode = ReasoningMode.DIRECT,
             systemPrompt = "system",
@@ -658,7 +646,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testTabStatus_error() {
+    fun testTabStatusError() {
         val result = ReasoningResult(
             mode = ReasoningMode.DIRECT,
             systemPrompt = "system",
@@ -675,7 +663,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testTabStatus_success() {
+    fun testTabStatusSuccess() {
         val result = ReasoningResult(
             mode = ReasoningMode.DIRECT,
             systemPrompt = "system",
@@ -692,7 +680,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testTabStatus_pending() {
+    fun testTabStatusPending() {
         val result = ReasoningResult(
             mode = ReasoningMode.DIRECT,
             systemPrompt = "system",
@@ -708,21 +696,21 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testMetricBadge_timeDisplay() {
+    fun testMetricBadgeTimeDisplay() {
         val responseTimeMs = 1234L
         val displayValue = "${responseTimeMs}ms"
         assertEquals("1234ms", displayValue)
     }
 
     @Test
-    fun testMetricBadge_tokensDisplay() {
+    fun testMetricBadgeTokensDisplay() {
         val tokensUsed = 42
         val displayValue = "$tokensUsed"
         assertEquals("42", displayValue)
     }
 
     @Test
-    fun testButtonState_enabledConditions() {
+    fun testButtonStateEnabledConditions() {
         val isLoading = false
         val taskInput = "Valid task"
         val buttonEnabled = !isLoading && taskInput.isNotBlank()
@@ -730,7 +718,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testButtonState_disabledByLoading() {
+    fun testButtonStateDisabledByLoading() {
         val isLoading = true
         val taskInput = "Valid task"
         val buttonEnabled = !isLoading && taskInput.isNotBlank()
@@ -738,7 +726,7 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testButtonState_disabledByBlankInput() {
+    fun testButtonStateDisabledByBlankInput() {
         val isLoading = false
         val taskInput = "   "
         val buttonEnabled = !isLoading && taskInput.isNotBlank()
@@ -746,47 +734,47 @@ class DialogsUiTest {
     }
 
     @Test
-    fun testChipSelection_textFormat() {
-        var responseFormat = "text"
+    fun testChipSelectionTextFormat() {
+        val responseFormat = "text"
         val isSelected = responseFormat == "text"
         assertTrue(isSelected)
     }
 
     @Test
-    fun testChipSelection_jsonFormat() {
-        var responseFormat = "json"
+    fun testChipSelectionJsonFormat() {
+        val responseFormat = "json"
         val isSelected = responseFormat == "json"
         assertTrue(isSelected)
     }
 
     @Test
-    fun testChipSelection_notSelected() {
-        var responseFormat = "text"
+    fun testChipSelectionNotSelected() {
+        val responseFormat = "text"
         val isSelected = responseFormat == "json"
         assertFalse(isSelected)
     }
 
     @Test
-    fun testSliderValue_temperatureConversion() {
+    fun testSliderValueTemperatureConversion() {
         val sliderValue = 0.75f
         val temperature = sliderValue.toDouble()
         assertEquals(0.75, temperature)
     }
 
     @Test
-    fun testSliderValue_rangeMinimum() {
+    fun testSliderValueRangeMinimum() {
         val valueRange = 0f..2f
         assertTrue(0f in valueRange)
     }
 
     @Test
-    fun testSliderValue_rangeMaximum() {
+    fun testSliderValueRangeMaximum() {
         val valueRange = 0f..2f
         assertTrue(2f in valueRange)
     }
 
     @Test
-    fun testSliderValue_outOfRange() {
+    fun testSliderValueOutOfRange() {
         val valueRange = 0f..2f
         assertFalse(-0.1f in valueRange)
         assertFalse(2.1f in valueRange)

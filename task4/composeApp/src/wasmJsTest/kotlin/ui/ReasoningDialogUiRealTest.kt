@@ -2,7 +2,14 @@
 
 package ui
 
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.runComposeUiTest
 import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
@@ -12,6 +19,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@ExperimentalWasmJsInterop
 class ReasoningDialogUiRealTest {
 
     private val emptyComparison = ReasoningComparison(

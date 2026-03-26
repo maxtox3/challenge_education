@@ -14,14 +14,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
 import kotlin.math.roundToInt
 
+private const val SLIDE_IN_INITIAL_OFFSET = 20f
+private const val SLIDE_IN_ANIMATION_DURATION_MS = 300
+
 @Composable
 fun slideInAnimation(): Modifier {
     var animated by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { animated = true }
 
     val offsetY by animateFloatAsState(
-        targetValue = if (animated) 0f else 20f,
-        animationSpec = tween(300, easing = FastOutSlowInEasing),
+        targetValue = if (animated) 0f else SLIDE_IN_INITIAL_OFFSET,
+        animationSpec = tween(SLIDE_IN_ANIMATION_DURATION_MS, easing = FastOutSlowInEasing),
         label = "offsetY",
     )
     return Modifier.offset { IntOffset(0, offsetY.roundToInt()) }

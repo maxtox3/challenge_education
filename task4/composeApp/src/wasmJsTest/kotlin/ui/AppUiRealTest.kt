@@ -10,7 +10,11 @@ import ChatRepository
 import ChatViewModel
 import SendMessageResult
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.runComposeUiTest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +32,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+@ExperimentalWasmJsInterop
 class AppUiRealTest {
     private lateinit var mockRepository: MockChatRepositoryForUi
     private lateinit var viewModel: ChatViewModel
@@ -45,7 +50,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_displaysEmptyState_whenNoMessages() = runComposeUiTest {
+    fun appDisplaysEmptyStateWhenNoMessages() = runComposeUiTest {
         setContent {
             AppWithState(viewModel = viewModel)
         }
@@ -57,7 +62,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_messageListExists_whenHasMessages() = runComposeUiTest {
+    fun appMessageListExistsWhenHasMessages() = runComposeUiTest {
         viewModel.processIntent(
             ChatIntent.MessageSent(
                 response = ChatMessage(role = "user", content = "Hello"),
@@ -85,7 +90,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_clearButton_exists() = runComposeUiTest {
+    fun appClearButtonExists() = runComposeUiTest {
         setContent {
             AppWithState(viewModel = viewModel)
         }
@@ -94,7 +99,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_metricsButton_exists() = runComposeUiTest {
+    fun appMetricsButtonExists() = runComposeUiTest {
         setContent {
             AppWithState(viewModel = viewModel)
         }
@@ -103,7 +108,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_reasoningButton_exists() = runComposeUiTest {
+    fun appReasoningButtonExists() = runComposeUiTest {
         setContent {
             AppWithState(viewModel = viewModel)
         }
@@ -112,7 +117,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_settingsButton_exists() = runComposeUiTest {
+    fun appSettingsButtonExists() = runComposeUiTest {
         setContent {
             AppWithState(viewModel = viewModel)
         }
@@ -121,7 +126,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_clearButton_clearsChat() = runComposeUiTest {
+    fun appClearButtonClearsChat() = runComposeUiTest {
         viewModel.processIntent(
             ChatIntent.MessageSent(
                 response = ChatMessage(role = "user", content = "Test message"),
@@ -152,7 +157,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_metricsButton_opensMetricsDialog() = runComposeUiTest {
+    fun appMetricsButtonOpensMetricsDialog() = runComposeUiTest {
         setContent {
             AppWithState(viewModel = viewModel)
         }
@@ -165,7 +170,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_reasoningButton_opensReasoningDialog() = runComposeUiTest {
+    fun appReasoningButtonOpensReasoningDialog() = runComposeUiTest {
         setContent {
             AppWithState(viewModel = viewModel)
         }
@@ -178,7 +183,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_settingsButton_opensSettingsDialog() = runComposeUiTest {
+    fun appSettingsButtonOpensSettingsDialog() = runComposeUiTest {
         setContent {
             AppWithState(viewModel = viewModel)
         }
@@ -191,7 +196,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_displaysError_whenErrorSet() = runComposeUiTest {
+    fun appDisplaysErrorWhenErrorSet() = runComposeUiTest {
         viewModel.processIntent(ChatIntent.SetError("Test error message"))
 
         setContent {
@@ -204,7 +209,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_dismissErrorButton_exists() = runComposeUiTest {
+    fun appDismissErrorButtonExists() = runComposeUiTest {
         viewModel.processIntent(ChatIntent.SetError("Test error"))
 
         setContent {
@@ -215,7 +220,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_dismissErrorButton_clearsError() = runComposeUiTest {
+    fun appDismissErrorButtonClearsError() = runComposeUiTest {
         viewModel.processIntent(ChatIntent.SetError("Test error to dismiss"))
 
         setContent {
@@ -230,7 +235,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_noErrorDisplayed_whenNoError() = runComposeUiTest {
+    fun appNoErrorDisplayedWhenNoError() = runComposeUiTest {
         setContent {
             AppWithState(viewModel = viewModel)
         }
@@ -239,7 +244,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_loadingIndicator_notShown_whenNotLoading() = runComposeUiTest {
+    fun appLoadingIndicatorNotShownWhenNotLoading() = runComposeUiTest {
         setContent {
             AppWithState(viewModel = viewModel)
         }
@@ -249,7 +254,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_loadingIndicator_shown_whenLoading() = runComposeUiTest {
+    fun appLoadingIndicatorShownWhenLoading() = runComposeUiTest {
         viewModel.processIntent(ChatIntent.SetLoading(true))
 
         setContent {
@@ -260,7 +265,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_header_displaysTitle() = runComposeUiTest {
+    fun appHeaderDisplaysTitle() = runComposeUiTest {
         setContent {
             AppWithState(viewModel = viewModel)
         }
@@ -271,7 +276,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_header_displaysModelName() = runComposeUiTest {
+    fun appHeaderDisplaysModelName() = runComposeUiTest {
         setContent {
             AppWithState(viewModel = viewModel)
         }
@@ -281,7 +286,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_errorSurface_disappearsAfterDismiss() = runComposeUiTest {
+    fun appErrorSurfaceDisappearsAfterDismiss() = runComposeUiTest {
         viewModel.processIntent(ChatIntent.SetError("Error to dismiss"))
 
         setContent {
@@ -296,7 +301,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_multipleErrors_showsLatestError() = runComposeUiTest {
+    fun appMultipleErrorsShowsLatestError() = runComposeUiTest {
         viewModel.processIntent(ChatIntent.SetError("First error"))
         viewModel.processIntent(ChatIntent.SetError("Second error"))
 
@@ -309,7 +314,7 @@ class AppUiRealTest {
     }
 
     @Test
-    fun app_clearChat_clearsError() = runComposeUiTest {
+    fun appClearChatClearsError() = runComposeUiTest {
         viewModel.processIntent(
             ChatIntent.MessageSent(
                 response = ChatMessage(role = "user", content = "Test"),

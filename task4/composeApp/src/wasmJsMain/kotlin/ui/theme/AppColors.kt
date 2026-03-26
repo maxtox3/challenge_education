@@ -2,6 +2,7 @@ package ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+@Suppress("MagicNumber")
 object AppColors {
     val Background = Color(0xFF121212)
     val Surface = Color(0xFF1E1E1E)

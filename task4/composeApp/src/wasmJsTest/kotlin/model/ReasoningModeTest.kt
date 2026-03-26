@@ -31,6 +31,7 @@ class ReasoningModeTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testReasoningModeEntries() {
         assertEquals(4, ReasoningMode.entries.size)
     }
@@ -53,6 +54,7 @@ class ReasoningModeTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testReasoningResultWithAllFields() {
         val result = ReasoningResult(
             mode = ReasoningMode.STEP_BY_STEP,

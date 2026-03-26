@@ -3,14 +3,26 @@
 package ui
 
 import ApiSettings
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.runComposeUiTest
 import ui.components.SettingsDialog
 import ui.components.SettingsDialogTags
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@ExperimentalWasmJsInterop
 class SettingsDialogUiRealTest {
+
+    companion object {
+        private const val TEST_MAX_TOKENS = 500
+        private const val TEST_TEMPERATURE = 1.5
+    }
 
     private val defaultSettings = ApiSettings(
         apiKey = "test-key",
@@ -22,7 +34,7 @@ class SettingsDialogUiRealTest {
     )
 
     @Test
-    fun settingsDialog_rootExists() = runComposeUiTest {
+    fun settingsDialogRootExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings,
@@ -35,7 +47,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_dialogSurfaceExists() = runComposeUiTest {
+    fun settingsDialogDialogSurfaceExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings,
@@ -48,7 +60,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_titleDisplayed() = runComposeUiTest {
+    fun settingsDialogTitleDisplayed() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings,
@@ -62,7 +74,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_apiKeyFieldDisplaysValue() = runComposeUiTest {
+    fun settingsDialogApiKeyFieldDisplaysValue() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings.copy(apiKey = "my-secret-key"),
@@ -76,7 +88,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_modelFieldDisplaysValue() = runComposeUiTest {
+    fun settingsDialogModelFieldDisplaysValue() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings.copy(model = "custom-model"),
@@ -90,7 +102,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_maxTokensFieldDisplaysValue() = runComposeUiTest {
+    fun settingsDialogMaxTokensFieldDisplaysValue() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings.copy(maxTokens = 2000),
@@ -104,7 +116,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_maxTokensFieldEmptyWhenNull() = runComposeUiTest {
+    fun settingsDialogMaxTokensFieldEmptyWhenNull() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings.copy(maxTokens = null),
@@ -117,7 +129,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_temperatureSliderExists() = runComposeUiTest {
+    fun settingsDialogTemperatureSliderExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings,
@@ -130,7 +142,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_temperatureLabelDisplaysValue() = runComposeUiTest {
+    fun settingsDialogTemperatureLabelDisplaysValue() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings.copy(temperature = 0.5),
@@ -143,7 +155,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_stopSequencesFieldDisplaysValue() = runComposeUiTest {
+    fun settingsDialogStopSequencesFieldDisplaysValue() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings.copy(stopSequences = "stop1,stop2"),
@@ -157,7 +169,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_textFormatChipExists() = runComposeUiTest {
+    fun settingsDialogTextFormatChipExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings.copy(responseFormat = "text"),
@@ -171,7 +183,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_jsonFormatChipExists() = runComposeUiTest {
+    fun settingsDialogJsonFormatChipExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings.copy(responseFormat = "json"),
@@ -185,7 +197,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_cancelButtonExists() = runComposeUiTest {
+    fun settingsDialogCancelButtonExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings,
@@ -199,7 +211,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_saveButtonExists() = runComposeUiTest {
+    fun settingsDialogSaveButtonExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings,
@@ -213,7 +225,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_cancelButtonTriggersCallback() = runComposeUiTest {
+    fun settingsDialogCancelButtonTriggersCallback() = runComposeUiTest {
         var dismissCalled = false
 
         setContent {
@@ -230,7 +242,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_saveButtonTriggersCallback() = runComposeUiTest {
+    fun settingsDialogSaveButtonTriggersCallback() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -247,7 +259,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_savePassesCorrectApiKey() = runComposeUiTest {
+    fun settingsDialogSavePassesCorrectApiKey() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -264,7 +276,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_savePassesCorrectModel() = runComposeUiTest {
+    fun settingsDialogSavePassesCorrectModel() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -281,7 +293,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_savePassesCorrectTemperature() = runComposeUiTest {
+    fun settingsDialogSavePassesCorrectTemperature() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -294,11 +306,11 @@ class SettingsDialogUiRealTest {
 
         onNodeWithTag(SettingsDialogTags.SAVE_BUTTON).performClick()
 
-        assertEquals(1.5, savedSettings?.temperature)
+        assertEquals(TEST_TEMPERATURE, savedSettings?.temperature)
     }
 
     @Test
-    fun settingsDialog_savePassesCorrectResponseFormat() = runComposeUiTest {
+    fun settingsDialogSavePassesCorrectResponseFormat() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -315,7 +327,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_savePassesCorrectStopSequences() = runComposeUiTest {
+    fun settingsDialogSavePassesCorrectStopSequences() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -332,7 +344,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_apiKeyFieldEditable() = runComposeUiTest {
+    fun settingsDialogApiKeyFieldEditable() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -351,7 +363,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_modelFieldEditable() = runComposeUiTest {
+    fun settingsDialogModelFieldEditable() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -370,7 +382,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_maxTokensFieldEditable() = runComposeUiTest {
+    fun settingsDialogMaxTokensFieldEditable() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -385,11 +397,11 @@ class SettingsDialogUiRealTest {
 
         onNodeWithTag(SettingsDialogTags.SAVE_BUTTON).performClick()
 
-        assertEquals(500, savedSettings?.maxTokens)
+        assertEquals(TEST_MAX_TOKENS, savedSettings?.maxTokens)
     }
 
     @Test
-    fun settingsDialog_stopSequencesFieldEditable() = runComposeUiTest {
+    fun settingsDialogStopSequencesFieldEditable() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -408,7 +420,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_emptyMaxTokensSavesAsNull() = runComposeUiTest {
+    fun settingsDialogEmptyMaxTokensSavesAsNull() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -427,7 +439,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_textFormatChipClickable() = runComposeUiTest {
+    fun settingsDialogTextFormatChipClickable() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -445,7 +457,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_jsonFormatChipClickable() = runComposeUiTest {
+    fun settingsDialogJsonFormatChipClickable() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
         setContent {
@@ -463,7 +475,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_allFieldsPresent() = runComposeUiTest {
+    fun settingsDialogAllFieldsPresent() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings,
@@ -482,7 +494,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_allButtonsPresent() = runComposeUiTest {
+    fun settingsDialogAllButtonsPresent() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings,
@@ -496,7 +508,7 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialog_labelsDisplayed() = runComposeUiTest {
+    fun settingsDialogLabelsDisplayed() = runComposeUiTest {
         setContent {
             SettingsDialog(
                 currentSettings = defaultSettings,

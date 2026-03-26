@@ -173,8 +173,8 @@ class ChatViewModel(
                 errorMessage = null
 
                 viewModelScope.launch {
-                    var currentContent = StringBuilder()
-                    var currentReasoning = StringBuilder()
+                    val currentContent = StringBuilder()
+                    val currentReasoning = StringBuilder()
                     var isReasoningContent = false
 
                     try {

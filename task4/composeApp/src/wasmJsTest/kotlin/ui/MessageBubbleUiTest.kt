@@ -2,17 +2,21 @@
 
 package ui
 
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.runComposeUiTest
 import model.ChatMessage
 import ui.components.MessageBubble
 import ui.components.MessageBubbleTags
 import ui.components.TypingIndicator
 import kotlin.test.Test
 
+@ExperimentalWasmJsInterop
 class MessageBubbleUiTest {
 
     @Test
-    fun messageBubble_displaysUserMessage() = runComposeUiTest {
+    fun messageBubbleDisplaysUserMessage() = runComposeUiTest {
         val message = ChatMessage(
             role = "user",
             content = "Hello, world!",
@@ -29,7 +33,7 @@ class MessageBubbleUiTest {
     }
 
     @Test
-    fun messageBubble_displaysAssistantMessage() = runComposeUiTest {
+    fun messageBubbleDisplaysAssistantMessage() = runComposeUiTest {
         val message = ChatMessage(
             role = "assistant",
             content = "Hello! How can I help you?",
@@ -46,7 +50,7 @@ class MessageBubbleUiTest {
     }
 
     @Test
-    fun messageBubble_displaysSystemMessage() = runComposeUiTest {
+    fun messageBubbleDisplaysSystemMessage() = runComposeUiTest {
         val message = ChatMessage(
             role = "system",
             content = "System notification",
@@ -62,7 +66,7 @@ class MessageBubbleUiTest {
     }
 
     @Test
-    fun messageBubble_displaysReasoningContent() = runComposeUiTest {
+    fun messageBubbleDisplaysReasoningContent() = runComposeUiTest {
         val message = ChatMessage(
             role = "assistant",
             content = "Reasoning content here",
@@ -77,7 +81,7 @@ class MessageBubbleUiTest {
     }
 
     @Test
-    fun messageBubble_reasoningContentAlwaysVisible() = runComposeUiTest {
+    fun messageBubbleReasoningContentAlwaysVisible() = runComposeUiTest {
         val message = ChatMessage(
             role = "assistant",
             content = "Reasoning content here",
@@ -94,7 +98,7 @@ class MessageBubbleUiTest {
     }
 
     @Test
-    fun messageBubble_displaysTokensInfo() = runComposeUiTest {
+    fun messageBubbleDisplaysTokensInfo() = runComposeUiTest {
         val message = ChatMessage(
             role = "assistant",
             content = "Response",
@@ -112,7 +116,7 @@ class MessageBubbleUiTest {
     }
 
     @Test
-    fun messageBubble_displaysTruncatedStatus() = runComposeUiTest {
+    fun messageBubbleDisplaysTruncatedStatus() = runComposeUiTest {
         val message = ChatMessage(
             role = "assistant",
             content = "Response",
@@ -128,7 +132,7 @@ class MessageBubbleUiTest {
     }
 
     @Test
-    fun messageBubble_noTokensInfoWhenNull() = runComposeUiTest {
+    fun messageBubbleNoTokensInfoWhenNull() = runComposeUiTest {
         val message = ChatMessage(
             role = "assistant",
             content = "Response",
@@ -143,7 +147,7 @@ class MessageBubbleUiTest {
     }
 
     @Test
-    fun messageBubble_nonReasoningShowsContentDirectly() = runComposeUiTest {
+    fun messageBubbleNonReasoningShowsContentDirectly() = runComposeUiTest {
         val message = ChatMessage(
             role = "assistant",
             content = "Regular content",
@@ -160,7 +164,7 @@ class MessageBubbleUiTest {
     }
 
     @Test
-    fun typingIndicator_exists() = runComposeUiTest {
+    fun typingIndicatorExists() = runComposeUiTest {
         setContent {
             TypingIndicator()
         }

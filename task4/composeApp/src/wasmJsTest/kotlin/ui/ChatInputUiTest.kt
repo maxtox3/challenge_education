@@ -2,17 +2,26 @@
 
 package ui
 
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.runComposeUiTest
 import ui.components.ChatInput
 import ui.components.ChatInputTags
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@ExperimentalWasmJsInterop
 class ChatInputUiTest {
 
     @Test
-    fun chatInput_displaysPlaceholder() = runComposeUiTest {
+    fun chatInputDisplaysPlaceholder() = runComposeUiTest {
         var inputValue = ""
 
         setContent {
@@ -28,7 +37,7 @@ class ChatInputUiTest {
     }
 
     @Test
-    fun chatInput_displaysCurrentText() = runComposeUiTest {
+    fun chatInputDisplaysCurrentText() = runComposeUiTest {
         var inputValue = "Hello, world!"
 
         setContent {
@@ -44,7 +53,7 @@ class ChatInputUiTest {
     }
 
     @Test
-    fun chatInput_sendButton_disabledWhenEmpty() = runComposeUiTest {
+    fun chatInputSendButtonDisabledWhenEmpty() = runComposeUiTest {
         var inputValue = ""
 
         setContent {
@@ -60,7 +69,7 @@ class ChatInputUiTest {
     }
 
     @Test
-    fun chatInput_sendButton_enabledWhenHasText() = runComposeUiTest {
+    fun chatInputSendButtonEnabledWhenHasText() = runComposeUiTest {
         var inputValue = "Hello"
 
         setContent {
@@ -76,7 +85,7 @@ class ChatInputUiTest {
     }
 
     @Test
-    fun chatInput_sendButton_disabledWhenLoading() = runComposeUiTest {
+    fun chatInputSendButtonDisabledWhenLoading() = runComposeUiTest {
         var inputValue = "Hello"
 
         setContent {
@@ -93,7 +102,7 @@ class ChatInputUiTest {
     }
 
     @Test
-    fun chatInput_onValueChangeCalled() = runComposeUiTest {
+    fun chatInputOnValueChangeCalled() = runComposeUiTest {
         var inputValue = ""
         var lastChangedValue = ""
 
@@ -116,7 +125,7 @@ class ChatInputUiTest {
     }
 
     @Test
-    fun chatInput_sendButton_clickTriggersCallback() = runComposeUiTest {
+    fun chatInputSendButtonClickTriggersCallback() = runComposeUiTest {
         var inputValue = "Hello"
         var sendCalled = false
 
@@ -135,7 +144,7 @@ class ChatInputUiTest {
     }
 
     @Test
-    fun chatInput_sendButton_disabledWhenWhitespaceOnly() = runComposeUiTest {
+    fun chatInputSendButtonDisabledWhenWhitespaceOnly() = runComposeUiTest {
         var inputValue = "   "
 
         setContent {
@@ -151,7 +160,7 @@ class ChatInputUiTest {
     }
 
     @Test
-    fun chatInput_rootExists() = runComposeUiTest {
+    fun chatInputRootExists() = runComposeUiTest {
         var inputValue = ""
 
         setContent {
@@ -167,7 +176,7 @@ class ChatInputUiTest {
     }
 
     @Test
-    fun chatInput_textFieldExists() = runComposeUiTest {
+    fun chatInputTextFieldExists() = runComposeUiTest {
         var inputValue = ""
 
         setContent {
@@ -183,7 +192,7 @@ class ChatInputUiTest {
     }
 
     @Test
-    fun chatInput_appendText() = runComposeUiTest {
+    fun chatInputAppendText() = runComposeUiTest {
         var inputValue = "Hello"
         var lastChangedValue = ""
 

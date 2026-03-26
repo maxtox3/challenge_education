@@ -62,7 +62,7 @@ kotlin {
 detekt {
     config.setFrom(files("$rootDir/detekt.yml"))
     buildUponDefaultConfig = true
-    allRules = false
+    allRules = true
     source.setFrom(
         files("src/wasmJsMain/kotlin"),
         files("src/wasmJsTest/kotlin"),

@@ -1,11 +1,20 @@
 package ui.components
 
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.Divider
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -13,30 +22,31 @@ import androidx.compose.ui.window.Dialog
 import model.MetricRecord
 import ui.theme.AppColors
 
-object MetricsDialogTags {
-    const val ROOT = "metrics_dialog_root"
-    const val CONTENT_COLUMN = "metrics_dialog_content"
-    const val METRICS_LIST = "metrics_dialog_list"
-    const val EMPTY_STATE = "metrics_dialog_empty_state"
-    const val METRICS_TABLE = "metrics_table"
-    const val PROMPT_TEXT = "metrics_prompt_text"
-}
+private const val PROMPT_PREVIEW_LENGTH = 50
+private const val DIALOG_HEIGHT_FRACTION = 0.8f
+private const val SPACING_SMALL = 16
+private const val SPACING_MEDIUM = 20
+private const val SPACING_LARGE = 24
+private const val COLUMN_WIDTH_NARROW = 120
+private const val COLUMN_WIDTH_WIDE = 140
+private const val PADDING_SMALL = 4
+private const val PADDING_MEDIUM = 8
 
 @Composable
-fun MetricsDialog(metrics: List<MetricRecord>, onDismiss: () -> Unit,) {
+fun MetricsDialog(metrics: List<MetricRecord>, onDismiss: () -> Unit) {
     val groupedByPrompt = metrics.groupBy { it.prompt }
 
     Dialog(onDismissRequest = onDismiss) {
         DialogSurface(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.8f)
-                .padding(16.dp)
+                .fillMaxHeight(DIALOG_HEIGHT_FRACTION)
+                .padding(SPACING_SMALL.dp)
                 .testTag(MetricsDialogTags.ROOT),
         ) {
             Column(
                 modifier = Modifier
-                    .padding(20.dp)
+                    .padding(SPACING_MEDIUM.dp)
                     .testTag(MetricsDialogTags.CONTENT_COLUMN),
             ) {
                 DialogHeader(
@@ -44,7 +54,7 @@ fun MetricsDialog(metrics: List<MetricRecord>, onDismiss: () -> Unit,) {
                     onDismiss = onDismiss,
                 )
 
-                SectionSpacer(16)
+                SectionSpacer(SPACING_SMALL)
 
                 if (metrics.isEmpty()) {
                     EmptyStateBox(
@@ -60,18 +70,20 @@ fun MetricsDialog(metrics: List<MetricRecord>, onDismiss: () -> Unit,) {
                             .testTag(MetricsDialogTags.METRICS_LIST),
                     ) {
                         groupedByPrompt.forEach { (prompt, records) ->
+                            val promptPreview = prompt.take(PROMPT_PREVIEW_LENGTH)
+                            val ellipsis = if (prompt.length > PROMPT_PREVIEW_LENGTH) "..." else ""
                             Text(
-                                text = "Prompt: \"${prompt.take(50)}${if (prompt.length > 50) "..." else ""}\"",
+                                text = "Prompt: \"$promptPreview$ellipsis\"",
                                 style = MaterialTheme.typography.subtitle2,
                                 color = AppColors.TextSecondary,
                                 modifier = Modifier
-                                    .padding(bottom = 8.dp)
+                                    .padding(bottom = PADDING_MEDIUM.dp)
                                     .testTag(MetricsDialogTags.PROMPT_TEXT),
                             )
 
                             MetricsTable(records)
 
-                            SectionSpacer(24)
+                            SectionSpacer(SPACING_LARGE)
                         }
                     }
                 }
@@ -89,8 +101,8 @@ private fun MetricsTable(records: List<MetricRecord>) {
             headers.forEachIndexed { index, header ->
                 Box(
                     modifier = Modifier
-                        .width(if (index == 0) 120.dp else 140.dp)
-                        .padding(4.dp),
+                        .width(if (index == 0) COLUMN_WIDTH_NARROW.dp else COLUMN_WIDTH_WIDE.dp)
+                        .padding(PADDING_SMALL.dp),
                 ) {
                     Text(
                         text = header,
@@ -114,12 +126,12 @@ private fun MetricsTable(records: List<MetricRecord>) {
 @Composable
 private fun MetricRow(label: String, values: List<String>) {
     Row(
-        modifier = Modifier.padding(vertical = 4.dp),
+        modifier = Modifier.padding(vertical = PADDING_SMALL.dp),
     ) {
         Box(
             modifier = Modifier
-                .width(120.dp)
-                .padding(4.dp),
+                .width(COLUMN_WIDTH_NARROW.dp)
+                .padding(PADDING_SMALL.dp),
         ) {
             Text(
                 text = label,
@@ -131,8 +143,8 @@ private fun MetricRow(label: String, values: List<String>) {
         values.forEach { value ->
             Box(
                 modifier = Modifier
-                    .width(140.dp)
-                    .padding(4.dp),
+                    .width(COLUMN_WIDTH_WIDE.dp)
+                    .padding(PADDING_SMALL.dp),
             ) {
                 Text(
                     text = value,

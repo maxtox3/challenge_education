@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package ui
 
 import androidx.compose.ui.graphics.PathFillType
@@ -6,12 +8,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
-@Suppress("ObjectPropertyName")
-private var _chart: ImageVector? = null
+private var localChart: ImageVector? = null
 
 val Chart: ImageVector
     get() {
-        val current = _chart
+        val current = localChart
         if (current != null) return current
 
         return ImageVector.Builder(

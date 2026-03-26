@@ -1,5 +1,3 @@
-import ApiSettings
-import ResponseConstraints
 import model.ResponseFormat
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -180,9 +180,8 @@ class UtilitiesTest {
     fun testValidateAndPrepareTrimsInput() {
         val result = MessageHandler.validateAndPrepare("  Hello  ", false)
         assertIs<MessageHandler.ValidationResult.Valid>(result)
-        val validResult = result as MessageHandler.ValidationResult.Valid
-        assertEquals("Hello", validResult.prompt)
-        assertEquals("Hello", validResult.message.content)
+        assertEquals("Hello", result.prompt)
+        assertEquals("Hello", result.message.content)
     }
 
     @Test
@@ -207,8 +206,6 @@ class UtilitiesTest {
             getter = { it },
             setter = { _, value -> value }
         )
-
-        fun getState(): String = _state.value
     }
 
     @Test
@@ -248,84 +245,6 @@ class UtilitiesTest {
         assertEquals(false, stateFlow.value.flag)
         stateFlow.value = stateFlow.value.copy(flag = true)
         assertEquals(true, stateFlow.value.flag)
-    }
-
-    // ==================== ViewModelStateHolder ====================
-
-    @Test
-    fun testViewModelStateHolderInitialState() {
-        val holder = ViewModelStateHolder(StringState("initial"))
-
-        assertEquals("initial", holder.state.value)
-        assertEquals("initial", holder.uiState.value.value)
-    }
-
-    @Test
-    fun testViewModelStateHolderUpdateState() {
-        val holder = ViewModelStateHolder(StringState("initial"))
-
-        holder.updateState { it.copy(value = "updated") }
-
-        assertEquals("updated", holder.state.value)
-    }
-
-    @Test
-    fun testViewModelStateHolderUpdateField() {
-        val holder = ViewModelStateHolder(IntState(0))
-
-        holder.updateField(
-            getter = { it.counter },
-            setter = { state, value -> state.copy(counter = value) },
-            value = 42
-        )
-
-        assertEquals(42, holder.state.counter)
-    }
-
-    @Test
-    fun testViewModelStateHolderUpdateFieldMultipleTimes() {
-        val holder = ViewModelStateHolder(StringState("a"))
-
-        holder.updateField(
-            getter = { it.value },
-            setter = { state, value -> state.copy(value = value) },
-            value = "b"
-        )
-        holder.updateField(
-            getter = { it.value },
-            setter = { state, value -> state.copy(value = value) },
-            value = "c"
-        )
-
-        assertEquals("c", holder.state.value)
-    }
-
-    @Test
-    fun testViewModelStateHolderCreateProperty() {
-        val holder = ViewModelStateHolder(BooleanState(false))
-
-        holder.createProperty(
-            getter = { it.flag },
-            setter = { state, flag -> state.copy(flag = flag) }
-        )
-
-        holder.updateField(
-            getter = { it.flag },
-            setter = { state, flag -> state.copy(flag = flag) },
-            value = true
-        )
-        assertEquals(true, holder.state.flag)
-    }
-
-    @Test
-    fun testViewModelStateHolderUiStateIsReadOnly() {
-        val holder = ViewModelStateHolder(StringState("initial"))
-
-        val uiState = holder.uiState
-        assertEquals("initial", uiState.value.value)
-
-        holder.updateState { it.copy(value = "changed") }
-        assertEquals("changed", uiState.value.value)
     }
 
     // ==================== MutableStateFlow Extension Functions ====================
@@ -389,6 +308,7 @@ class UtilitiesTest {
     fun testMutableStateFlowUpdateNestedPreservesOtherFields() {
         data class ComplexInner(val value: String, val other: Int)
         data class ComplexOuter(val inner: ComplexInner, val extra: String)
+
         val stateFlow = MutableStateFlow(ComplexOuter(ComplexInner("initial", 42), "extra"))
 
         stateFlow.updateNested(
@@ -407,6 +327,7 @@ class UtilitiesTest {
         data class Level3(val data: Int)
         data class Level2(val level3: Level3)
         data class Level1(val level2: Level2)
+
         val stateFlow = MutableStateFlow(Level1(Level2(Level3(0))))
 
         stateFlow.updateNested(

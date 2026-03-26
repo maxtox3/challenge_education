@@ -37,7 +37,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testSendMessage_Success() {
+    fun `test send message success`() {
         val response = ChatMessage(
             role = "assistant",
             content = "Hello, how can I help?",
@@ -70,7 +70,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testSendMessage_Error() {
+    fun `test send message error`() {
         fakeClient.sendResult = Result.failure(Exception("API Error: 401"))
 
         val settings = ApiSettings(apiKey = "invalid-key", model = "glm-5")
@@ -86,7 +86,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testSendMessage_MetricRecordCorrectness() {
+    fun `test send message metric record correctness`() {
         val response = ChatMessage(
             role = "assistant",
             content = "Test response content",
@@ -129,7 +129,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testSendMessage_WithConstraints() {
+    fun `test send message with constraints`() {
         val response = ChatMessage(
             role = "assistant",
             content = "Constrained response",
@@ -164,7 +164,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testSendMessage_ConstraintsInfoParsing() {
+    fun `test send message constraints info parsing`() {
         val response = ChatMessage(
             role = "assistant",
             content = "Response",
@@ -193,7 +193,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testSendMessage_EmptyStopSequences() {
+    fun `test send message empty stop sequences`() {
         val response = ChatMessage(role = "assistant", content = "Response")
         fakeClient.sendResult = Result.success(response)
 
@@ -208,11 +208,11 @@ class ChatRepositoryTest {
             result = repository.sendMessage("prompt", emptyList(), settings) as SendMessageResult.Success
         }
 
-        assertEquals(emptyList<String>(), result.metric.constraints.stopSequences)
+        assertEquals(emptyList(), result.metric.constraints.stopSequences)
     }
 
     @Test
-    fun testSendMessage_WithJsonResponseFormat() {
+    fun `test send message with json response format`() {
         val response = ChatMessage(
             role = "assistant",
             content = """{"result": "ok"}""",
@@ -236,7 +236,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testRunReasoningComparison_ParallelExecution() {
+    fun `test run reasoning comparison parallel execution`() {
         fakeClient.sendResult = Result.success(
             ChatMessage(role = "assistant", content = "Test response", tokensUsed = 10)
         )
@@ -259,7 +259,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testRunReasoningComparison_InitialLoadingState() {
+    fun `test run reasoning comparison initial loading state`() {
         fakeClient.sendResult = Result.success(
             ChatMessage(role = "assistant", content = "Response")
         )
@@ -280,7 +280,7 @@ class ChatRepositoryTest {
         }
 
         assertNotNull(firstProgress)
-        firstProgress!!.results.values.forEach { res ->
+        firstProgress.results.values.forEach { res ->
             assertTrue(res.isLoading)
             assertNull(res.error)
             assertEquals("", res.response)
@@ -288,7 +288,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testRunReasoningComparison_FinalResultsNotLoading() {
+    fun `test run reasoning comparison final results not loading`() {
         fakeClient.sendResult = Result.success(
             ChatMessage(role = "assistant", content = "Response", tokensUsed = 5)
         )
@@ -309,7 +309,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testRunReasoningComparison_SystemPromptsForModes() {
+    fun `test run reasoning comparison system prompts for modes`() {
         fakeClient.sendResult = Result.success(
             ChatMessage(role = "assistant", content = "Response")
         )
@@ -325,13 +325,13 @@ class ChatRepositoryTest {
         }
 
         assertEquals("", result.results[ReasoningMode.DIRECT]?.systemPrompt)
-        assertTrue(result.results[ReasoningMode.STEP_BY_STEP]?.systemPrompt?.contains("пошагово") == true)
-        assertTrue(result.results[ReasoningMode.META_PROMPT]?.systemPrompt?.contains("промпт") == true)
-        assertTrue(result.results[ReasoningMode.EXPERT_PANEL]?.systemPrompt?.contains("экспертов") == true)
+        assertEquals(true, result.results[ReasoningMode.STEP_BY_STEP]?.systemPrompt?.contains("пошагово"))
+        assertEquals(true, result.results[ReasoningMode.META_PROMPT]?.systemPrompt?.contains("промпт"))
+        assertEquals(true, result.results[ReasoningMode.EXPERT_PANEL]?.systemPrompt?.contains("экспертов"))
     }
 
     @Test
-    fun testRunReasoningComparison_WithError() {
+    fun `test run reasoning comparison with error`() {
         fakeClient.sendResult = Result.failure(Exception("Network error"))
 
         val settings = ApiSettings(apiKey = "key", model = "model")
@@ -352,7 +352,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testRunReasoningComparison_TokensUsedCaptured() {
+    fun `test run reasoning comparison tokens used captured`() {
         fakeClient.sendResult = Result.success(
             ChatMessage(role = "assistant", content = "Response", tokensUsed = 42)
         )
@@ -373,7 +373,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testRunReasoningComparison_ResponseTimeMs() {
+    fun `test run reasoning comparison response time ms`() {
         fakeClient.sendResult = Result.success(
             ChatMessage(role = "assistant", content = "Response")
         )
@@ -394,7 +394,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testRunReasoningComparison_ProgressUpdatesCount() {
+    fun `test run reasoning comparison progress updates count`() {
         fakeClient.sendResult = Result.success(
             ChatMessage(role = "assistant", content = "Response")
         )
@@ -415,7 +415,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testRunReasoningComparison_TaskPassedCorrectly() {
+    fun `test run reasoning comparison task passed correctly`() {
         fakeClient.sendResult = Result.success(
             ChatMessage(role = "assistant", content = "Response")
         )
@@ -438,8 +438,8 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testSendMessage_UnknownErrorMessage() {
-        fakeClient.sendResult = Result.failure(Exception())
+    fun `test send message unknown error message`() {
+        fakeClient.sendResult = Result.failure(IllegalStateException(null as String?))
 
         val settings = ApiSettings(apiKey = "key", model = "model")
         lateinit var result: SendMessageResult
@@ -452,7 +452,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testSendMessage_CatchesException() {
+    fun `test send message catches exception`() {
         fakeClient.shouldThrow = true
 
         val settings = ApiSettings(apiKey = "key", model = "model")
@@ -466,7 +466,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testMetricRecord_ResponseLengthMatchesContent() {
+    fun `test metric record response length matches content`() {
         val content = "This is a test response with specific length"
         val response = ChatMessage(
             role = "assistant",
@@ -486,7 +486,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testSendMessage_MultipleMessages() {
+    fun `test send message multiple messages`() {
         val response = ChatMessage(role = "assistant", content = "Multi-message response")
         fakeClient.sendResult = Result.success(response)
 
@@ -507,7 +507,7 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testRunReasoningComparison_AllModesPresent() {
+    fun `test run reasoning comparison all modes present`() {
         fakeClient.sendResult = Result.success(
             ChatMessage(role = "assistant", content = "Response")
         )
@@ -543,7 +543,7 @@ class FakeChatClient : ChatClient {
         systemPrompt: String?,
     ): Result<ChatMessage> {
         if (shouldThrow) {
-            throw Exception("Test exception")
+            error("Test exception")
         }
         lastConstraints = constraints
         lastMessages = messages

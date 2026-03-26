@@ -18,6 +18,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@Suppress("TooManyFunctions", "FunctionNaming", "MagicNumber")
 class ChatViewModelTest {
     private lateinit var fakeRepository: FakeChatRepository
     private lateinit var viewModel: ChatViewModel
@@ -39,13 +40,13 @@ class ChatViewModelTest {
     @Test
     fun testInitialState() {
         assertEquals("", viewModel.state.inputText)
-        assertEquals(emptyList<ChatMessage>(), viewModel.state.messages)
+        assertEquals(emptyList(), viewModel.state.messages)
         assertFalse(viewModel.state.isLoading)
         assertNull(viewModel.state.errorMessage)
         assertFalse(viewModel.state.showSettings)
         assertFalse(viewModel.state.showMetrics)
         assertFalse(viewModel.state.showReasoning)
-        assertEquals(emptyList<MetricRecord>(), viewModel.state.metrics)
+        assertEquals(emptyList(), viewModel.state.metrics)
         assertEquals(0, viewModel.state.metricCounter)
         assertFalse(viewModel.state.isReasoningLoading)
     }
@@ -180,7 +181,7 @@ class ChatViewModelTest {
             )
         )
         viewModel.clearChat()
-        assertEquals(emptyList<ChatMessage>(), viewModel.state.messages)
+        assertEquals(emptyList(), viewModel.state.messages)
         assertNull(viewModel.state.errorMessage)
     }
 
@@ -434,7 +435,7 @@ class ChatViewModelTest {
             )
         )
         viewModel.processIntent(ChatIntent.ClearChat)
-        assertEquals(emptyList<ChatMessage>(), viewModel.state.messages)
+        assertEquals(emptyList(), viewModel.state.messages)
     }
 
     @Test

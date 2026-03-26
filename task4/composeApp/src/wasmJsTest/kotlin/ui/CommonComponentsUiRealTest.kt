@@ -3,16 +3,30 @@
 package ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.Button
 import androidx.compose.material.Text
-import androidx.compose.ui.test.*
-import ui.components.*
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.runComposeUiTest
+import kotlinx.coroutines.test.TestResult
+import ui.components.DialogHeader
+import ui.components.DialogHeaderTags
+import ui.components.DialogSurface
+import ui.components.DialogSurfaceTags
+import ui.components.EmptyStateBox
+import ui.components.EmptyStateBoxTags
+import ui.components.LoadingButtonContent
+import ui.components.LoadingButtonContentTags
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
+@ExperimentalWasmJsInterop
 class CommonComponentsUiRealTest {
 
     @Test
-    fun dialogSurface_rootExists() = runComposeUiTest {
+    fun dialogSurfaceRootExists() = runComposeUiTest {
         setContent {
             DialogSurface {
                 Text("Content")
@@ -23,7 +37,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun dialogSurface_displaysContent() = runComposeUiTest {
+    fun dialogSurfaceDisplaysContent() = runComposeUiTest {
         setContent {
             DialogSurface {
                 Text("Test Content")
@@ -34,7 +48,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun dialogHeader_displaysTitle() = runComposeUiTest {
+    fun dialogHeaderDisplaysTitle() = runComposeUiTest {
         setContent {
             DialogHeader(
                 title = "Test Dialog",
@@ -47,7 +61,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun dialogHeader_displaysDefaultCloseText() = runComposeUiTest {
+    fun dialogHeaderDisplaysDefaultCloseText() = runComposeUiTest {
         setContent {
             DialogHeader(
                 title = "Test Dialog",
@@ -59,7 +73,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun dialogHeader_displaysCustomCloseText() = runComposeUiTest {
+    fun dialogHeaderDisplaysCustomCloseText() = runComposeUiTest {
         setContent {
             DialogHeader(
                 title = "Test Dialog",
@@ -72,7 +86,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun dialogHeader_closeButtonExists() = runComposeUiTest {
+    fun dialogHeaderCloseButtonExists() = runComposeUiTest {
         setContent {
             DialogHeader(
                 title = "Test Dialog",
@@ -84,7 +98,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun dialogHeader_closeButtonClick() = runComposeUiTest {
+    fun dialogHeaderCloseButtonClick() = runComposeUiTest {
         var dismissCalled = false
 
         setContent {
@@ -100,7 +114,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun dialogHeader_rootExists() = runComposeUiTest {
+    fun dialogHeaderRootExists() = runComposeUiTest {
         setContent {
             DialogHeader(
                 title = "Test Dialog",
@@ -112,7 +126,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun loadingButtonContent_displaysButtonTextWhenNotLoading() = runComposeUiTest {
+    fun loadingButtonContentDisplaysButtonTextWhenNotLoading() = runComposeUiTest {
         setContent {
             LoadingButtonContent(
                 isLoading = false,
@@ -125,7 +139,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun loadingButtonContent_displaysLoadingTextWhenLoading() = runComposeUiTest {
+    fun loadingButtonContentDisplaysLoadingTextWhenLoading() = runComposeUiTest {
         setContent {
             LoadingButtonContent(
                 isLoading = true,
@@ -138,7 +152,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun loadingButtonContent_displaysLoadingIndicatorWhenLoading() = runComposeUiTest {
+    fun loadingButtonContentDisplaysLoadingIndicatorWhenLoading() = runComposeUiTest {
         setContent {
             LoadingButtonContent(
                 isLoading = true,
@@ -150,7 +164,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun loadingButtonContent_noLoadingIndicatorWhenNotLoading() = runComposeUiTest {
+    fun loadingButtonContentNoLoadingIndicatorWhenNotLoading() = runComposeUiTest {
         setContent {
             LoadingButtonContent(
                 isLoading = false,
@@ -162,7 +176,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun loadingButtonContent_rootExists() = runComposeUiTest {
+    fun loadingButtonContentRootExists() = runComposeUiTest {
         setContent {
             LoadingButtonContent(isLoading = false)
         }
@@ -171,7 +185,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun loadingButtonContent_defaultButtonText() = runComposeUiTest {
+    fun loadingButtonContentDefaultButtonText() = runComposeUiTest {
         setContent {
             LoadingButtonContent(isLoading = false)
         }
@@ -180,7 +194,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun loadingButtonContent_defaultLoadingText() = runComposeUiTest {
+    fun loadingButtonContentDefaultLoadingText() = runComposeUiTest {
         setContent {
             LoadingButtonContent(isLoading = true)
         }
@@ -189,7 +203,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun emptyStateBox_displaysMessage() = runComposeUiTest {
+    fun emptyStateBoxDisplaysMessage() = runComposeUiTest {
         setContent {
             EmptyStateBox(message = "No items found")
         }
@@ -198,7 +212,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun emptyStateBox_rootExists() = runComposeUiTest {
+    fun emptyStateBoxRootExists() = runComposeUiTest {
         setContent {
             EmptyStateBox(message = "Empty")
         }
@@ -207,7 +221,7 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun emptyStateBox_messageTagExists() = runComposeUiTest {
+    fun emptyStateBoxMessageTagExists() = runComposeUiTest {
         setContent {
             EmptyStateBox(message = "Test Message")
         }
@@ -216,18 +230,18 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun emptyStateBox_displaysDifferentMessages() = runComposeUiTest {
-        var message = "First message"
+    fun emptyStateBoxDisplaysDifferentMessages() = runComposeUiTest {
+        val message = "First message"
 
         setContent {
             EmptyStateBox(message = message)
         }
 
-        onNodeWithText("First message").assertExists()
+        onNodeWithText(message).assertExists()
     }
 
     @Test
-    fun dialogSurface_combinedWithDialogHeader() = runComposeUiTest {
+    fun dialogSurfaceCombinedWithDialogHeader() = runComposeUiTest {
         var dismissCalled = false
 
         setContent {
@@ -248,56 +262,62 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun loadingButtonContent_inButton() = runComposeUiTest {
-        var buttonEnabled = true
+    fun loadingButtonContentInButton() = runComposeUiTest {
+        val buttonText = "Click Me"
 
         setContent {
-            androidx.compose.material.Button(
+            Button(
                 onClick = {},
-                enabled = buttonEnabled,
+                enabled = true,
             ) {
                 LoadingButtonContent(
                     isLoading = false,
-                    buttonText = "Click Me",
+                    buttonText = buttonText,
                 )
             }
         }
 
-        onNodeWithText("Click Me").assertExists()
+        onNodeWithText(buttonText).assertExists()
     }
 
     @Test
-    fun loadingButtonContent_loadingStateTransition() = runComposeUiTest {
-        var isLoading = false
+    fun loadingButtonContentLoadingStateTransition(): TestResult {
+        val buttonText = "Start"
 
-        setContent {
-            LoadingButtonContent(
-                isLoading = isLoading,
-                loadingText = "Processing...",
-                buttonText = "Start",
-            )
+        return runComposeUiTest {
+            setContent {
+                LoadingButtonContent(
+                    isLoading = false,
+                    loadingText = "Processing...",
+                    buttonText = buttonText,
+                )
+            }
+
+            onNodeWithText(buttonText).assertExists()
+            onNodeWithTag(LoadingButtonContentTags.LOADING_INDICATOR).assertDoesNotExist()
         }
-
-        onNodeWithText("Start").assertExists()
-        onNodeWithTag(LoadingButtonContentTags.LOADING_INDICATOR).assertDoesNotExist()
     }
 
     @Test
-    fun dialogHeader_customDismissTextVariations() = runComposeUiTest {
-        setContent {
-            DialogHeader(
-                title = "Settings",
-                onDismiss = {},
-                dismissText = "Done",
-            )
+    fun dialogHeaderCustomDismissTextVariations(): TestResult {
+        val dismissText = "Done"
+
+        return runComposeUiTest {
+            setContent {
+                DialogHeader(
+                    title = "Settings",
+                    onDismiss = {},
+                    dismissText = dismissText,
+                )
+            }
+
+            onNodeWithText(dismissText).assertExists()
+            onNodeWithText("Close").assertDoesNotExist()
         }
-
-        onNodeWithText("Done").assertExists()
-        onNodeWithText("Close").assertDoesNotExist()
     }
 
     @Test
-    fun emptyStateBox_longMessage() = runComposeUiTest {
+    fun emptyStateBoxLongMessage() = runComposeUiTest {
         val longMessage = "This is a very long empty state message that should still display correctly in the UI"
 
         setContent {
@@ -308,16 +328,20 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun loadingButtonContent_customTexts() = runComposeUiTest {
-        setContent {
-            LoadingButtonContent(
-                isLoading = true,
-                loadingText = "Saving...",
-                buttonText = "Save",
-            )
-        }
+    fun loadingButtonContentCustomTexts(): TestResult {
+        val loadingText = "Saving..."
 
-        onNodeWithText("Saving...").assertExists()
-        onNodeWithTag(LoadingButtonContentTags.LOADING_INDICATOR).assertExists()
+        return runComposeUiTest {
+            setContent {
+                LoadingButtonContent(
+                    isLoading = true,
+                    loadingText = loadingText,
+                    buttonText = "Save",
+                )
+            }
+
+            onNodeWithText(loadingText).assertExists()
+            onNodeWithTag(LoadingButtonContentTags.LOADING_INDICATOR).assertExists()
+        }
     }
 }

@@ -12,7 +12,7 @@ import model.ReasoningResult
 import model.StreamChunk
 
 interface ChatRepository {
-    suspend fun sendMessage(prompt: String, messages: List<ChatMessage>, settings: ApiSettings,): SendMessageResult
+    suspend fun sendMessage(prompt: String, messages: List<ChatMessage>, settings: ApiSettings): SendMessageResult
 
     suspend fun runReasoningComparison(
         task: String,
@@ -20,16 +20,16 @@ interface ChatRepository {
         onProgress: (ReasoningComparison) -> Unit,
     ): ReasoningComparison
 
-    fun sendMessageStreaming(prompt: String, messages: List<ChatMessage>, settings: ApiSettings,): Flow<StreamChunk>
+    fun sendMessageStreaming(prompt: String, messages: List<ChatMessage>, settings: ApiSettings): Flow<StreamChunk>
 }
 
 sealed class SendMessageResult {
-    data class Success(val response: ChatMessage, val metric: MetricRecord,) : SendMessageResult()
+    data class Success(val response: ChatMessage, val metric: MetricRecord) : SendMessageResult()
 
     data class Error(val message: String) : SendMessageResult()
 }
 
-class ChatRepositoryImpl(private val client: ChatClient, private val scope: CoroutineScope,) : ChatRepository {
+class ChatRepositoryImpl(private val client: ChatClient, private val scope: CoroutineScope) : ChatRepository {
 
     override suspend fun sendMessage(
         prompt: String,

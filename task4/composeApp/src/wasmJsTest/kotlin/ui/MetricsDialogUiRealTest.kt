@@ -2,7 +2,13 @@
 
 package ui
 
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.runComposeUiTest
 import model.ConstraintsInfo
 import model.MetricRecord
 import ui.components.MetricsDialog
@@ -10,6 +16,7 @@ import ui.components.MetricsDialogTags
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
+@ExperimentalWasmJsInterop
 class MetricsDialogUiRealTest {
 
     private val sampleMetric = MetricRecord(
@@ -31,14 +38,13 @@ class MetricsDialogUiRealTest {
     )
 
     @Test
-    fun metricsDialog_displaysMetrics() = runComposeUiTest {
+    fun metricsDialogDisplaysMetrics() = runComposeUiTest {
         val metrics = listOf(sampleMetric)
-        var dismissed = false
 
         setContent {
             MetricsDialog(
                 metrics = metrics,
-                onDismiss = { dismissed = true },
+                onDismiss = {},
             )
         }
 
@@ -48,7 +54,7 @@ class MetricsDialogUiRealTest {
     }
 
     @Test
-    fun metricsDialog_displaysMetricsList() = runComposeUiTest {
+    fun metricsDialogDisplaysMetricsList() = runComposeUiTest {
         val metrics = listOf(sampleMetric)
 
         setContent {
@@ -64,7 +70,7 @@ class MetricsDialogUiRealTest {
     }
 
     @Test
-    fun metricsDialog_closeButton_triggersDismiss() = runComposeUiTest {
+    fun metricsDialogCloseButtonTriggersDismiss() = runComposeUiTest {
         var dismissed = false
 
         setContent {
@@ -80,7 +86,7 @@ class MetricsDialogUiRealTest {
     }
 
     @Test
-    fun metricsDialog_emptyState_displaysMessage() = runComposeUiTest {
+    fun metricsDialogEmptyStateDisplaysMessage() = runComposeUiTest {
         setContent {
             MetricsDialog(
                 metrics = emptyList(),
@@ -93,7 +99,7 @@ class MetricsDialogUiRealTest {
     }
 
     @Test
-    fun metricsDialog_displaysPromptText() = runComposeUiTest {
+    fun metricsDialogDisplaysPromptText() = runComposeUiTest {
         val metrics = listOf(sampleMetric)
 
         setContent {
@@ -107,7 +113,7 @@ class MetricsDialogUiRealTest {
     }
 
     @Test
-    fun metricsDialog_displaysTableHeaders() = runComposeUiTest {
+    fun metricsDialogDisplaysTableHeaders() = runComposeUiTest {
         val metrics = listOf(sampleMetric)
 
         setContent {
@@ -126,7 +132,7 @@ class MetricsDialogUiRealTest {
     }
 
     @Test
-    fun metricsDialog_displaysMetricValues() = runComposeUiTest {
+    fun metricsDialogDisplaysMetricValues() = runComposeUiTest {
         val metrics = listOf(sampleMetric)
 
         setContent {
@@ -136,17 +142,20 @@ class MetricsDialogUiRealTest {
             )
         }
 
-        onAllNodesWithText("100").assertCountEquals(2)
+        onAllNodesWithText("100").assertCountEquals(EXPECTED_NODE_COUNT)
         onNodeWithText("50").assertExists()
         onNodeWithText("stop").assertExists()
         onNodeWithText("500").assertExists()
     }
 
     @Test
-    fun metricsDialog_groupsByPrompt() = runComposeUiTest {
+    fun metricsDialogGroupsByPrompt() = runComposeUiTest {
         val metrics = listOf(
             sampleMetric,
-            sampleMetric.copy(id = 2, constraints = ConstraintsInfo(null, emptyList(), "text", 0.5)),
+            sampleMetric.copy(
+                id = SECOND_METRIC_ID,
+                constraints = ConstraintsInfo(null, emptyList(), "text", LOW_TEMPERATURE),
+            ),
         )
 
         setContent {
@@ -160,8 +169,8 @@ class MetricsDialogUiRealTest {
     }
 
     @Test
-    fun metricsDialog_truncatesLongPrompt() = runComposeUiTest {
-        val longPrompt = "A".repeat(100)
+    fun metricsDialogTruncatesLongPrompt() = runComposeUiTest {
+        val longPrompt = "A".repeat(LONG_PROMPT_LENGTH)
         val metrics = listOf(sampleMetric.copy(prompt = longPrompt))
 
         setContent {
@@ -171,6 +180,14 @@ class MetricsDialogUiRealTest {
             )
         }
 
-        onNodeWithText("Prompt: \"${"A".repeat(50)}...\"").assertExists()
+        onNodeWithText("Prompt: \"${"A".repeat(TRUNCATED_PROMPT_LENGTH)}...\"").assertExists()
+    }
+
+    private companion object {
+        const val EXPECTED_NODE_COUNT = 2
+        const val SECOND_METRIC_ID = 2
+        const val LOW_TEMPERATURE = 0.5
+        const val LONG_PROMPT_LENGTH = 100
+        const val TRUNCATED_PROMPT_LENGTH = 50
     }
 }
