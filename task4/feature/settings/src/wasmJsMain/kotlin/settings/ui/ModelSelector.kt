@@ -21,15 +21,19 @@ import model.ModelType
 import ui.theme.AppColors
 
 @Composable
-fun ModelSelector(selectedModelId: String, onModelSelected: (String) -> Unit, modifier: Modifier = Modifier,) {
+fun ModelSelector(selectedModelId: String, onModelSelected: (String) -> Unit, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
     val selectedModel = remember(selectedModelId) { ModelType.fromId(selectedModelId) }
 
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { expanded = true },
+    ) {
         TextField(
             value = "${selectedModel.displayName} (${selectedModel.level})",
             onValueChange = {},
-            readOnly = true,
+            enabled = false,
             label = { Text("Model", color = AppColors.TextSecondary) },
             trailingIcon = { Text("▼", color = AppColors.TextSecondary) },
             colors = TextFieldDefaults.textFieldColors(
@@ -41,8 +45,7 @@ fun ModelSelector(selectedModelId: String, onModelSelected: (String) -> Unit, mo
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .testTag(ModelSelectorTags.TEXT_FIELD)
-                .clickable { expanded = true },
+                .testTag(ModelSelectorTags.TEXT_FIELD),
         )
 
         DropdownMenu(
