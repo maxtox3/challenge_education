@@ -9,6 +9,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.runComposeUiTest
+import model.ModelType
 import settings.ApiSettings
 import settings.ui.ModelSelectorTags
 import settings.ui.SettingsDialog
@@ -90,16 +91,17 @@ class SettingsDialogUiRealTest {
 
     @Test
     fun settingsDialogModelFieldDisplaysValue() = runComposeUiTest {
+        val model = ModelType.MIDDLE
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(model = "glm4.7"),
+                currentSettings = defaultSettings.copy(model = model.id),
                 onDismiss = {},
                 onSave = {},
             )
         }
 
         onNodeWithTag(ModelSelectorTags.TEXT_FIELD).assertExists()
-        onNodeWithText("GLM-4.7 (Средняя)").assertExists()
+        onNodeWithText("${model.displayName} (${model.level})").assertExists()
     }
 
     @Test

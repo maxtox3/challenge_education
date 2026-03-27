@@ -139,7 +139,7 @@ class ChatClientImpl : ChatClient {
         val responseBody = response.bodyAsText()
         println("[ChatClient] Response body: $responseBody")
 
-        parseResponse(responseBody, constraints)
+        parseResponse(responseBody, constraints, model)
     } catch (e: ClientRequestException) {
         println("[ChatClient] Client request error: ${e.message}")
         Result.failure(ChatNetworkException("Client error: ${e.message}", e))
@@ -160,7 +160,11 @@ class ChatClientImpl : ChatClient {
         Result.failure(ChatNetworkException("Invalid request: ${e.message}", e))
     }
 
-    private fun parseResponse(responseBody: String, constraints: ResponseConstraints): Result<ChatMessage> {
+    private fun parseResponse(
+        responseBody: String,
+        constraints: ResponseConstraints,
+        model: String,
+    ): Result<ChatMessage> {
         if (responseBody.contains("\"error\"")) {
             val errorResponse = json.decodeFromString<ZAiErrorResponse>(responseBody)
             println("[ChatClient] API Error: $errorResponse")
@@ -197,6 +201,7 @@ class ChatClientImpl : ChatClient {
                     maxTokens = constraints.maxTokens,
                     finishReason = choice.finishReason,
                     isReasoningContent = isReasoning,
+                    model = model,
                 ),
             )
         }

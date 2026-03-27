@@ -98,7 +98,7 @@ private fun MessageSurface(message: ChatMessage, isUser: Boolean) {
             ),
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            RoleLabel(message.role, isUser)
+            RoleLabel(message.role, isUser, message.model)
             Spacer(modifier = Modifier.height(6.dp))
             MessageContent(message)
             TokensInfo(message.tokensUsed, message.finishReason)
@@ -107,9 +107,9 @@ private fun MessageSurface(message: ChatMessage, isUser: Boolean) {
 }
 
 @Composable
-private fun RoleLabel(role: String, isUser: Boolean) {
+private fun RoleLabel(role: String, isUser: Boolean, model: String?) {
     Text(
-        text = getRoleText(role, isUser),
+        text = getRoleText(role, isUser, model),
         color = if (isUser) AppColors.PrimaryContainer else AppColors.Secondary,
         style = MaterialTheme.typography.caption,
         modifier = Modifier.testTag(MessageBubbleTags.ROLE_TEXT),
@@ -227,10 +227,10 @@ private fun getMessageColor(role: String, isUser: Boolean) = when {
     else -> AppColors.AssistantBubble
 }
 
-private fun getRoleText(role: String, isUser: Boolean) = when {
+private fun getRoleText(role: String, isUser: Boolean, model: String?) = when {
     isUser -> "You"
     role == "system" -> "System"
-    else -> "GLM-5"
+    else -> model?.replaceFirstChar { it.uppercase() } ?: "AI"
 }
 
 @Composable

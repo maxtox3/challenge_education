@@ -63,15 +63,21 @@ class ChatUseCases(private val repository: ChatRepository, private val viewModel
         }
     }
 
+    private data class StreamingContext(
+        val messages: List<ChatMessage>,
+        val model: String,
+        val onMessagesUpdate: (List<ChatMessage>) -> Unit,
+    )
+
     private suspend fun executeStreaming(
         prompt: String,
         messages: List<ChatMessage>,
         settings: ApiSettings,
         callbacks: MessageCallbacks,
     ) {
+        val context = StreamingContext(messages, settings.model, callbacks.onMessagesUpdate)
         val currentContent = StringBuilder()
         val currentReasoning = StringBuilder()
-        var isReasoningContent: Boolean
 
         try {
             repository.sendMessageStreaming(
@@ -82,92 +88,71 @@ class ChatUseCases(private val repository: ChatRepository, private val viewModel
                 when (chunk) {
                     is StreamChunk.Content -> {
                         currentContent.append(chunk.text)
-                        isReasoningContent = false
-                        updateStreamingMessage(
-                            currentMessages = messages,
-                            content = currentContent.toString(),
-                            reasoning = currentReasoning.toString(),
-                            isReasoning = isReasoningContent,
-                            onMessagesUpdate = callbacks.onMessagesUpdate,
-                        )
+                        updateStreamingMessage(context, currentContent.toString(), false)
                     }
 
                     is StreamChunk.Reasoning -> {
                         currentReasoning.append(chunk.text)
-                        isReasoningContent = true
-                        updateStreamingMessage(
-                            currentMessages = messages,
-                            content = currentContent.toString(),
-                            reasoning = currentReasoning.toString(),
-                            isReasoning = isReasoningContent,
-                            onMessagesUpdate = callbacks.onMessagesUpdate,
-                        )
+                        updateStreamingMessage(context, currentReasoning.toString(), true)
                     }
 
                     is StreamChunk.Done -> {
                         val finalContent = currentContent.toString()
                             .ifEmpty { currentReasoning.toString() }
                         finalizeStreamingMessage(
-                            currentMessages = messages,
-                            content = finalContent,
-                            isReasoning = currentContent.isEmpty() && currentReasoning.isNotEmpty(),
-                            onMessagesUpdate = callbacks.onMessagesUpdate,
+                            context,
+                            finalContent,
+                            currentContent.isEmpty() && currentReasoning.isNotEmpty(),
                         )
                         callbacks.onLoadingUpdate(false)
                     }
                 }
             }
-        } catch (e: ChatStreamingException) {
-            callbacks.onErrorUpdate(e.message ?: "Streaming error")
-            callbacks.onLoadingUpdate(false)
-        } catch (e: ChatNetworkException) {
-            callbacks.onErrorUpdate(e.message ?: "Network error")
-            callbacks.onLoadingUpdate(false)
         } catch (e: ChatException) {
-            callbacks.onErrorUpdate(e.message ?: "Chat error")
-            callbacks.onLoadingUpdate(false)
+            handleStreamingError(e, callbacks)
         }
     }
 
-    private fun updateStreamingMessage(
-        currentMessages: List<ChatMessage>,
-        content: String,
-        reasoning: String,
-        isReasoning: Boolean,
-        onMessagesUpdate: (List<ChatMessage>) -> Unit,
-    ) {
+    private fun handleStreamingError(e: ChatException, callbacks: MessageCallbacks) {
+        val message = when (e) {
+            is ChatStreamingException -> "Streaming error"
+            is ChatNetworkException -> "Network error"
+            else -> "Chat error"
+        }
+        callbacks.onErrorUpdate(e.message ?: message)
+        callbacks.onLoadingUpdate(false)
+    }
+
+    private fun updateStreamingMessage(context: StreamingContext, content: String, isReasoning: Boolean,) {
         val streamingMessage = ChatMessage(
             role = "assistant",
-            content = content.ifEmpty { reasoning },
+            content = content,
             isReasoningContent = isReasoning,
             isStreaming = true,
+            model = context.model,
         )
-        val updatedMessages = if (currentMessages.isNotEmpty() && currentMessages.last().isStreaming) {
-            currentMessages.dropLast(1) + streamingMessage
+        val updatedMessages = if (context.messages.isNotEmpty() && context.messages.last().isStreaming) {
+            context.messages.dropLast(1) + streamingMessage
         } else {
-            currentMessages + streamingMessage
+            context.messages + streamingMessage
         }
-        onMessagesUpdate(updatedMessages)
+        context.onMessagesUpdate(updatedMessages)
     }
 
-    private fun finalizeStreamingMessage(
-        currentMessages: List<ChatMessage>,
-        content: String,
-        isReasoning: Boolean,
-        onMessagesUpdate: (List<ChatMessage>) -> Unit,
-    ) {
+    private fun finalizeStreamingMessage(context: StreamingContext, content: String, isReasoning: Boolean,) {
         val finalMessage = ChatMessage(
             role = "assistant",
             content = content,
             isReasoningContent = isReasoning,
             isStreaming = false,
+            model = context.model,
         )
-        val updatedMessages = if (currentMessages.isNotEmpty() && currentMessages.last().isStreaming) {
-            currentMessages.dropLast(1) + finalMessage
+        val updatedMessages = if (context.messages.isNotEmpty() && context.messages.last().isStreaming) {
+            context.messages.dropLast(1) + finalMessage
         } else {
-            currentMessages + finalMessage
+            context.messages + finalMessage
         }
-        onMessagesUpdate(updatedMessages)
+        context.onMessagesUpdate(updatedMessages)
     }
 
     /**

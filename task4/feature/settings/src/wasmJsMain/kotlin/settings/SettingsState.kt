@@ -15,12 +15,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import model.ModelType
 import model.ResponseFormat
 import network.ResponseConstraints
 
 data class ApiSettings(
     val apiKey: String = "",
-    val model: String = "glm-5",
+    val model: String = ModelType.PRO.id,
     val maxTokens: Int? = null,
     val temperature: Double = 1.0,
     val stopSequences: String = "",

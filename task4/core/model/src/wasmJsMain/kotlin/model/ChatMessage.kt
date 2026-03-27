@@ -10,4 +10,5 @@ data class ChatMessage(
     val finishReason: String? = null,
     val isReasoningContent: Boolean = false,
     val isStreaming: Boolean = false,
+    val model: String? = null,
 )

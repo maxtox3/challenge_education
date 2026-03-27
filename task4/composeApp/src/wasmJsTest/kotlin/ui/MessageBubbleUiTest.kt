@@ -37,6 +37,7 @@ class MessageBubbleUiTest {
         val message = ChatMessage(
             role = "assistant",
             content = "Hello! How can I help you?",
+            model = "glm-5",
         )
 
         setContent {
@@ -45,7 +46,7 @@ class MessageBubbleUiTest {
 
         onNodeWithTag(MessageBubbleTags.ROOT).assertExists()
         onNodeWithTag(MessageBubbleTags.ROLE_TEXT).assertExists()
-        onNodeWithText("GLM-5").assertExists()
+        onNodeWithText("Glm-5").assertExists()
         onNodeWithTag(MessageBubbleTags.MARKDOWN_CONTENT, useUnmergedTree = true).assertExists()
     }
 
