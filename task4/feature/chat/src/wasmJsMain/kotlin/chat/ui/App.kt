@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
@@ -265,7 +265,7 @@ private fun MessageList(state: ChatState, viewModel: ChatViewModel) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(vertical = 8.dp),
     ) {
-        items(state.messages, key = { it.timestamp }) { message ->
+        itemsIndexed(state.messages, key = { index, _ -> index }) { _, message ->
             MessageBubble(message = message)
         }
 
