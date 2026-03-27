@@ -49,7 +49,17 @@ core/           # model, network, ui (shared)
 
 Подробная документация для каждого модуля:
 
+### Feature Modules
+
 - **[feature/chat/AGENTS.md](./feature/chat/AGENTS.md)** — Chat module (MVI, streaming, UI components)
+- **[feature/metrics/AGENTS.md](./feature/metrics/AGENTS.md)** — Metrics module (UI-only, metrics comparison table)
+- **[feature/reasoning/AGENTS.md](./feature/reasoning/AGENTS.md)** — Reasoning module (UI-only, reasoning modes comparison)
+- **[feature/settings/AGENTS.md](./feature/settings/AGENTS.md)** — Settings module (MVI, API settings, ModelSelector)
+
+### Core Modules
+
+- **[core/model/AGENTS.md](./core/model/AGENTS.md)** — Model module (data classes, enums, API models)
+- **[core/network/AGENTS.md](./core/network/AGENTS.md)** — Network module (HTTP client, SSE streaming, error handling)
 
 ## Workflow
 
