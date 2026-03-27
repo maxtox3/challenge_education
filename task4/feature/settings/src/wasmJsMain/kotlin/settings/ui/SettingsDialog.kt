@@ -110,7 +110,12 @@ private fun SettingsDialogContent(state: SettingsState, onStateChange: (Settings
     )
     Spacer(modifier = Modifier.height(20.dp))
     ApiKeyInput(state, onStateChange)
-    ModelInput(state, onStateChange)
+    ModelSelector(
+        selectedModelId = state.model,
+        onModelSelected = { onStateChange(state.copy(model = it)) },
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Spacer(modifier = Modifier.height(12.dp))
     MaxTokensInput(state, onStateChange)
     TemperatureInput(state, onStateChange)
     StopSequencesInput(state, onStateChange)
@@ -124,18 +129,6 @@ private fun ApiKeyInput(state: SettingsState, onStateChange: (SettingsState) -> 
         onValueChange = { onStateChange(state.copy(apiKey = it)) },
         label = { Text("API Key", color = AppColors.TextSecondary) },
         modifier = Modifier.fillMaxWidth().testTag(SettingsDialogTags.API_KEY_FIELD),
-        colors = primaryTextFieldColors(),
-    )
-    Spacer(modifier = Modifier.height(12.dp))
-}
-
-@Composable
-private fun ModelInput(state: SettingsState, onStateChange: (SettingsState) -> Unit) {
-    OutlinedTextField(
-        value = state.model,
-        onValueChange = { onStateChange(state.copy(model = it)) },
-        label = { Text("Model", color = AppColors.TextSecondary) },
-        modifier = Modifier.fillMaxWidth().testTag(SettingsDialogTags.MODEL_FIELD),
         colors = primaryTextFieldColors(),
     )
     Spacer(modifier = Modifier.height(12.dp))

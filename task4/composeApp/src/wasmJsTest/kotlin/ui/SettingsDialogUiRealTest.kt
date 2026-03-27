@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.runComposeUiTest
 import settings.ApiSettings
+import settings.ui.ModelSelectorTags
 import settings.ui.SettingsDialog
 import settings.ui.SettingsDialogTags
 import kotlin.test.Test
@@ -91,14 +92,14 @@ class SettingsDialogUiRealTest {
     fun settingsDialogModelFieldDisplaysValue() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(model = "custom-model"),
+                currentSettings = defaultSettings.copy(model = "glm4.7"),
                 onDismiss = {},
                 onSave = {},
             )
         }
 
-        onNodeWithTag(SettingsDialogTags.MODEL_FIELD).assertExists()
-        onNodeWithText("custom-model").assertExists()
+        onNodeWithTag(ModelSelectorTags.TEXT_FIELD).assertExists()
+        onNodeWithText("GLM-4.7 (Средняя)").assertExists()
     }
 
     @Test
@@ -363,25 +364,6 @@ class SettingsDialogUiRealTest {
     }
 
     @Test
-    fun settingsDialogModelFieldEditable() = runComposeUiTest {
-        var savedSettings: ApiSettings? = null
-
-        setContent {
-            SettingsDialog(
-                currentSettings = defaultSettings,
-                onDismiss = {},
-                onSave = { savedSettings = it },
-            )
-        }
-
-        onNodeWithTag(SettingsDialogTags.MODEL_FIELD).performTextReplacement("new-model")
-
-        onNodeWithTag(SettingsDialogTags.SAVE_BUTTON).performClick()
-
-        assertEquals("new-model", savedSettings?.model)
-    }
-
-    @Test
     fun settingsDialogMaxTokensFieldEditable() = runComposeUiTest {
         var savedSettings: ApiSettings? = null
 
@@ -485,7 +467,7 @@ class SettingsDialogUiRealTest {
         }
 
         onNodeWithTag(SettingsDialogTags.API_KEY_FIELD).assertExists()
-        onNodeWithTag(SettingsDialogTags.MODEL_FIELD).assertExists()
+        onNodeWithTag(ModelSelectorTags.TEXT_FIELD).assertExists()
         onNodeWithTag(SettingsDialogTags.MAX_TOKENS_FIELD).assertExists()
         onNodeWithTag(SettingsDialogTags.TEMPERATURE_SLIDER).assertExists()
         onNodeWithTag(SettingsDialogTags.STOP_SEQUENCES_FIELD).assertExists()

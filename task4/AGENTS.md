@@ -45,8 +45,26 @@ core/           # model, network, ui (shared)
 3. `feature/chat/.../ui/App.kt` — Compose UI composition
 4. `core/network/.../ChatClient.kt` — HTTP client
 
+## Modules Documentation
+
+Подробная документация для каждого модуля:
+
+- **[feature/chat/AGENTS.md](./feature/chat/AGENTS.md)** — Chat module (MVI, streaming, UI components)
+
 ## Workflow
 
 1. `./gradlew check` → все проверки пройдены?
 2. `./gradlew ktlintFormat` → если style issues
 3. Commit
+
+## Контекст заданий
+
+Задания выполняются как доработка текущего проекта с записью видео процесса.
+Каждое задание = новый функционал в проекте + демо на видео.
+
+### Модели для сравнения (День 5)
+| Уровень | ID | Название |
+|---------|-----|----------|
+| Слабая | glm4.5-air | GLM-4.5 Air |
+| Средняя | glm4.7 | GLM-4.7 |
+| Сильная | glm5 | GLM-5 |
