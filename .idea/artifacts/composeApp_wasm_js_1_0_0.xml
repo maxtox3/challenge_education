@@ -1,0 +1,6 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="composeApp-wasm-js-1.0.0">
+    <output-path>$PROJECT_DIR$/task4/composeApp/build/libs</output-path>
+    <root id="archive" name="composeApp-wasm-js-1.0.0.jar" />
+  </artifact>
+</component>

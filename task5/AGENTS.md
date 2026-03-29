@@ -32,11 +32,11 @@ core/           # model, network, ui (shared)
 
 ## Тестирование
 
-| Тип | Файлы | Назначение |
-|-----|-------|------------|
-| Baseline | `baseline/*BaselineTest.kt` | Characterization тесты — фиксируют текущее поведение |
-| Unit | `*ViewModelTest.kt`, `*RepositoryTest.kt` | Логика + state transitions |
-| UI | `ui/*UiRealTest.kt` | Compose interactions |
+| Тип      | Файлы                                     | Назначение                                           |
+|----------|-------------------------------------------|------------------------------------------------------|
+| Baseline | `baseline/*BaselineTest.kt`               | Characterization тесты — фиксируют текущее поведение |
+| Unit     | `*ViewModelTest.kt`, `*RepositoryTest.kt` | Логика + state transitions                           |
+| UI       | `ui/*UiRealTest.kt`                       | Compose interactions                                 |
 
 ## Ключевые файлы (изучи перед изменениями)
 
@@ -53,7 +53,7 @@ core/           # model, network, ui (shared)
 
 - **[feature/chat/AGENTS.md](./feature/chat/AGENTS.md)** — Chat module (MVI, streaming, UI components)
 - **[feature/metrics/AGENTS.md](./feature/metrics/AGENTS.md)** — Metrics module (UI-only, metrics comparison table)
-- **[feature/reasoning/AGENTS.md](./feature/reasoning/AGENTS.md)** — Reasoning module (UI-only, reasoning modes comparison)
+- **[feature/reasoning/AGENTS.md](./feature/reasoning/AGENTS.md)** — Reasoning module (UI-only, reasoning mode's comparison)
 - **[feature/settings/AGENTS.md](./feature/settings/AGENTS.md)** — Settings module (MVI, API settings, ModelSelector)
 
 ### Core Modules
@@ -73,8 +73,8 @@ core/           # model, network, ui (shared)
 Каждое задание = новый функционал в проекте + демо на видео.
 
 ### Модели для сравнения (День 5)
-| Уровень | ID | Название |
-|---------|-----|----------|
-| Слабая | glm4.5-air | GLM-4.5 Air |
-| Средняя | glm4.7 | GLM-4.7 |
-| Сильная | glm5 | GLM-5 |
+| Уровень  | ID         | Название    |
+|----------|------------|-------------|
+| Слабая   | glm4.5-air | GLM-4.5 Air |
+| Средняя  | glm4.7     | GLM-4.7     |
+| Сильная  | glm5       | GLM-5       |
