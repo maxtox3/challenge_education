@@ -1,6 +1,5 @@
 package baseline
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -267,9 +266,9 @@ class NetworkBaselineTest {
         val constraints = ResponseConstraints(stop = listOf("\n", "\t", "###"))
 
         assertEquals(3, constraints.stop?.size)
-        assertTrue(constraints.stop?.contains("\n") == true)
-        assertTrue(constraints.stop?.contains("\t") == true)
-        assertTrue(constraints.stop?.contains("###") == true)
+        assertEquals(true, constraints.stop?.contains("\n"))
+        assertEquals(true, constraints.stop?.contains("\t"))
+        assertEquals(true, constraints.stop?.contains("###"))
     }
 
     @Test

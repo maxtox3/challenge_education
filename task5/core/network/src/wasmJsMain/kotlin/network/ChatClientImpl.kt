@@ -223,7 +223,7 @@ class ChatClientImpl : ChatClient {
         client.sse(
             request = {
                 url { takeFrom(baseUrl) }
-                method = HttpMethod.Companion.Post
+                method = HttpMethod.Post
                 contentType(ContentType.Application.Json)
                 header(HttpHeaders.Authorization, "Bearer $apiKey")
                 header(HttpHeaders.AcceptLanguage, "en-US,en")

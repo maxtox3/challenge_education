@@ -8,7 +8,5 @@ enum class ModelType(val id: String, val displayName: String, val level: String)
 
     companion object {
         fun fromId(id: String): ModelType = entries.find { it.id == id } ?: PRO
-
-        val allIds: List<String> get() = entries.map { it.id }
     }
 }

@@ -137,7 +137,6 @@ class ChatFeatureBaselineTest {
         val result = MessageHandler.validateAndPrepare("  valid input  ", isLoading = false)
 
         assertTrue(result is MessageHandler.ValidationResult.Valid, "Should return Valid for good input")
-        result as MessageHandler.ValidationResult.Valid
         assertEquals("valid input", result.prompt, "Prompt should be trimmed")
         assertEquals("user", result.message.role, "Message role should be 'user'")
         assertEquals("valid input", result.message.content, "Message content should be trimmed")
