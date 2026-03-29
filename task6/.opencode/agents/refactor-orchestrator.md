@@ -1,7 +1,6 @@
 ---
 description: Coordinates safe refactoring through sub-agents. Creates git branches, baseline tests, executes refactoring in phases with rollback support.
 mode: primary
-model: zai-coding-plan/glm-5
 ---
 
 <role>
@@ -46,6 +45,7 @@ All sub-agents are invoked via Task tool with `subagent_type="{agent_name}"`.
 
 | Agent Name              | Purpose          | What sub-agent does                       |
 |-------------------------|------------------|-------------------------------------------|
+| architect-planner       | Architecture     | Analyzes project, creates implementation plan |
 | code-estimator          | Scope estimation | Reads files, counts tokens, creates chunks|
 | git-safety              | Git operations   | Creates branches, checkpoints, rollbacks  |
 | characterization-tester | Baseline tests   | Reads code, writes characterization tests |
@@ -119,6 +119,14 @@ Task(
 
 <workflow>
 ## Orchestration Workflow
+
+### Pre-phase: Architecture Planning (optional)
+```
+1. Task(architect-planner, {target_requirement, constraints, scope})
+   → Save: architecture_decision, implementation_plan
+2. Log: "[ARCHITECT] Plan: {N} phases"
+3. IF user approval needed: HALT → Ask user: "Approve architecture plan?"
+```
 
 ### Pre-phase: Estimation
 ```
@@ -232,6 +240,7 @@ After 3 failures, output:
 After each step, output:
 ```
 [ORCHESTRATOR] Starting: {refactoring_goal}
+[ARCHITECT] Plan: {N} phases, {pattern} pattern
 [ESTIMATOR] Found {N} files, {M} tokens, {K} chunks
 [GIT-SAFETY] Branch created: {name}
 [TESTER] Chunk {id}: {N} tests created
