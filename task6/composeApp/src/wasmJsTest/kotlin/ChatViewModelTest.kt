@@ -15,6 +15,8 @@ import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
 import model.StreamChunk
+import network.ChatClient
+import network.ResponseConstraints
 import settings.ApiSettings
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -25,17 +27,20 @@ import kotlin.test.assertTrue
 
 class ChatViewModelTest {
     private lateinit var fakeRepository: FakeChatRepository
+    private lateinit var fakeChatClient: FakeChatClientForViewModel
     private lateinit var viewModel: ChatViewModel
     private lateinit var listState: LazyListState
     private lateinit var testScope: CoroutineScope
 
     @BeforeTest
     fun setup() {
+        fakeChatClient = FakeChatClientForViewModel()
         fakeRepository = FakeChatRepository()
         listState = LazyListState()
         testScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         viewModel = ChatViewModel(
             repository = fakeRepository,
+            chatClient = fakeChatClient,
             viewModelScope = testScope,
             listState = listState,
         )
@@ -544,6 +549,34 @@ class FakeChatRepository : ChatRepository {
         prompt: String,
         messages: List<ChatMessage>,
         settings: ApiSettings,
+    ): Flow<StreamChunk> = flow {
+        emit(StreamChunk.Content("Default "))
+        emit(StreamChunk.Content("response"))
+        emit(StreamChunk.Done)
+    }
+}
+
+class FakeChatClientForViewModel : ChatClient {
+    override suspend fun sendMessage(
+        apiKey: String,
+        model: String,
+        messages: List<ChatMessage>,
+        constraints: ResponseConstraints,
+        systemPrompt: String?
+    ): Result<ChatMessage> = Result.success(
+        ChatMessage(
+            role = "assistant",
+            content = "Fake response",
+            model = model
+        )
+    )
+
+    override fun sendMessageStreaming(
+        apiKey: String,
+        model: String,
+        messages: List<ChatMessage>,
+        constraints: ResponseConstraints,
+        systemPrompt: String?
     ): Flow<StreamChunk> = flow {
         emit(StreamChunk.Content("Default "))
         emit(StreamChunk.Content("response"))

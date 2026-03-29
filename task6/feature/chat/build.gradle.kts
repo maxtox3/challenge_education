@@ -34,6 +34,7 @@ kotlin {
                 implementation(project(":core"))
                 implementation(project(":core:model"))
                 implementation(project(":core:network"))
+                implementation(project(":core:agent"))
                 implementation(project(":feature:settings"))
                 implementation(project(":feature:metrics"))
                 implementation(project(":feature:reasoning"))

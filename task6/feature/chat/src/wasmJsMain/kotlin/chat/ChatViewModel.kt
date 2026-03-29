@@ -1,5 +1,6 @@
 package chat
 
+import agent.AgentFactory
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -17,10 +18,16 @@ import kotlinx.coroutines.flow.update
 import model.ChatMessage
 import model.MetricRecord
 import model.ReasoningComparison
+import network.ChatClient
 import network.ChatClientImpl
 import settings.ApiSettings
 
-class ChatViewModel(repository: ChatRepository, viewModelScope: CoroutineScope, val listState: LazyListState,) {
+class ChatViewModel(
+    private val repository: ChatRepository,
+    private val chatClient: ChatClient,
+    viewModelScope: CoroutineScope,
+    val listState: LazyListState,
+) {
 
     private val _uiState = MutableStateFlow(ChatState())
     val uiState: StateFlow<ChatState> = _uiState.asStateFlow()
@@ -30,7 +37,11 @@ class ChatViewModel(repository: ChatRepository, viewModelScope: CoroutineScope, 
 
     val state: ChatState get() = _uiState.value
 
-    private val useCases = ChatUseCases(repository, viewModelScope)
+    private val useCases = ChatUseCases(
+        repository,
+        AgentFactory.create(chatClient, ""),
+        viewModelScope
+    )
     private val intentHandlers = ChatIntents(this)
 
     var inputText: String by _uiState.typedProp(
@@ -128,6 +139,7 @@ class ChatViewModel(repository: ChatRepository, viewModelScope: CoroutineScope, 
 
     fun updateSettings(newSettings: ApiSettings) {
         _uiState.update { it.copy(settings = newSettings, showSettings = false) }
+        useCases.agent = AgentFactory.create(chatClient, newSettings.apiKey)
     }
 
     fun sendMessage() {
@@ -164,7 +176,7 @@ fun rememberChatViewModel(): ChatViewModel {
     val listState = rememberLazyListState()
     val repository = remember(client) { ChatRepositoryImpl(client, scope) }
 
-    return remember(repository, scope, listState) {
-        ChatViewModel(repository, scope, listState)
+    return remember(repository, client, scope, listState) {
+        ChatViewModel(repository, client, scope, listState)
     }
 }

@@ -25,6 +25,8 @@ import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
 import model.StreamChunk
+import network.ChatClient
+import network.ResponseConstraints
 import settings.ApiSettings
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -35,15 +37,18 @@ import kotlin.test.assertTrue
 @ExperimentalWasmJsInterop
 class AppUiRealTest {
     private lateinit var mockRepository: MockChatRepositoryForUi
+    private lateinit var mockChatClient: MockChatClientForUi
     private lateinit var viewModel: ChatViewModel
     private lateinit var listState: LazyListState
 
     @BeforeTest
     fun setup() {
+        mockChatClient = MockChatClientForUi()
         mockRepository = MockChatRepositoryForUi()
         listState = LazyListState()
         viewModel = ChatViewModel(
             repository = mockRepository,
+            chatClient = mockChatClient,
             viewModelScope = CoroutineScope(Dispatchers.Default),
             listState = listState,
         )
@@ -400,6 +405,34 @@ class MockChatRepositoryForUi : ChatRepository {
         prompt: String,
         messages: List<ChatMessage>,
         settings: ApiSettings,
+    ): Flow<StreamChunk> = flow {
+        emit(StreamChunk.Content("Mock "))
+        emit(StreamChunk.Content("response"))
+        emit(StreamChunk.Done)
+    }
+}
+
+class MockChatClientForUi : ChatClient {
+    override suspend fun sendMessage(
+        apiKey: String,
+        model: String,
+        messages: List<ChatMessage>,
+        constraints: ResponseConstraints,
+        systemPrompt: String?
+    ): Result<ChatMessage> = Result.success(
+        ChatMessage(
+            role = "assistant",
+            content = "Mock response",
+            model = model
+        )
+    )
+
+    override fun sendMessageStreaming(
+        apiKey: String,
+        model: String,
+        messages: List<ChatMessage>,
+        constraints: ResponseConstraints,
+        systemPrompt: String?
     ): Flow<StreamChunk> = flow {
         emit(StreamChunk.Content("Mock "))
         emit(StreamChunk.Content("response"))

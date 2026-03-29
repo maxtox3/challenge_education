@@ -5,8 +5,6 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
-    id("org.jetbrains.compose")
-    id("org.jetbrains.kotlin.plugin.compose")
     id("io.gitlab.arturbosch.detekt")
     id("org.jlleitschuh.gradle.ktlint")
 }
@@ -25,12 +23,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        browser {
-            commonWebpackConfig {
-                outputFileName = "composeApp.js"
-            }
-        }
-        binaries.executable()
+        browser()
     }
 
     sourceSets {
@@ -39,29 +32,15 @@ kotlin {
                 implementation(project(":core"))
                 implementation(project(":core:model"))
                 implementation(project(":core:network"))
-                implementation(project(":feature:chat"))
-                implementation(project(":feature:settings"))
-                implementation(project(":feature:metrics"))
-                implementation(project(":feature:reasoning"))
-                implementation("org.jetbrains.compose.runtime:runtime:1.10.2")
-                implementation("org.jetbrains.compose.foundation:foundation:1.10.2")
-                implementation("org.jetbrains.compose.material:material:1.10.2")
-                implementation("org.jetbrains.compose.material3:material3:1.10.0-alpha05")
-                implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.39.2")
-                implementation("org.jetbrains.compose.ui:ui:1.10.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
                 implementation("io.ktor:ktor-client-core:3.4.1")
-                implementation("io.ktor:ktor-client-content-negotiation:3.4.1")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:3.4.1")
             }
         }
 
         val wasmJsTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("org.jetbrains.compose.ui:ui-test:1.10.2")
-                implementation(project(":core:agent"))
             }
         }
     }

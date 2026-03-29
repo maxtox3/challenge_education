@@ -5,113 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1df2989c-92d3-497b-8bf1-b90ce4f24bd0" name="Changes" comment="done">
-      <change afterPath="$PROJECT_DIR$/../task6/.opencode/agents/architect-planner.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.editorconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/.editorconfig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.opencode/agents/characterization-tester.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/.opencode/agents/characterization-tester.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.opencode/agents/code-estimator.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/.opencode/agents/code-estimator.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.opencode/agents/code-refactorer.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/.opencode/agents/code-refactorer.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.opencode/agents/code-verifier.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/.opencode/agents/code-verifier.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.opencode/agents/git-safety.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/.opencode/agents/git-safety.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.opencode/agents/refactor-orchestrator.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/.opencode/agents/refactor-orchestrator.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AGENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/AGENTS.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsMain/kotlin/main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsMain/kotlin/main.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsMain/resources/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsMain/resources/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/AppUiTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/AppUiTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/ChatClientTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/ChatClientTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/ChatRepositoryTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/ChatRepositoryTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/ChatViewModelTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/ChatViewModelTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/MetricsDialogTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/MetricsDialogTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/ReasoningDialogTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/ReasoningDialogTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/SettingsDialogTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/SettingsDialogTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/SettingsStateTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/SettingsStateTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/SettingsViewModelTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/SettingsViewModelTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/StateModelsTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/StateModelsTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/UtilitiesTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/UtilitiesTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/baseline/ChatFeatureBaselineTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/baseline/ChatFeatureBaselineTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/baseline/CoreBaselineTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/baseline/CoreBaselineTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/baseline/MessageBubbleBaselineTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/baseline/MessageBubbleBaselineTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/baseline/MetricsBaselineTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/baseline/MetricsBaselineTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/baseline/ModelBaselineTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/baseline/ModelBaselineTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/baseline/NetworkBaselineTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/baseline/NetworkBaselineTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/baseline/ReasoningBaselineTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/baseline/ReasoningBaselineTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/baseline/SettingsBaselineTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/baseline/SettingsBaselineTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/model/ChatMessageTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/model/ChatMessageTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/model/MetricRecordTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/model/MetricRecordTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/model/ReasoningModeTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/model/ReasoningModeTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/model/ZAiRequestTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/model/ZAiRequestTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/ui/AppUiRealTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/ui/AppUiRealTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/ui/ChatInputUiTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/ui/ChatInputUiTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/ui/CommonComponentsUiRealTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/ui/CommonComponentsUiRealTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/ui/MessageBubbleUiTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/ui/MessageBubbleUiTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/ui/MetricsDialogUiRealTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/ui/MetricsDialogUiRealTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/ui/ReasoningDialogUiRealTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/ui/ReasoningDialogUiRealTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composeApp/src/wasmJsTest/kotlin/ui/SettingsDialogUiRealTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/composeApp/src/wasmJsTest/kotlin/ui/SettingsDialogUiRealTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/model/AGENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/model/AGENTS.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/model/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/model/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/model/src/wasmJsMain/kotlin/model/ChatMessage.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/model/src/wasmJsMain/kotlin/model/ChatMessage.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/model/src/wasmJsMain/kotlin/model/MetricRecord.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/model/src/wasmJsMain/kotlin/model/MetricRecord.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/model/src/wasmJsMain/kotlin/model/ModelType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/model/src/wasmJsMain/kotlin/model/ModelType.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/model/src/wasmJsMain/kotlin/model/ReasoningMode.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/model/src/wasmJsMain/kotlin/model/ReasoningMode.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/model/src/wasmJsMain/kotlin/model/StreamChunk.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/model/src/wasmJsMain/kotlin/model/StreamChunk.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/model/src/wasmJsMain/kotlin/model/ZAiRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/model/src/wasmJsMain/kotlin/model/ZAiRequest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/network/AGENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/network/AGENTS.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/network/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/network/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/network/src/wasmJsMain/kotlin/network/ChatClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/network/src/wasmJsMain/kotlin/network/ChatClient.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/network/src/wasmJsMain/kotlin/network/ChatClientImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/network/src/wasmJsMain/kotlin/network/ChatClientImpl.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/network/src/wasmJsMain/kotlin/network/ResponseConstraints.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/network/src/wasmJsMain/kotlin/network/ResponseConstraints.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/wasmJsMain/kotlin/core/exception/ChatExceptions.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/src/wasmJsMain/kotlin/core/exception/ChatExceptions.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/wasmJsMain/kotlin/core/util/StatePropertyDelegate.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/src/wasmJsMain/kotlin/core/util/StatePropertyDelegate.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/wasmJsMain/kotlin/ui/animations/Animations.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/src/wasmJsMain/kotlin/ui/animations/Animations.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/wasmJsMain/kotlin/ui/components/CommonComponents.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/src/wasmJsMain/kotlin/ui/components/CommonComponents.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/wasmJsMain/kotlin/ui/theme/AppColors.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/src/wasmJsMain/kotlin/ui/theme/AppColors.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/wasmJsMain/kotlin/ui/theme/Theme.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/core/src/wasmJsMain/kotlin/ui/theme/Theme.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/detekt.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/detekt.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/AGENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/AGENTS.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ChatIntent.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ChatIntent.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ChatIntents.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ChatIntents.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ChatRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ChatRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ChatSideEffect.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ChatSideEffect.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ChatState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ChatState.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ChatUseCases.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ChatUseCases.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ChatViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ChatViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/MessageHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/MessageHandler.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ui/App.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ui/App.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ui/components/ChatInput.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ui/components/ChatInput.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ui/components/ChatInputTags.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ui/components/ChatInputTags.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ui/components/MessageBubble.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ui/components/MessageBubble.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ui/components/MessageBubbleTags.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ui/components/MessageBubbleTags.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ui/icons/Brain.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ui/icons/Brain.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ui/icons/Chart.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ui/icons/Chart.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ui/icons/Close.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ui/icons/Close.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ui/icons/Delete.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ui/icons/Delete.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/chat/src/wasmJsMain/kotlin/chat/ui/icons/Settings.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/chat/src/wasmJsMain/kotlin/chat/ui/icons/Settings.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/metrics/AGENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/metrics/AGENTS.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/metrics/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/metrics/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/metrics/src/wasmJsMain/kotlin/metrics/ui/MetricsDialog.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/metrics/src/wasmJsMain/kotlin/metrics/ui/MetricsDialog.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/metrics/src/wasmJsMain/kotlin/metrics/ui/MetricsDialogTags.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/metrics/src/wasmJsMain/kotlin/metrics/ui/MetricsDialogTags.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/reasoning/AGENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/reasoning/AGENTS.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/reasoning/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/reasoning/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/reasoning/src/wasmJsMain/kotlin/reasoning/ui/ReasoningDialog.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/reasoning/src/wasmJsMain/kotlin/reasoning/ui/ReasoningDialog.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/reasoning/src/wasmJsMain/kotlin/reasoning/ui/ReasoningDialogComponents.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/reasoning/src/wasmJsMain/kotlin/reasoning/ui/ReasoningDialogComponents.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/reasoning/src/wasmJsMain/kotlin/reasoning/ui/ReasoningDialogTags.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/reasoning/src/wasmJsMain/kotlin/reasoning/ui/ReasoningDialogTags.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/settings/AGENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/settings/AGENTS.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/settings/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/settings/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/settings/src/wasmJsMain/kotlin/settings/SettingsState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/settings/src/wasmJsMain/kotlin/settings/SettingsState.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/settings/src/wasmJsMain/kotlin/settings/ui/ModelSelector.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/settings/src/wasmJsMain/kotlin/settings/ui/ModelSelector.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/settings/src/wasmJsMain/kotlin/settings/ui/ModelSelectorTags.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/settings/src/wasmJsMain/kotlin/settings/ui/ModelSelectorTags.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/settings/src/wasmJsMain/kotlin/settings/ui/SettingsDialog.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/settings/src/wasmJsMain/kotlin/settings/ui/SettingsDialog.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature/settings/src/wasmJsMain/kotlin/settings/ui/SettingsDialogTags.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/feature/settings/src/wasmJsMain/kotlin/settings/ui/SettingsDialogTags.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/gradle.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradlew" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/gradlew" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/settings.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../task6/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../task6/settings.gradle.kts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -208,12 +103,13 @@
     "RunOnceActivity.cidr.known.project.marker": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "android.gradle.sync.needed": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "task5",
+    "git-widget-placeholder": "feature/agent-entity-2026-03-29",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/maxgusev/challenge_education/task5",
-    "settings.editor.selected.configurable": "preferences.detekt"
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
 }]]></component>
   <component name="RecentsManager">

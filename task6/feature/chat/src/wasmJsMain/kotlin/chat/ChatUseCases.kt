@@ -1,5 +1,10 @@
 package chat
 
+import agent.Agent
+import agent.AgentConfig
+import agent.AgentContext
+import agent.AgentRequest
+import agent.AgentResult
 import core.exception.ChatException
 import core.exception.ChatNetworkException
 import core.exception.ChatStreamingException
@@ -14,7 +19,11 @@ import settings.ApiSettings
  * Encapsulates business logic for chat operations.
  * Extracted from ChatViewModel to reduce function count and complexity.
  */
-class ChatUseCases(private val repository: ChatRepository, private val viewModelScope: CoroutineScope) {
+class ChatUseCases(
+    private val repository: ChatRepository,
+    var agent: Agent,
+    private val viewModelScope: CoroutineScope
+) {
     /**
      * Configuration for message sending operations.
      */
@@ -175,6 +184,101 @@ class ChatUseCases(private val repository: ChatRepository, private val viewModel
                     onLoadingUpdate(comparison.results.values.any { it.isLoading })
                 },
             )
+        }
+    }
+
+    /**
+     * Executes agent request with streaming support.
+     * New functionality for "agent mode".
+     */
+    fun executeAgentRequest(
+        prompt: String,
+        config: AgentConfig?,
+        currentMessages: List<ChatMessage>,
+        callbacks: MessageCallbacks,
+    ) {
+        when (val result = MessageHandler.validateAndPrepare(prompt, false)) {
+            is MessageHandler.ValidationResult.Valid -> {
+                callbacks.onMessagesUpdate(currentMessages + result.message)
+                callbacks.onInputTextUpdate("")
+                callbacks.onLoadingUpdate(true)
+                callbacks.onErrorUpdate(null)
+
+                viewModelScope.launch {
+                    executeAgentStreaming(
+                        prompt = result.prompt,
+                        messages = currentMessages + result.message,
+                        config = config,
+                        callbacks = callbacks,
+                    )
+                }
+            }
+
+            is MessageHandler.ValidationResult.Invalid -> {
+            }
+        }
+    }
+
+    private suspend fun executeAgentStreaming(
+        prompt: String,
+        messages: List<ChatMessage>,
+        config: AgentConfig?,
+        callbacks: MessageCallbacks,
+    ) {
+        val model = config?.model ?: "unknown"
+        val context = StreamingContext(messages, model, callbacks.onMessagesUpdate)
+        val currentContent = StringBuilder()
+        val currentReasoning = StringBuilder()
+
+        val request = AgentRequest(
+            prompt = prompt,
+            context = AgentContext(messages = messages.dropLast(1)),
+            config = config,
+        )
+
+        when (
+            val result = agent.process(
+                request,
+                onChunk = { chunk ->
+                    when (chunk) {
+                        is StreamChunk.Content -> {
+                            currentContent.append(chunk.text)
+                            updateStreamingMessage(context, currentContent.toString(), false)
+                        }
+
+                        is StreamChunk.Reasoning -> {
+                            currentReasoning.append(chunk.text)
+                            updateStreamingMessage(context, currentReasoning.toString(), true)
+                        }
+
+                        StreamChunk.Done -> {
+                            val finalContent = currentContent.toString()
+                                .ifEmpty { currentReasoning.toString() }
+                            finalizeStreamingMessage(
+                                context,
+                                finalContent,
+                                currentContent.isEmpty() && currentReasoning.isNotEmpty(),
+                            )
+                            callbacks.onLoadingUpdate(false)
+                        }
+                    }
+                },
+            )
+        ) {
+            is AgentResult.Success -> {
+                if (currentContent.isEmpty() && currentReasoning.isEmpty()) {
+                    finalizeStreamingMessage(context, result.response, false)
+                }
+                callbacks.onLoadingUpdate(false)
+            }
+
+            is AgentResult.Error -> {
+                callbacks.onErrorUpdate(result.message)
+                callbacks.onLoadingUpdate(false)
+            }
+
+            AgentResult.Loading -> {
+            }
         }
     }
 }

@@ -15,6 +15,8 @@ import model.ReasoningComparison
 import model.ReasoningMode
 import model.ReasoningResult
 import model.StreamChunk
+import network.ChatClient
+import network.ResponseConstraints
 import settings.ApiSettings
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -26,15 +28,18 @@ import kotlin.test.assertTrue
 
 class AppUiTest {
     private lateinit var mockRepository: MockChatRepository
+    private lateinit var mockChatClient: MockChatClient
     private lateinit var viewModel: ChatViewModel
     private lateinit var listState: LazyListState
 
     @BeforeTest
     fun setup() {
+        mockChatClient = MockChatClient()
         mockRepository = MockChatRepository()
         listState = LazyListState()
         viewModel = ChatViewModel(
             repository = mockRepository,
+            chatClient = mockChatClient,
             viewModelScope = CoroutineScope(Dispatchers.Default),
             listState = listState,
         )
@@ -537,6 +542,34 @@ class MockChatRepository : ChatRepository {
         emit(StreamChunk.Content("Mock "))
         emit(StreamChunk.Content("response "))
         emit(StreamChunk.Content("for: $prompt"))
+        emit(StreamChunk.Done)
+    }
+}
+
+class MockChatClient : ChatClient {
+    override suspend fun sendMessage(
+        apiKey: String,
+        model: String,
+        messages: List<ChatMessage>,
+        constraints: ResponseConstraints,
+        systemPrompt: String?
+    ): Result<ChatMessage> = Result.success(
+        ChatMessage(
+            role = "assistant",
+            content = "Mock response",
+            model = model
+        )
+    )
+
+    override fun sendMessageStreaming(
+        apiKey: String,
+        model: String,
+        messages: List<ChatMessage>,
+        constraints: ResponseConstraints,
+        systemPrompt: String?
+    ): Flow<StreamChunk> = flow {
+        emit(StreamChunk.Content("Mock "))
+        emit(StreamChunk.Content("response"))
         emit(StreamChunk.Done)
     }
 }
