@@ -1,7 +1,7 @@
 ---
 description: Архитектурный планировщик. Анализирует проект и создаёт план изменений для новой функциональности.
 mode: subagent
-model: zai-coding-plan/glm-5-1
+model: zai-coding-plan/glm-5
 tools:
   task: false
   todowrite: false

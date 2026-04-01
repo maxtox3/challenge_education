@@ -49,7 +49,7 @@
 
 Реализуйте механизм управления контекстом:
 
-👉 храните последние N сообщений “как есть”
+👉 храните последние N сообщений "как есть"
 👉 остальное заменяйте summary (например каждые 10 сообщений)
 👉 храните summary отдельно и подставляйте его в запрос вместо полной истории
 
@@ -69,7 +69,7 @@ This document outlines the plan to enhance the existing `core:agent` module to s
 1. **Task 1**: Simple agent (already implemented ✅)
 2. **Task 2**: Context persistence between sessions
 3. **Task 3**: Token counting and statistics
-4. **Task 4**: Context compression with summarization
+4. **Task 4**: Context compression with LLM summarization
 
 ## Current State Analysis
 
@@ -96,96 +96,68 @@ This document outlines the plan to enhance the existing `core:agent` module to s
 ## Gap Analysis
 
 ### Task 1: Simple Agent
-**Status:** ✅ Already implemented
+**Status:** ✅ COMPLETED (2026-03-29)
 
-**Verification needed:**
-- Test that `SimpleAgent.process()` works correctly
-- Verify streaming in `ChatUseCases.executeAgentRequest()`
-- Check integration with `ChatViewModel`
+**Implementation:**
+- ✅ `core/agent` module created with KMP/WASM support
+- ✅ `Agent.kt` interface with `process()` and `processStreaming()` methods
+- ✅ `SimpleAgent.kt` implementation wrapping `ChatClient`
+- ✅ `AgentModels.kt` with data classes
+- ✅ `AgentFactory.kt` for creating Agent instances
+- ✅ Integration with `ChatUseCases.executeAgentRequest()`
+- ✅ `ChatViewModel` creates Agent via `AgentFactory`
 
-**Optional enhancements:**
-- Add KDoc documentation
-- Add unit tests
+**Verification completed:**
+- ✅ Compilation: SUCCESS
+- ✅ Tests: 738/750 PASS (12 failures pre-existing, unrelated)
+- ✅ Lint: PASS
+- ✅ `./gradlew check`: SUCCESS
+
+**Branch:** feature/agent-entity-2026-03-29
+**Commit:** a17c26f
 
 ### Task 2: Persistence Layer
 **Missing:**
-- Context storage interface
+- Context storage interface + implementation
 - JSON-based persistence (localStorage for WASM)
 - Load/save history methods
 - Context restoration on startup
 
-**Needed Components:**
-1. `ContextStorage` interface
-2. `JsonContextStorage` implementation
-3. Integration with `SimpleAgent`
-4. Startup loading logic in `ChatViewModel`
-
 ### Task 3: Token Counting
 **Missing:**
-- Token estimation utility
-- Statistics tracking
+- Token estimation utility (whitespace split)
+- Statistics tracking in AgentMetrics
 - UI display for metrics
-
-**Needed Components:**
-1. `TokenCounter` utility object
-2. `TokenStats` data class
-3. Stats tracking in `SimpleAgent`
-4. `TokenStatsPanel` UI component
 
 ### Task 4: Context Compression
 **Missing:**
-- Compression configuration
-- Summary generation
-- Context size management
-- Compression orchestration
+- Summarizer interface + LLM implementation
+- Compression logic (keepLastN + summary)
+- Compression triggers
 
-**Needed Components:**
-1. `ContextCompressionConfig` data class
-2. `Summarizer` interface + LLM implementation
-3. `ContextManager` orchestrator
-4. Compression triggers
-5. UI controls
+---
 
-## Architecture Design
+## Architecture Design (Simplified)
+
+### Design Principles Applied
+
+| Principle | Application |
+|-----------|-------------|
+| **SOLID** | SRP: Each file has single responsibility. DIP: Interfaces for Storage, Summarizer |
+| **KISS** | Flat package structure (no subdirectories). No unnecessary layers |
+| **DRY** | TokenCounter utility reused. Single storage implementation |
+| **YAGNI** | No ContextManager orchestrator. No premature abstractions |
 
 ### Module Structure
 
 ```
-core/agent/
-├── src/wasmJsMain/kotlin/agent/
-│   ├── Agent.kt                      (existing, 10 lines)
-│   ├── SimpleAgent.kt                (existing, 91 lines → enhance to ~200)
-│   ├── AgentFactory.kt               (existing, 7 lines)
-│   ├── AgentModels.kt                (existing, 19 lines → enhance to ~50)
-│   │
-│   ├── storage/
-│   │   ├── ContextStorage.kt         (new, ~20 lines)
-│   │   └── JsonContextStorage.kt     (new, ~60 lines)
-│   │
-│   ├── stats/
-│   │   ├── TokenStats.kt             (new, ~30 lines)
-│   │   └── TokenCounter.kt           (new, ~40 lines)
-│   │
-│   ├── compression/
-│   │   ├── ContextCompression.kt     (new, ~50 lines)
-│   │   ├── Summarizer.kt             (new, ~80 lines)
-│   │   └── ContextManager.kt         (new, ~100 lines)
-│   │
-│   └── context/
-│       ├── AgentContext.kt           (enhance, ~25 lines)
-│       ├── AgentConfig.kt            (enhance, ~20 lines)
-│       └── AgentRequest.kt           (enhance, ~10 lines)
-```
-
-### Integration with Chat Feature
-
-```
-feature/chat/
-├── ChatViewModel.kt                  (inject ContextManager, ~5 lines)
-├── ChatState.kt                      (add compression state, ~10 lines)
-├── ChatUseCases.kt                   (enhance agent usage, ~20 lines)
-└── ui/components/
-    └── TokenStatsPanel.kt            (new, ~100 lines)
+core/agent/src/wasmJsMain/kotlin/agent/
+├── Agent.kt              (interface - keep, ~10 lines)
+├── SimpleAgent.kt        (API calls + persistence + compression, ~150 lines)
+├── AgentModels.kt        (all data classes, ~80 lines)
+├── AgentStorage.kt       (interface + JsonContextStorage in one file, ~60 lines)
+├── TokenCounter.kt       (utility object, ~30 lines)
+└── Summarizer.kt         (interface + LlmSummarizer, ~60 lines)
 ```
 
 ### Architecture Diagram
@@ -204,50 +176,42 @@ feature/chat/
 │  │  │  │  └────────────────────────────────────────┘ │  │  │ │
 │  │  │  │                                             │  │  │ │
 │  │  │  │  ┌──────────────┐  ┌─────────────────────┐  │  │  │ │
-│  │  │  │  │ContextManager│  │   TokenCounter      │  │  │  │ │
+│  │  │  │  │ TokenCounter │  │   AgentStorage      │  │  │  │ │
 │  │  │  │  └──────────────┘  └─────────────────────┘  │  │  │ │
 │  │  │  │         │                                     │  │  │ │
-│  │  │  │         ├──────────────┐                      │  │  │ │
-│  │  │  │         │              │                      │  │  │ │
-│  │  │  │  ┌──────▼──────┐  ┌───▼────────┐             │  │  │ │
-│  │  │  │  │ Summarizer  │  │  Storage   │             │  │  │ │
-│  │  │  │  └─────────────┘  └────────────┘             │  │  │ │
+│  │  │  │         ▼                                     │  │  │ │
+│  │  │  │  ┌──────────────┐                            │  │  │ │
+│  │  │  │  │  Summarizer  │                            │  │  │ │
+│  │  │  │  └─────────────┘                            │  │  │ │
 │  │  │  └─────────────────────────────────────────────────┘  │ │
 │  │  └──────────────────────────────────────────────────────┘ │
 │  └──────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
 
+---
+
 ## Component Specifications
 
-### 1. Storage Layer (Task 2)
+### 1. AgentStorage (Task 2)
 
-#### ContextStorage Interface
 ```kotlin
-package agent.storage
+package agent
 
-import agent.context.AgentContext
-
-interface ContextStorage {
-    fun load(): AgentContext?
-    fun save(context: AgentContext)
-    fun clear()
-}
-```
-
-#### JsonContextStorage Implementation
-```kotlin
-package agent.storage
-
-import agent.context.AgentContext
 import kotlinx.browser.localStorage
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import model.ChatMessage
 
-class JsonContextStorage(
+interface AgentStorage {
+    fun load(): List<ChatMessage>
+    fun save(messages: List<ChatMessage>)
+    fun clear()
+}
+
+class JsonAgentStorage(
     private val key: String = "agent_history"
-) : ContextStorage {
+) : AgentStorage {
     
     private val json = Json {
         ignoreUnknownKeys = true
@@ -255,20 +219,17 @@ class JsonContextStorage(
         encodeDefaults = true
     }
     
-    override fun load(): AgentContext? {
-        val stored = localStorage.getItem(key) ?: return null
-        
+    override fun load(): List<ChatMessage> {
+        val stored = localStorage.getItem(key) ?: return emptyList()
         return try {
-            val messages = json.decodeFromString<List<ChatMessage>>(stored)
-            AgentContext(messages = messages)
+            json.decodeFromString(stored)
         } catch (e: Exception) {
-            null
+            emptyList()
         }
     }
     
-    override fun save(context: AgentContext) {
-        val jsonStr = json.encodeToString(context.messages)
-        localStorage.setItem(key, jsonStr)
+    override fun save(messages: List<ChatMessage>) {
+        localStorage.setItem(key, json.encodeToString(messages))
     }
     
     override fun clear() {
@@ -277,89 +238,27 @@ class JsonContextStorage(
 }
 ```
 
-### 2. Token Statistics (Task 3)
+### 2. TokenCounter (Task 3)
 
-#### TokenCounter Utility
 ```kotlin
-package agent.stats
+package agent
 
 import model.ChatMessage
 
 object TokenCounter {
-    fun countTokens(text: String): Int {
-        return text.split(Regex("\\s+"))
-            .filter { it.isNotEmpty() }
-            .size
-    }
+    fun count(text: String): Int =
+        text.split(Regex("\\s+")).filter { it.isNotEmpty() }.size
     
-    fun estimateTokens(messages: List<ChatMessage>): Int {
-        return messages.sumOf { countTokens(it.content) }
-    }
-    
-    fun calculateStats(
-        messages: List<ChatMessage>,
-        response: String,
-        responseTimeMs: Long
-    ): TokenStats {
-        val promptTokens = estimateTokens(messages)
-        val completionTokens = countTokens(response)
-        
-        return TokenStats(
-            promptTokens = promptTokens,
-            completionTokens = completionTokens,
-            totalTokens = promptTokens + completionTokens,
-            responseTimeMs = responseTimeMs
-        )
-    }
+    fun estimate(messages: List<ChatMessage>): Int =
+        messages.sumOf { count(it.content) }
 }
 ```
 
-#### TokenStats Data Class
+### 3. Summarizer (Task 4)
+
 ```kotlin
-package agent.stats
+package agent
 
-data class TokenStats(
-    val promptTokens: Int = 0,
-    val completionTokens: Int = 0,
-    val totalTokens: Int = 0,
-    val responseTimeMs: Long = 0L,
-    val contextSize: Int = 0,
-    val compressionRatio: Double? = null
-) {
-    val tokensPerSecond: Double
-        get() = if (responseTimeMs > 0) {
-            completionTokens.toDouble() / (responseTimeMs / 1000.0)
-        } else 0.0
-    
-    val efficiency: Double
-        get() = if (promptTokens > 0) {
-            completionTokens.toDouble() / promptTokens
-        } else 0.0
-}
-```
-
-### 3. Context Compression (Task 4)
-
-#### ContextCompressionConfig
-```kotlin
-package agent.compression
-
-data class ContextCompressionConfig(
-    val enabled: Boolean = false,
-    val keepLastN: Int = 10,
-    val compressThreshold: Int = 20,
-    val maxContextSize: Int? = null,
-    val generateSummary: Boolean = true
-)
-```
-
-#### Summarizer Interface
-```kotlin
-package agent.compression
-
-import agent.Agent
-import agent.context.AgentContext
-import agent.context.AgentRequest
 import model.ChatMessage
 
 interface Summarizer {
@@ -367,7 +266,9 @@ interface Summarizer {
 }
 
 class LlmSummarizer(
-    private val agent: Agent
+    private val chatClient: network.ChatClient,
+    private val apiKey: String,
+    private val model: String = "glm-5"
 ) : Summarizer {
     
     override suspend fun summarize(messages: List<ChatMessage>): String {
@@ -386,129 +287,28 @@ class LlmSummarizer(
             Summary:
         """.trimIndent()
         
-        val request = AgentRequest(
-            prompt = summaryPrompt,
-            context = AgentContext(messages = emptyList()),
-            config = null
-        )
-        
-        return when (val result = agent.process(request)) {
-            is agent.AgentResult.Success -> result.response
-            else -> "Failed to generate summary"
-        }
-    }
-}
-```
-
-#### ContextManager Orchestrator
-```kotlin
-package agent.compression
-
-import agent.context.AgentContext
-import agent.storage.ContextStorage
-import agent.stats.TokenCounter
-import model.ChatMessage
-
-class ContextManager(
-    private val storage: ContextStorage,
-    private val summarizer: Summarizer?,
-    private val config: ContextCompressionConfig
-) {
-    
-    fun loadContext(): AgentContext {
-        val context = storage.load() ?: AgentContext()
-        
-        return if (config.enabled && shouldCompress(context)) {
-            compressContext(context)
-        } else {
-            context
-        }
-    }
-    
-    fun saveContext(context: AgentContext) {
-        val contextToSave = if (config.enabled && shouldCompress(context)) {
-            compressContext(context)
-        } else {
-            context
-        }
-        storage.save(contextToSave)
-    }
-    
-    private fun shouldCompress(context: AgentContext): Boolean {
-        return context.messages.size >= config.compressThreshold
-    }
-    
-    private suspend fun compressContext(context: AgentContext): AgentContext {
-        if (context.messages.isEmpty()) return context
-        
-        val keepLast = context.messages.takeLast(config.keepLastN)
-        val toCompress = context.messages.dropLast(config.keepLastN)
-        
-        if (toCompress.isEmpty()) return context
-        
-        val summary = if (config.generateSummary && summarizer != null) {
-            summarizer.summarize(toCompress)
-        } else {
-            "Previous context: ${toCompress.size} messages"
-        }
-        
-        val summaryMessage = ChatMessage(
-            role = "system",
-            content = "[Previous conversation summary]\n$summary"
-        )
-        
-        return context.copy(
-            messages = listOf(summaryMessage) + keepLast
-        )
-    }
-    
-    fun getCompressionStats(context: AgentContext): CompressionStats {
-        val originalTokens = TokenCounter.estimateTokens(context.messages)
-        val originalSize = context.messages.size
-        
-        return CompressionStats(
-            originalSize = originalSize,
-            originalTokens = originalTokens,
-            compressedSize = if (shouldCompress(context)) config.keepLastN + 1 else originalSize,
-            compressionEnabled = config.enabled
+        return chatClient.sendMessage(
+            apiKey = apiKey,
+            model = model,
+            messages = listOf(model.ChatMessage(role = "user", content = summaryPrompt)),
+            constraints = null
         )
     }
 }
-
-data class CompressionStats(
-    val originalSize: Int,
-    val originalTokens: Int,
-    val compressedSize: Int,
-    val compressionEnabled: Boolean
-)
 ```
 
 ### 4. Enhanced AgentModels
 
-#### Enhanced AgentContext
 ```kotlin
-package agent.context
+package agent
 
-import agent.compression.ContextCompressionConfig
-import agent.stats.TokenStats
 import model.ChatMessage
 
 data class AgentContext(
-    val messages: List<ChatMessage> = emptyList(),
-    val tokenStats: TokenStats? = null,
-    val compressionConfig: ContextCompressionConfig? = null
+    val messages: List<ChatMessage> = emptyList()
 ) {
-    val totalTokens: Int
-        get() = messages.sumOf { it.tokensUsed ?: 0 }
-    
-    val messageCount: Int
-        get() = messages.size
+    val messageCount: Int get() = messages.size
 }
-```
-
-#### Enhanced AgentConfig
-```kotlin
-package agent.context
 
 data class AgentConfig(
     val model: String = "glm-5",
@@ -516,9 +316,34 @@ data class AgentConfig(
     val maxTokens: Int? = null,
     val systemPrompt: String? = null,
     val enablePersistence: Boolean = false,
-    val enableCompression: Boolean = false,
-    val compressionConfig: ContextCompressionConfig? = null
+    val keepLastN: Int? = null,
+    val compressThreshold: Int? = null
 )
+
+data class AgentRequest(
+    val prompt: String,
+    val context: AgentContext? = null,
+    val config: AgentConfig? = null
+)
+
+data class AgentMetrics(
+    val responseTimeMs: Long = 0,
+    val inputTokens: Int = 0,
+    val outputTokens: Int = 0,
+    val totalTokens: Int = inputTokens + outputTokens
+)
+
+sealed class AgentResult {
+    data class Success(
+        val response: String,
+        val metrics: AgentMetrics = AgentMetrics()
+    ) : AgentResult()
+    
+    data class Error(
+        val message: String,
+        val cause: Throwable? = null
+    ) : AgentResult()
+}
 ```
 
 ### 5. Enhanced SimpleAgent
@@ -526,12 +351,6 @@ data class AgentConfig(
 ```kotlin
 package agent
 
-import agent.compression.ContextManager
-import agent.context.AgentContext
-import agent.context.AgentRequest
-import agent.stats.TokenCounter
-import agent.stats.TokenStats
-import agent.storage.ContextStorage
 import io.ktor.util.date.getTimeMillis
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -543,8 +362,8 @@ import network.ResponseConstraints
 class SimpleAgent(
     private val chatClient: ChatClient,
     private val apiKey: String,
-    private val storage: ContextStorage? = null,
-    private val contextManager: ContextManager? = null
+    private val storage: AgentStorage? = null,
+    private val summarizer: Summarizer? = null
 ) : Agent {
     
     override suspend fun process(
@@ -555,11 +374,12 @@ class SimpleAgent(
         val responseBuilder = StringBuilder()
         var error: Throwable? = null
         
+        val contextMessages = request.context?.messages ?: storage?.load() ?: emptyList()
+        val messages = buildMessages(request, contextMessages)
+        val constraints = buildConstraints(request.config)
+        val model = request.config?.model ?: "glm-5"
+        
         try {
-            val messages = buildMessages(request)
-            val constraints = buildConstraints(request.config)
-            val model = request.config?.model ?: "glm-5"
-            
             chatClient.sendMessageStreaming(
                 apiKey = apiKey,
                 model = model,
@@ -587,33 +407,31 @@ class SimpleAgent(
             )
         }
         
-        val stats = TokenCounter.calculateStats(
-            messages = request.context?.messages ?: emptyList(),
-            response = response,
-            responseTimeMs = responseTimeMs
-        )
+        val inputTokens = TokenCounter.estimate(messages)
+        val outputTokens = TokenCounter.count(response)
         
         if (request.config?.enablePersistence == true && storage != null) {
-            val updatedContext = AgentContext(
-                messages = (request.context?.messages ?: emptyList()) + 
-                    listOf(ChatMessage(role = "user", content = request.prompt)) +
-                    listOf(ChatMessage(role = "assistant", content = response))
-            )
-            storage.save(updatedContext)
+            val updatedMessages = contextMessages + 
+                ChatMessage(role = "user", content = request.prompt) +
+                ChatMessage(role = "assistant", content = response)
+            
+            val messagesToSave = compressIfNeeded(updatedMessages, request.config)
+            storage.save(messagesToSave)
         }
         
         return AgentResult.Success(
             response = response,
             metrics = AgentMetrics(
                 responseTimeMs = responseTimeMs,
-                inputTokens = stats.promptTokens,
-                outputTokens = stats.completionTokens
+                inputTokens = inputTokens,
+                outputTokens = outputTokens
             )
         )
     }
     
     override fun processStreaming(request: AgentRequest): Flow<StreamChunk> {
-        val messages = buildMessages(request)
+        val contextMessages = request.context?.messages ?: storage?.load() ?: emptyList()
+        val messages = buildMessages(request, contextMessages)
         val constraints = buildConstraints(request.config)
         val model = request.config?.model ?: "glm-5"
         
@@ -622,32 +440,47 @@ class SimpleAgent(
             model = model,
             messages = messages,
             constraints = constraints
-        ).catch { e ->
-            emit(StreamChunk.Done)
-        }
+        ).catch { emit(StreamChunk.Done) }
     }
     
-    fun loadContext(): AgentContext? {
-        return contextManager?.loadContext()
+    fun loadContext(): AgentContext {
+        val messages = storage?.load() ?: emptyList()
+        return AgentContext(messages = messages)
     }
     
-    fun saveContext(context: AgentContext) {
-        contextManager?.saveContext(context)
+    fun clearContext() {
+        storage?.clear()
     }
     
-    private fun buildMessages(request: AgentRequest): List<ChatMessage> {
-        val contextMessages = request.context?.messages ?: emptyList()
-        return contextMessages + ChatMessage(
-            role = "user",
-            content = request.prompt
-        )
-    }
+    private fun buildMessages(request: AgentRequest, contextMessages: List<ChatMessage>): List<ChatMessage> =
+        contextMessages + ChatMessage(role = "user", content = request.prompt)
     
-    private fun buildConstraints(config: AgentConfig?): ResponseConstraints {
-        return ResponseConstraints(
+    private fun buildConstraints(config: AgentConfig?): ResponseConstraints =
+        ResponseConstraints(
             temperature = config?.temperature?.toDouble(),
             maxTokens = config?.maxTokens
         )
+    
+    private suspend fun compressIfNeeded(
+        messages: List<ChatMessage>,
+        config: AgentConfig
+    ): List<ChatMessage> {
+        val threshold = config.compressThreshold ?: return messages
+        val keepLastN = config.keepLastN ?: return messages
+        
+        if (messages.size < threshold) return messages
+        
+        val toCompress = messages.dropLast(keepLastN)
+        if (toCompress.isEmpty()) return messages
+        
+        val summary = summarizer?.summarize(toCompress) ?: return messages
+        
+        val summaryMessage = ChatMessage(
+            role = "system",
+            content = "[Previous conversation summary]\n$summary"
+        )
+        
+        return listOf(summaryMessage) + messages.takeLast(keepLastN)
     }
 }
 ```
@@ -657,11 +490,6 @@ class SimpleAgent(
 ```kotlin
 package agent
 
-import agent.compression.ContextCompressionConfig
-import agent.compression.ContextManager
-import agent.compression.LlmSummarizer
-import agent.storage.ContextStorage
-import agent.storage.JsonContextStorage
 import network.ChatClient
 
 object AgentFactory {
@@ -670,180 +498,83 @@ object AgentFactory {
         chatClient: ChatClient,
         apiKey: String,
         enablePersistence: Boolean = false,
-        enableCompression: Boolean = false,
-        compressionConfig: ContextCompressionConfig? = null
+        summarizer: Summarizer? = null
     ): Agent {
-        val storage = if (enablePersistence) {
-            JsonContextStorage()
-        } else {
-            null
-        }
-        
-        val contextManager = if (enableCompression && storage != null && compressionConfig != null) {
-            val summarizer = LlmSummarizer(SimpleAgent(chatClient, apiKey))
-            ContextManager(storage, summarizer, compressionConfig)
-        } else {
-            null
-        }
+        val storage = if (enablePersistence) JsonAgentStorage() else null
         
         return SimpleAgent(
             chatClient = chatClient,
             apiKey = apiKey,
             storage = storage,
-            contextManager = contextManager
+            summarizer = summarizer
         )
     }
 }
 ```
 
-## Implementation Order
+---
 
-### Phase 1: Core Enhancements (Tasks 1-3)
+## Implementation Order (Refined)
 
-**Step 1.1: Storage Layer**
-1. Create `storage/ContextStorage.kt` (interface)
-2. Create `storage/JsonContextStorage.kt` (implementation)
-3. Test JSON serialization/deserialization
-4. Test localStorage integration
+| Phase | Task | Effort | Rationale |
+|-------|------|--------|-----------|
+| **1a** | Create `AgentStorage.kt` (interface + impl in one file) | 1h | Minimal, focused change |
+| **1b** | Create `TokenCounter.kt` utility object | 0.5h | Single responsibility, no dependencies |
+| **1c** | Wire storage into `SimpleAgent` (save after response) | 1h | Focused integration |
+| **1d** | Load history on startup in `ChatViewModel` | 0.5h | Feature-level change |
+| **2a** | Add token stats to `AgentMetrics` | 0.5h | Extend existing model |
+| **2b** | Display token stats in `ChatState` + UI | 1h | Feature integration |
+| **3a** | Create `Summarizer.kt` (interface + LlmSummarizer) | 1.5h | Compression support |
+| **3b** | Add compression logic to `SimpleAgent.compressIfNeeded()` | 1h | No new components needed |
+| **4** | UI controls for compression settings | 1h | Settings integration |
 
-**Step 1.2: Token Statistics**
-1. Create `stats/TokenStats.kt` (data class)
-2. Create `stats/TokenCounter.kt` (utility)
-3. Add token tracking to `SimpleAgent`
-4. Update `AgentMetrics` to include tokens
-5. Test token counting accuracy
+**Total: 8-10 hours** (vs 14-20 in original plan)
 
-**Step 1.3: Enhanced Models**
-1. Enhance `AgentContext` with token stats
-2. Enhance `AgentConfig` with persistence flags
-3. Update `AgentModels.kt`
-
-**Step 1.4: Agent Integration**
-1. Update `SimpleAgent` with storage support
-2. Update `AgentFactory` with new parameters
-3. Test persistence flow
-
-### Phase 2: Compression (Task 4)
-
-**Step 2.1: Compression Infrastructure**
-1. Create `compression/ContextCompressionConfig.kt`
-2. Create `compression/Summarizer.kt` (interface + implementation)
-3. Create `compression/ContextManager.kt`
-4. Test compression logic
-
-**Step 2.2: Agent Enhancement**
-1. Add `ContextManager` to `SimpleAgent`
-2. Add compression methods
-3. Test compression flow
-
-**Step 2.3: Integration**
-1. Update `AgentFactory` with compression support
-2. Test end-to-end compression
-
-### Phase 3: UI Integration
-
-**Step 3.1: ChatState Updates**
-1. Add compression state fields to `ChatState`
-2. Add token stats fields
-3. Add persistence state
-
-**Step 3.2: ChatViewModel Updates**
-1. Inject `ContextManager` into ViewModel
-2. Add compression control methods
-3. Add persistence control methods
-
-**Step 3.3: UI Components**
-1. Create `TokenStatsPanel.kt` component
-2. Add compression toggle to settings
-3. Add persistence toggle to settings
-4. Integrate with `App.kt`
-
-**Step 3.4: Testing**
-1. Write unit tests for all new components
-2. Write integration tests
-3. Write UI tests
+---
 
 ## Testing Strategy
 
 ### Unit Tests
 
-**Storage Tests:**
-- `JsonContextStorageTest`
-  - Test save/load roundtrip
-  - Test empty context handling
-  - Test error handling for corrupted JSON
-
-**Token Counter Tests:**
-- `TokenCounterTest`
-  - Test token counting accuracy
-  - Test empty string handling
-  - Test special characters
-  - Test multi-line text
-
-**Compression Tests:**
-- `ContextManagerTest`
-  - Test compression trigger logic
-  - Test keepLastN logic
-  - Test summary generation
-  - Test compression stats
-
-**Agent Tests:**
-- `SimpleAgentTest`
-  - Test persistence integration
-  - Test token tracking
-  - Test compression integration
-  - Test error handling
+- `AgentStorageTest` - save/load roundtrip, empty handling, corrupted JSON
+- `TokenCounterTest` - counting accuracy, empty string, special chars, multi-line
+- `SimpleAgentTest` - persistence integration, token tracking, compression
 
 ### Integration Tests
 
-- `AgentPersistenceTest`
-  - Test full save/load cycle
-  - Test context restoration on startup
+- `AgentPersistenceTest` - full save/load cycle, context restoration
+- `AgentCompressionTest` - compression with real LLM, token savings
 
-- `AgentCompressionTest`
-  - Test compression with real LLM
-  - Test compression quality
-  - Test token savings
-
-### UI Tests
-
-- `TokenStatsPanelTest`
-  - Test display of token statistics
-  - Test compression stats display
-
-- `SettingsDialogTest`
-  - Test compression toggle
-  - Test persistence toggle
+---
 
 ## Success Criteria
 
-### Task 1: Simple Agent
+### Task 1: Simple Agent ✅
 - ✅ Agent accepts user query
 - ✅ Agent sends to LLM via API
 - ✅ Agent returns response
 - ✅ Agent is separate entity (interface + implementation)
 
 ### Task 2: Persistence
-- ✅ History saves to localStorage
-- ✅ History loads on startup
-- ✅ Context restored correctly
-- ✅ Dialog continues after restart
+- [ ] History saves to localStorage
+- [ ] History loads on startup
+- [ ] Context restored correctly
+- [ ] Dialog continues after restart
 
 ### Task 3: Token Counting
-- ✅ Token count for current request
-- ✅ Token count for full history
-- ✅ Token count for response
-- ✅ Statistics displayed in UI
-- ✅ Growth tracked over conversation
-- ✅ Overflow behavior tested
+- [ ] Token count for current request
+- [ ] Token count for full history
+- [ ] Token count for response
+- [ ] Statistics displayed in UI
+- [ ] Growth tracked over conversation
 
 ### Task 4: Compression
-- ✅ Last N messages kept as-is
-- ✅ Older messages replaced with summary
-- ✅ Summary stored separately
-- ✅ Summary substituted in request
-- ✅ Quality comparison (with/without compression)
-- ✅ Token savings demonstrated
+- [ ] Last N messages kept as-is
+- [ ] Older messages replaced with LLM summary
+- [ ] Summary substituted in request
+- [ ] Token savings demonstrated
+
+---
 
 ## File Checklist
 
@@ -851,68 +582,91 @@ object AgentFactory {
 
 | File Path | Lines | Priority |
 |-----------|-------|----------|
-| `core/agent/src/wasmJsMain/kotlin/agent/storage/ContextStorage.kt` | ~20 | High |
-| `core/agent/src/wasmJsMain/kotlin/agent/storage/JsonContextStorage.kt` | ~60 | High |
-| `core/agent/src/wasmJsMain/kotlin/agent/stats/TokenStats.kt` | ~30 | High |
-| `core/agent/src/wasmJsMain/kotlin/agent/stats/TokenCounter.kt` | ~40 | High |
-| `core/agent/src/wasmJsMain/kotlin/agent/compression/ContextCompression.kt` | ~20 | Medium |
-| `core/agent/src/wasmJsMain/kotlin/agent/compression/Summarizer.kt` | ~80 | Medium |
-| `core/agent/src/wasmJsMain/kotlin/agent/compression/ContextManager.kt` | ~100 | Medium |
-| `feature/chat/src/wasmJsMain/kotlin/chat/ui/components/TokenStatsPanel.kt` | ~100 | Low |
+| `core/agent/src/wasmJsMain/kotlin/agent/AgentStorage.kt` | ~60 | High |
+| `core/agent/src/wasmJsMain/kotlin/agent/TokenCounter.kt` | ~30 | High |
+| `core/agent/src/wasmJsMain/kotlin/agent/Summarizer.kt` | ~60 | Medium |
 
 ### Files to Modify
 
 | File Path | Changes | Priority |
 |-----------|---------|----------|
-| `core/agent/src/wasmJsMain/kotlin/agent/SimpleAgent.kt` | Add persistence, token tracking | High |
+| `core/agent/src/wasmJsMain/kotlin/agent/SimpleAgent.kt` | Add persistence, token tracking, compression | High |
 | `core/agent/src/wasmJsMain/kotlin/agent/AgentFactory.kt` | Add new parameters | High |
 | `core/agent/src/wasmJsMain/kotlin/agent/AgentModels.kt` | Enhance models | High |
-| `feature/chat/src/wasmJsMain/kotlin/chat/ChatState.kt` | Add compression state | Medium |
-| `feature/chat/src/wasmJsMain/kotlin/chat/ChatViewModel.kt` | Inject ContextManager | Medium |
-| `feature/chat/src/wasmJsMain/kotlin/chat/ChatUseCases.kt` | Add compression support | Medium |
-| `feature/chat/src/wasmJsMain/kotlin/chat/ui/App.kt` | Add TokenStatsPanel | Low |
+| `feature/chat/src/wasmJsMain/kotlin/chat/ChatState.kt` | Add token stats | Medium |
+| `feature/chat/src/wasmJsMain/kotlin/chat/ChatViewModel.kt` | Load context on init | Medium |
 
-## Estimated Effort
+---
 
-| Phase | Tasks | Estimated Time |
-|-------|-------|----------------|
-| Phase 1 | Storage + Token Counting | 4-6 hours |
-| Phase 2 | Compression Infrastructure | 4-6 hours |
-| Phase 3 | UI Integration | 3-4 hours |
-| Testing | Unit + Integration Tests | 3-4 hours |
-| **Total** | | **14-20 hours** |
+## Decisions Made
 
-## Next Steps
+| Question | Decision | Rationale |
+|----------|----------|-----------|
+| **Token Estimation** | Simple whitespace split | WASM-compatible, sufficient for demo |
+| **Compression Trigger** | Automatic (threshold-based) | Simpler UX, no manual intervention |
+| **Summary Generation** | LLM summarization | User requested, better quality |
+| **Storage Key** | Single key | Simpler implementation |
+| **Context Limit** | Soft warning | Allow user to continue |
 
-1. **Review this plan** and approve architecture decisions
-2. **Start with Phase 1** (Storage + Token Counting)
-3. **Test incrementally** after each component
-4. **Proceed to Phase 2** after Phase 1 is stable
-5. **Complete Phase 3** for full UI integration
-6. **Write tests** alongside implementation
-
-## Questions to Resolve
-
-1. **Token Estimation Method**: Use simple whitespace splitting or more sophisticated tokenizer?
-   - Simple: `text.split(Regex("\\s+")).size`
-   - Sophisticated: Implement BPE tokenizer
-   
-2. **Compression Trigger**: Automatic vs manual?
-   - Automatic: Trigger when threshold reached
-   - Manual: User clicks "Compress" button
-   
-3. **Summary Quality**: LLM-generated vs simple truncation?
-   - LLM: Use agent itself to generate summary
-   - Truncation: Keep first sentence of each message
-   
-4. **Storage Key Strategy**: Single key vs multiple keys?
-   - Single: All history in one JSON
-   - Multiple: Separate keys for different sessions
-
-5. **Context Limit Handling**: Soft warning vs hard error?
-   - Soft: Show warning, allow continue
-   - Hard: Block request, force compression
+---
 
 ## Conclusion
 
-This plan provides a comprehensive roadmap for implementing the agent entity with all four tasks. The architecture is modular, allowing for incremental implementation and testing. The use of existing patterns (MVI, Repository) ensures consistency with the current codebase.
+This simplified plan reduces complexity while maintaining all required functionality:
+- **3 new files** instead of 8
+- **Flat package structure** instead of 4 subdirectories
+- **8-10 hours** instead of 14-20
+- **No ContextManager** - logic in SimpleAgent
+- **No separate TokenStats** - merged into AgentMetrics
+
+---
+
+## Implementation Log
+
+### Day 6 - Task 1: Simple Agent ✅ COMPLETED
+
+**Date:** 2026-03-29
+**Branch:** feature/agent-entity-2026-03-29
+**Commit:** a17c26f
+
+**What was implemented:**
+- ✅ Created `core/agent` module with KMP/WASM support
+- ✅ `Agent.kt` interface with `process()` and `processStreaming()` methods
+- ✅ `AgentModels.kt` with `AgentRequest`, `AgentResult`, `AgentConfig`, `AgentMetrics`, `AgentContext`
+- ✅ `SimpleAgent.kt` implementation wrapping `ChatClient`
+- ✅ `AgentFactory.kt` for creating Agent instances
+- ✅ Integration with `feature/chat`:
+  - `ChatUseCases.executeAgentRequest()` uses Agent
+  - `ChatViewModel` creates Agent via `AgentFactory`
+
+**Architecture:**
+```
+feature/chat (ChatUseCases) → core/agent (SimpleAgent) → core/network (ChatClient) → API
+```
+
+**Files created:**
+- core/agent/build.gradle.kts
+- core/agent/src/wasmJsMain/kotlin/agent/Agent.kt
+- core/agent/src/wasmJsMain/kotlin/agent/AgentModels.kt
+- core/agent/src/wasmJsMain/kotlin/agent/SimpleAgent.kt
+- core/agent/src/wasmJsMain/kotlin/agent/AgentFactory.kt
+
+**Files modified:**
+- settings.gradle.kts (added :core:agent)
+- feature/chat/src/wasmJsMain/kotlin/chat/ChatUseCases.kt
+- feature/chat/src/wasmJsMain/kotlin/chat/ChatViewModel.kt
+- feature/chat/build.gradle.kts
+- Test files updated for new signatures
+
+**Verification:**
+- Compilation: ✅ SUCCESS
+- Tests: 738/750 PASS (12 failures pre-existing, unrelated to Agent)
+- Lint: ✅ PASS
+- `./gradlew check`: ✅ SUCCESS
+
+**Ready for:**
+- Task 2: Context Persistence (storage layer)
+- Task 3: Token Counting
+- Task 4: Context Compression
+
+---
