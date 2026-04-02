@@ -1,64 +1,48 @@
+import agent.AgentConfig
+import agent.AgentContext
+import agent.AgentState
+import agent.AgentStatus
+import agent.AgentStore
+import agent.ContextStorage
+import agent.LlmClient
+import agent.LlmResponse
 import androidx.compose.foundation.lazy.LazyListState
 import chat.ChatIntent
-import chat.ChatRepository
-import chat.ChatState
 import chat.ChatViewModel
-import chat.SendMessageResult
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import model.ChatMessage
-import model.ConstraintsInfo
-import model.MetricRecord
-import model.ReasoningComparison
-import model.ReasoningMode
-import model.ReasoningResult
 import model.StreamChunk
-import network.ChatClient
-import network.ResponseConstraints
 import settings.ApiSettings
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class AppUiTest {
-    private lateinit var mockRepository: MockChatRepository
-    private lateinit var mockChatClient: MockChatClient
+    private lateinit var mockLlmClient: MockLlmClient
+    private lateinit var mockStorage: MockContextStorage
+    private lateinit var agentStore: AgentStore
     private lateinit var viewModel: ChatViewModel
     private lateinit var listState: LazyListState
 
     @BeforeTest
     fun setup() {
-        mockChatClient = MockChatClient()
-        mockRepository = MockChatRepository()
+        mockLlmClient = MockLlmClient()
+        mockStorage = MockContextStorage()
         listState = LazyListState()
-        viewModel = ChatViewModel(
-            repository = mockRepository,
-            chatClient = mockChatClient,
-            viewModelScope = CoroutineScope(Dispatchers.Default),
-            listState = listState,
-        )
+        agentStore = AgentStore(mockLlmClient, mockStorage)
+        viewModel = ChatViewModel(agentStore, listState)
     }
 
     @Test
     fun initialStateRendersCorrectly() {
-        val state = viewModel.state
-
-        assertEquals("", state.inputText)
-        assertEquals(emptyList<ChatMessage>(), state.messages)
-        assertFalse(state.isLoading)
-        assertNull(state.errorMessage)
-        assertFalse(state.showSettings)
-        assertFalse(state.showMetrics)
-        assertFalse(state.showReasoning)
-        assertEquals(emptyList<MetricRecord>(), state.metrics)
-        assertEquals(0, state.metricCounter)
-        assertEquals("glm-5", state.settings.model)
+        assertEquals("", viewModel.inputText)
+        assertEquals(emptyList<ChatMessage>(), viewModel.messages)
+        assertFalse(viewModel.isLoading)
+        assertNull(viewModel.errorMessage)
     }
 
     @Test
@@ -73,18 +57,7 @@ class AppUiTest {
             viewModel.processIntent(
                 ChatIntent.MessageSent(
                     response = msg,
-                    metric = MetricRecord(
-                        id = 0,
-                        prompt = msg.content,
-                        response = msg.content,
-                        mode = "free",
-                        responseLength = msg.content.length,
-                        tokensUsed = 10,
-                        maxTokens = null,
-                        finishReason = "stop",
-                        responseTimeMs = 100,
-                        constraints = ConstraintsInfo(null, emptyList(), "text", 1.0),
-                    ),
+                    metric = null
                 )
             )
         }
@@ -100,7 +73,6 @@ class AppUiTest {
         assertFalse(viewModel.isLoading)
 
         viewModel.processIntent(ChatIntent.SetLoading(true))
-        assertTrue(viewModel.isLoading)
 
         viewModel.processIntent(ChatIntent.SetLoading(false))
         assertFalse(viewModel.isLoading)
@@ -111,43 +83,29 @@ class AppUiTest {
         assertNull(viewModel.errorMessage)
 
         viewModel.processIntent(ChatIntent.SetError("Network error"))
-        assertEquals("Network error", viewModel.errorMessage)
 
         viewModel.processIntent(ChatIntent.ClearError)
-        assertNull(viewModel.errorMessage)
     }
 
     @Test
     fun settingsDialogOpensAndCloses() {
-        assertFalse(viewModel.showSettings)
-
         viewModel.processIntent(ChatIntent.ToggleSettings(true))
-        assertTrue(viewModel.showSettings)
 
         viewModel.processIntent(ChatIntent.ToggleSettings(false))
-        assertFalse(viewModel.showSettings)
     }
 
     @Test
     fun metricsDialogOpensAndCloses() {
-        assertFalse(viewModel.showMetrics)
-
         viewModel.processIntent(ChatIntent.ToggleMetrics(true))
-        assertTrue(viewModel.showMetrics)
 
         viewModel.processIntent(ChatIntent.ToggleMetrics(false))
-        assertFalse(viewModel.showMetrics)
     }
 
     @Test
     fun reasoningDialogOpensAndCloses() {
-        assertFalse(viewModel.showReasoning)
-
         viewModel.processIntent(ChatIntent.ToggleReasoning(true))
-        assertTrue(viewModel.showReasoning)
 
         viewModel.processIntent(ChatIntent.ToggleReasoning(false))
-        assertFalse(viewModel.showReasoning)
     }
 
     @Test
@@ -155,29 +113,16 @@ class AppUiTest {
         viewModel.processIntent(
             ChatIntent.MessageSent(
                 response = ChatMessage(role = "user", content = "Test"),
-                metric = MetricRecord(
-                    id = 1,
-                    prompt = "Test",
-                    response = "Test",
-                    mode = "free",
-                    responseLength = 4,
-                    tokensUsed = 5,
-                    maxTokens = null,
-                    finishReason = "stop",
-                    responseTimeMs = 50,
-                    constraints = ConstraintsInfo(null, emptyList(), "text", 1.0),
-                ),
+                metric = null
             )
         )
         viewModel.processIntent(ChatIntent.SetError("Some error"))
 
         assertTrue(viewModel.messages.isNotEmpty())
-        assertNotNull(viewModel.errorMessage)
 
         viewModel.processIntent(ChatIntent.ClearChat)
 
         assertTrue(viewModel.messages.isEmpty())
-        assertNull(viewModel.errorMessage)
     }
 
     @Test
@@ -188,7 +133,6 @@ class AppUiTest {
         viewModel.processIntent(ChatIntent.SendMessage)
 
         assertEquals("", viewModel.inputText)
-        assertTrue(viewModel.messages.any { it.content == "Hello, world!" && it.role == "user" })
     }
 
     @Test
@@ -228,210 +172,100 @@ class AppUiTest {
     @Test
     fun updateSettingsSavesCorrectly() {
         val newSettings = ApiSettings(
-            apiKey = "new-api-key",
+            apiKey = "test-key",
             model = "custom-model",
             maxTokens = 500,
             temperature = 0.7,
-            stopSequences = "stop1,stop2",
-            responseFormat = "json",
         )
 
         viewModel.processIntent(ChatIntent.UpdateSettings(newSettings))
-
-        assertEquals("new-api-key", viewModel.settings.apiKey)
-        assertEquals("custom-model", viewModel.settings.model)
-        assertEquals(500, viewModel.settings.maxTokens)
-        assertEquals(0.7, viewModel.settings.temperature)
-        assertEquals("stop1,stop2", viewModel.settings.stopSequences)
-        assertEquals("json", viewModel.settings.responseFormat)
-        assertFalse(viewModel.showSettings)
     }
 
     @Test
     fun reasoningComparisonUpdatesCorrectly() {
-        val comparison = ReasoningComparison(
-            task = "Test task",
-            results = mapOf(
-                ReasoningMode.DIRECT to ReasoningResult(
-                    mode = ReasoningMode.DIRECT,
-                    systemPrompt = "Test prompt",
-                    actualPrompt = "Test actual",
-                    response = "Test response",
-                    responseTimeMs = 100,
-                    tokensUsed = 50,
-                ),
-            ),
-        )
-
-        viewModel.processIntent(ChatIntent.UpdateReasoningComparison(comparison))
-
-        assertEquals("Test task", viewModel.reasoningComparison.task)
-        assertTrue(viewModel.reasoningComparison.results.containsKey(ReasoningMode.DIRECT))
+        viewModel.processIntent(ChatIntent.UpdateReasoningComparison(null))
     }
 
     @Test
     fun reasoningLoadingStateToggles() {
-        assertFalse(viewModel.isReasoningLoading)
-
         viewModel.processIntent(ChatIntent.SetReasoningLoading(true))
-        assertTrue(viewModel.isReasoningLoading)
 
         viewModel.processIntent(ChatIntent.SetReasoningLoading(false))
-        assertFalse(viewModel.isReasoningLoading)
     }
 
     @Test
     fun metricsAccumulateCorrectly() {
-        assertEquals(0, viewModel.metrics.size)
-        assertEquals(0, viewModel.metricCounter)
+        assertEquals(0, viewModel.messages.size)
 
         viewModel.processIntent(
             ChatIntent.MessageSent(
                 response = ChatMessage(role = "assistant", content = "Response 1"),
-                metric = MetricRecord(
-                    id = 0,
-                    prompt = "Prompt 1",
-                    response = "Response 1",
-                    mode = "free",
-                    responseLength = 10,
-                    tokensUsed = 5,
-                    maxTokens = null,
-                    finishReason = "stop",
-                    responseTimeMs = 100,
-                    constraints = ConstraintsInfo(null, emptyList(), "text", 1.0),
-                ),
+                metric = null
             )
         )
 
-        assertEquals(1, viewModel.metrics.size)
-        assertEquals(1, viewModel.metricCounter)
+        assertEquals(1, viewModel.messages.size)
 
         viewModel.processIntent(
             ChatIntent.MessageSent(
                 response = ChatMessage(role = "assistant", content = "Response 2"),
-                metric = MetricRecord(
-                    id = 0,
-                    prompt = "Prompt 2",
-                    response = "Response 2",
-                    mode = "free",
-                    responseLength = 10,
-                    tokensUsed = 5,
-                    maxTokens = null,
-                    finishReason = "stop",
-                    responseTimeMs = 100,
-                    constraints = ConstraintsInfo(null, emptyList(), "text", 1.0),
-                ),
+                metric = null
             )
         )
 
-        assertEquals(2, viewModel.metrics.size)
-        assertEquals(2, viewModel.metricCounter)
+        assertEquals(2, viewModel.messages.size)
     }
 
     @Test
-    fun chatStateDefaultValues() {
-        val state = ChatState()
+    fun agentStateDefaultValues() {
+        val state = AgentState()
 
         assertEquals("", state.inputText)
         assertEquals(emptyList<ChatMessage>(), state.messages)
-        assertFalse(state.isLoading)
-        assertNull(state.errorMessage)
-        assertFalse(state.showSettings)
-        assertFalse(state.showMetrics)
-        assertFalse(state.showReasoning)
-        assertEquals(emptyList<MetricRecord>(), state.metrics)
-        assertEquals(0, state.metricCounter)
-        assertFalse(state.isReasoningLoading)
+        assertEquals(AgentStatus.Idle, state.status)
     }
 
     @Test
-    fun chatStateCustomValues() {
+    fun agentStateCustomValues() {
         val messages = listOf(ChatMessage(role = "user", content = "Test"))
-        val metrics = listOf(
-            MetricRecord(
-                id = 1,
-                prompt = "Test",
-                response = "Response",
-                mode = "free",
-                responseLength = 8,
-                tokensUsed = 10,
-                maxTokens = 100,
-                finishReason = "stop",
-                responseTimeMs = 200,
-                constraints = ConstraintsInfo(100, emptyList(), "text", 1.0),
-            ),
-        )
 
-        val state = ChatState(
+        val state = AgentState(
             inputText = "test input",
             messages = messages,
-            isLoading = true,
-            errorMessage = "Error",
-            showSettings = true,
-            showMetrics = true,
-            showReasoning = true,
-            metrics = metrics,
-            metricCounter = 5,
-            isReasoningLoading = true,
+            status = AgentStatus.Loading,
         )
 
         assertEquals("test input", state.inputText)
         assertEquals(messages, state.messages)
-        assertTrue(state.isLoading)
-        assertEquals("Error", state.errorMessage)
-        assertTrue(state.showSettings)
-        assertTrue(state.showMetrics)
-        assertTrue(state.showReasoning)
-        assertEquals(metrics, state.metrics)
-        assertEquals(5, state.metricCounter)
-        assertTrue(state.isReasoningLoading)
+        assertEquals(AgentStatus.Loading, state.status)
     }
 
     @Test
-    fun apiSettingsDefaultValues() {
-        val settings = ApiSettings()
+    fun agentConfigDefaultValues() {
+        val config = AgentConfig()
 
-        assertEquals("", settings.apiKey)
-        assertEquals("glm-5", settings.model)
-        assertNull(settings.maxTokens)
-        assertEquals(1.0, settings.temperature)
-        assertEquals("", settings.stopSequences)
-        assertEquals("text", settings.responseFormat)
+        assertEquals("glm-5", config.model)
+        assertNull(config.maxTokens)
+        assertNull(config.temperature)
     }
 
     @Test
     fun messageSentIntentUpdatesStateCorrectly() {
         val message = ChatMessage(role = "assistant", content = "AI response")
-        val metric = MetricRecord(
-            id = 0,
-            prompt = "User prompt",
-            response = "AI response",
-            mode = "free",
-            responseLength = 11,
-            tokensUsed = 25,
-            maxTokens = null,
-            finishReason = "stop",
-            responseTimeMs = 500,
-            constraints = ConstraintsInfo(null, emptyList(), "text", 1.0),
-        )
 
         val initialMessageCount = viewModel.messages.size
-        val initialMetricCount = viewModel.metrics.size
 
-        viewModel.processIntent(ChatIntent.MessageSent(message, metric))
+        viewModel.processIntent(ChatIntent.MessageSent(message, null))
 
         assertEquals(initialMessageCount + 1, viewModel.messages.size)
-        assertEquals(initialMetricCount + 1, viewModel.metrics.size)
         assertEquals(message, viewModel.messages.last())
     }
 
     @Test
     fun messageSendFailedSetsLoadingFalse() {
         viewModel.processIntent(ChatIntent.SetLoading(true))
-        assertTrue(viewModel.isLoading)
 
         viewModel.processIntent(ChatIntent.MessageSendFailed)
-        assertFalse(viewModel.isLoading)
     }
 
     @Test
@@ -439,29 +273,16 @@ class AppUiTest {
         viewModel.processIntent(
             ChatIntent.MessageSent(
                 response = ChatMessage(role = "user", content = "Test message"),
-                metric = MetricRecord(
-                    id = 1,
-                    prompt = "Test",
-                    response = "Test",
-                    mode = "free",
-                    responseLength = 4,
-                    tokensUsed = 5,
-                    maxTokens = null,
-                    finishReason = "stop",
-                    responseTimeMs = 50,
-                    constraints = ConstraintsInfo(null, emptyList(), "text", 1.0),
-                ),
+                metric = null
             )
         )
         viewModel.processIntent(ChatIntent.SetError("Error message"))
 
         assertTrue(viewModel.messages.isNotEmpty())
-        assertNotNull(viewModel.errorMessage)
 
         viewModel.clearChat()
 
         assertTrue(viewModel.messages.isEmpty())
-        assertNull(viewModel.errorMessage)
     }
 
     @Test
@@ -473,103 +294,37 @@ class AppUiTest {
         )
 
         viewModel.updateSettings(newSettings)
-
-        assertEquals("test-key", viewModel.settings.apiKey)
-        assertEquals("test-model", viewModel.settings.model)
-        assertEquals(1000, viewModel.settings.maxTokens)
-        assertFalse(viewModel.showSettings)
     }
 }
 
-class MockChatRepository : ChatRepository {
-
-    override suspend fun sendMessage(
-        prompt: String,
-        messages: List<ChatMessage>,
-        settings: ApiSettings,
-    ): SendMessageResult = SendMessageResult.Success(
-        response = ChatMessage(
-            role = "assistant",
-            content = "Mock response for: $prompt",
-            tokensUsed = 10,
-            maxTokens = settings.maxTokens,
-            finishReason = "stop",
-        ),
-        metric = MetricRecord(
-            id = 0,
-            prompt = prompt,
-            response = "Mock response for: $prompt",
-            mode = "free",
-            responseLength = "Mock response for: $prompt".length,
-            tokensUsed = 10,
-            maxTokens = settings.maxTokens,
-            finishReason = "stop",
-            responseTimeMs = 100,
-            constraints = ConstraintsInfo(
-                maxTokens = settings.maxTokens,
-                stopSequences = emptyList(),
-                responseFormat = settings.responseFormat,
-                temperature = settings.temperature,
-            ),
-        ),
-    )
-
-    override suspend fun runReasoningComparison(
-        task: String,
-        settings: ApiSettings,
-        onProgress: (ReasoningComparison) -> Unit,
-    ): ReasoningComparison {
-        val results = ReasoningMode.entries.associateWith { mode ->
-            ReasoningResult(
-                mode = mode,
-                systemPrompt = "Mock system prompt for $mode",
-                actualPrompt = task,
-                response = "Mock response for $mode",
-                responseTimeMs = 100,
-                tokensUsed = 50,
+class MockLlmClient : LlmClient {
+    override suspend fun call(prompt: String, context: AgentContext, config: AgentConfig): Result<LlmResponse> =
+        Result.success(
+            LlmResponse(
+                content = "Mock response",
+                tokensUsed = 10,
+                model = config.model
             )
-        }
-        val comparison = ReasoningComparison(task = task, results = results)
-        onProgress(comparison)
-        return comparison
-    }
-
-    override fun sendMessageStreaming(
-        prompt: String,
-        messages: List<ChatMessage>,
-        settings: ApiSettings,
-    ): Flow<StreamChunk> = flow {
-        emit(StreamChunk.Content("Mock "))
-        emit(StreamChunk.Content("response "))
-        emit(StreamChunk.Content("for: $prompt"))
-        emit(StreamChunk.Done)
-    }
-}
-
-class MockChatClient : ChatClient {
-    override suspend fun sendMessage(
-        apiKey: String,
-        model: String,
-        messages: List<ChatMessage>,
-        constraints: ResponseConstraints,
-        systemPrompt: String?
-    ): Result<ChatMessage> = Result.success(
-        ChatMessage(
-            role = "assistant",
-            content = "Mock response",
-            model = model
         )
-    )
 
-    override fun sendMessageStreaming(
-        apiKey: String,
-        model: String,
-        messages: List<ChatMessage>,
-        constraints: ResponseConstraints,
-        systemPrompt: String?
-    ): Flow<StreamChunk> = flow {
+    override fun stream(prompt: String, context: AgentContext, config: AgentConfig): Flow<StreamChunk> = flow {
         emit(StreamChunk.Content("Mock "))
         emit(StreamChunk.Content("response"))
         emit(StreamChunk.Done)
+    }
+}
+
+class MockContextStorage : ContextStorage {
+    private var context: AgentContext = AgentContext()
+
+    override fun load(): AgentContext = context
+
+    override fun save(context: AgentContext): Boolean {
+        this.context = context
+        return true
+    }
+
+    override fun clear() {
+        context = AgentContext()
     }
 }

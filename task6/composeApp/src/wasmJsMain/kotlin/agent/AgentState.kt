@@ -7,5 +7,6 @@ data class AgentState(
     val config: AgentConfig = AgentConfig(),
     val messages: List<ChatMessage> = emptyList(),
     val metrics: AgentMetrics = AgentMetrics(),
-    val status: AgentStatus = AgentStatus.Idle
+    val status: AgentStatus = AgentStatus.Idle,
+    val inputText: String = ""
 )

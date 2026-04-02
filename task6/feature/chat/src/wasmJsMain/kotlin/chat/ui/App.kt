@@ -1,5 +1,8 @@
 package chat.ui
 
+import agent.AgentStore
+import agent.KtorLlmClient
+import agent.LocalStorageContextStorage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,13 +30,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import chat.ChatIntent
-import chat.ChatState
 import chat.ChatViewModel
 import chat.rememberChatViewModel
 import chat.ui.components.ChatInput
@@ -45,20 +48,41 @@ import chat.ui.icons.Close
 import chat.ui.icons.Delete
 import chat.ui.icons.Settings
 import metrics.ui.MetricsDialog
+import network.ChatClientImpl
 import reasoning.ui.ReasoningDialog
+import settings.ApiSettings
 import settings.ui.SettingsDialog
 import ui.theme.AppColors
 import ui.theme.AppTheme
 
 @Composable
 fun App() {
-    val viewModel = rememberChatViewModel()
-    AppWithState(viewModel)
+    val chatClient = remember { ChatClientImpl() }
+    val apiKey = "9cccc72cda3c456c9263fe143dbae7b1.9ir3VQrPquSuSyvZ"
+    val llmClient = remember { KtorLlmClient(chatClient, apiKey) }
+    val storage = remember { LocalStorageContextStorage() }
+    val agentStore = remember { AgentStore(llmClient, storage) }
+
+    LaunchedEffect(Unit) {
+        agentStore.init()
+    }
+
+    val viewModel = rememberChatViewModel(agentStore)
+    AppWithState(viewModel, apiKey)
 }
 
 @Composable
-fun AppWithState(viewModel: ChatViewModel) {
-    val state by viewModel.uiState.collectAsState()
+fun AppWithState(viewModel: ChatViewModel, apiKey: String) {
+    val state by viewModel.state.collectAsState()
+
+    val settings = remember(state.config) {
+        ApiSettings(
+            apiKey = apiKey,
+            model = state.config.model,
+            maxTokens = state.config.maxTokens,
+            temperature = state.config.temperature?.toDouble() ?: 1.0
+        )
+    }
 
     LaunchedEffect(state.messages.size) {
         if (state.messages.isNotEmpty()) {
@@ -67,16 +91,16 @@ fun AppWithState(viewModel: ChatViewModel) {
     }
 
     AppTheme {
-        DialogsOverlay(state, viewModel)
-        ChatScreen(state, viewModel)
+        DialogsOverlay(state, settings, viewModel)
+        ChatScreen(state, settings, viewModel)
     }
 }
 
 @Composable
-private fun DialogsOverlay(state: ChatState, viewModel: ChatViewModel) {
+private fun DialogsOverlay(state: agent.AgentState, settings: ApiSettings, viewModel: ChatViewModel) {
     if (state.showSettings) {
         SettingsDialog(
-            currentSettings = state.settings,
+            currentSettings = settings,
             onDismiss = { viewModel.processIntent(ChatIntent.ToggleSettings(false)) },
             onSave = { newSettings -> viewModel.processIntent(ChatIntent.UpdateSettings(newSettings)) },
         )
@@ -100,7 +124,7 @@ private fun DialogsOverlay(state: ChatState, viewModel: ChatViewModel) {
 }
 
 @Composable
-private fun ChatScreen(state: ChatState, viewModel: ChatViewModel) {
+private fun ChatScreen(state: agent.AgentState, settings: ApiSettings, viewModel: ChatViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -108,7 +132,7 @@ private fun ChatScreen(state: ChatState, viewModel: ChatViewModel) {
             .padding(16.dp)
             .testTag(AppTags.ROOT),
     ) {
-        ChatHeader(state, viewModel)
+        ChatHeader(state, settings, viewModel)
         MessageListArea(state, viewModel)
         state.errorMessage?.let { error ->
             ErrorBanner(error, viewModel)
@@ -124,7 +148,7 @@ private fun ChatScreen(state: ChatState, viewModel: ChatViewModel) {
 }
 
 @Composable
-private fun ChatHeader(state: ChatState, viewModel: ChatViewModel) {
+private fun ChatHeader(state: agent.AgentState, settings: ApiSettings, viewModel: ChatViewModel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -141,7 +165,7 @@ private fun ChatHeader(state: ChatState, viewModel: ChatViewModel) {
                 modifier = Modifier.testTag(AppTags.TITLE),
             )
             Text(
-                text = "Model: ${state.settings.model}",
+                text = "Model: ${settings.model}",
                 style = MaterialTheme.typography.caption,
                 color = AppColors.TextMuted,
                 modifier = Modifier.testTag(AppTags.MODEL_TEXT),
@@ -153,7 +177,7 @@ private fun ChatHeader(state: ChatState, viewModel: ChatViewModel) {
 }
 
 @Composable
-private fun HeaderActionButtons(state: ChatState, viewModel: ChatViewModel) {
+private fun HeaderActionButtons(state: agent.AgentState, viewModel: ChatViewModel) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         IconButton(
             onClick = { viewModel.processIntent(ChatIntent.ClearChat) },
@@ -217,7 +241,7 @@ private fun HeaderActionButtons(state: ChatState, viewModel: ChatViewModel) {
 }
 
 @Composable
-private fun ColumnScope.MessageListArea(state: ChatState, viewModel: ChatViewModel) {
+private fun ColumnScope.MessageListArea(state: agent.AgentState, viewModel: ChatViewModel) {
     Box(
         modifier = Modifier
             .weight(1f)
@@ -256,7 +280,7 @@ private fun BoxScope.EmptyStateContent() {
 }
 
 @Composable
-private fun MessageList(state: ChatState, viewModel: ChatViewModel) {
+private fun MessageList(state: agent.AgentState, viewModel: ChatViewModel) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()

@@ -1,9 +1,10 @@
 package agent
 
+import model.MetricRecord
+import model.ReasoningComparison
 import model.StreamChunk
 
 sealed class AgentMsg {
-    data class UpdateInputText(val text: String) : AgentMsg()
     data class SendMessage(val prompt: String) : AgentMsg()
     data object ClearContext : AgentMsg()
     data class HandleApiResponse(val response: String, val tokens: Int) : AgentMsg()
@@ -15,4 +16,14 @@ sealed class AgentMsg {
     data object CompressHistory : AgentMsg()
     data class HistoryCompressed(val summary: String) : AgentMsg()
     data class UpdateConfig(val config: AgentConfig) : AgentMsg()
+
+    sealed class Ui : AgentMsg() {
+        data class UpdateInputText(val text: String) : Ui()
+        data class ToggleSettings(val show: Boolean) : Ui()
+        data class ToggleMetrics(val show: Boolean) : Ui()
+        data class ToggleReasoning(val show: Boolean) : Ui()
+        data class UpdateReasoningComparison(val comparison: ReasoningComparison) : Ui()
+        data class SetReasoningLoading(val loading: Boolean) : Ui()
+        data class AddMetric(val metric: MetricRecord) : Ui()
+    }
 }

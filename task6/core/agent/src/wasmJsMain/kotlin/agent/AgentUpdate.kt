@@ -4,7 +4,6 @@ import model.ChatMessage
 import model.StreamChunk
 
 fun update(state: AgentState, msg: AgentMsg): Pair<AgentState, AgentCmd?> = when (msg) {
-    is AgentMsg.UpdateInputText -> state.copy(inputText = msg.text) to null
     is AgentMsg.SendMessage -> handleSendMessage(state, msg)
     is AgentMsg.HandleStreamChunk -> handleStreamChunk(state, msg)
     is AgentMsg.HandleApiError -> state.copy(status = AgentStatus.Error(msg.error)) to null
@@ -16,6 +15,7 @@ fun update(state: AgentState, msg: AgentMsg): Pair<AgentState, AgentCmd?> = when
     is AgentMsg.ClearContext -> handleClearContext(state)
     is AgentMsg.UpdateConfig -> state.copy(config = msg.config) to null
     is AgentMsg.HandleApiResponse -> handleApiResponse(state, msg)
+    is AgentMsg.Ui -> handleUiMessage(state, msg)
 }
 
 private fun handleSendMessage(state: AgentState, msg: AgentMsg.SendMessage): Pair<AgentState, AgentCmd?> {
@@ -124,7 +124,9 @@ private fun handleHistoryCompressed(state: AgentState, msg: AgentMsg.HistoryComp
 private fun handleClearContext(state: AgentState): Pair<AgentState, AgentCmd?> = state.copy(
     context = AgentContext(),
     messages = emptyList(),
-    metrics = AgentMetrics()
+    metrics = emptyList(),
+    metricCounter = 0,
+    agentMetrics = AgentMetrics()
 ) to AgentCmd.ClearStorage
 
 private fun handleApiResponse(state: AgentState, msg: AgentMsg.HandleApiResponse): Pair<AgentState, AgentCmd?> {
@@ -144,5 +146,24 @@ private fun handleApiResponse(state: AgentState, msg: AgentMsg.HandleApiResponse
         messages = newMessages,
         context = newContext,
         status = AgentStatus.Idle
+    ) to null
+}
+
+private fun handleUiMessage(state: AgentState, msg: AgentMsg.Ui): Pair<AgentState, AgentCmd?> = when (msg) {
+    is AgentMsg.Ui.UpdateInputText -> state.copy(inputText = msg.text) to null
+
+    is AgentMsg.Ui.ToggleSettings -> state.copy(showSettings = msg.show) to null
+
+    is AgentMsg.Ui.ToggleMetrics -> state.copy(showMetrics = msg.show) to null
+
+    is AgentMsg.Ui.ToggleReasoning -> state.copy(showReasoning = msg.show) to null
+
+    is AgentMsg.Ui.UpdateReasoningComparison -> state.copy(reasoningComparison = msg.comparison) to null
+
+    is AgentMsg.Ui.SetReasoningLoading -> state.copy(isReasoningLoading = msg.loading) to null
+
+    is AgentMsg.Ui.AddMetric -> state.copy(
+        metrics = state.metrics + msg.metric,
+        metricCounter = state.metricCounter + 1
     ) to null
 }

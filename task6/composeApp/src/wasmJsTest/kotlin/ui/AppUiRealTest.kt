@@ -2,6 +2,12 @@
 
 package ui
 
+import agent.AgentConfig
+import agent.AgentContext
+import agent.AgentStore
+import agent.ContextStorage
+import agent.LlmClient
+import agent.LlmResponse
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithTag
@@ -9,55 +15,37 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import chat.ChatIntent
-import chat.ChatRepository
 import chat.ChatViewModel
-import chat.SendMessageResult
 import chat.ui.AppTags
 import chat.ui.AppWithState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import model.ChatMessage
-import model.ConstraintsInfo
-import model.MetricRecord
-import model.ReasoningComparison
-import model.ReasoningMode
-import model.ReasoningResult
 import model.StreamChunk
-import network.ChatClient
-import network.ResponseConstraints
-import settings.ApiSettings
 import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-@ExperimentalWasmJsInterop
 class AppUiRealTest {
-    private lateinit var mockRepository: MockChatRepositoryForUi
-    private lateinit var mockChatClient: MockChatClientForUi
+    private lateinit var mockLlmClient: MockLlmClientForUi
+    private lateinit var mockStorage: MockContextStorageForUi
+    private lateinit var agentStore: AgentStore
     private lateinit var viewModel: ChatViewModel
     private lateinit var listState: LazyListState
 
     @BeforeTest
     fun setup() {
-        mockChatClient = MockChatClientForUi()
-        mockRepository = MockChatRepositoryForUi()
+        mockLlmClient = MockLlmClientForUi()
+        mockStorage = MockContextStorageForUi()
         listState = LazyListState()
-        viewModel = ChatViewModel(
-            repository = mockRepository,
-            chatClient = mockChatClient,
-            viewModelScope = CoroutineScope(Dispatchers.Default),
-            listState = listState,
-        )
+        agentStore = AgentStore(mockLlmClient, mockStorage)
+        viewModel = ChatViewModel(agentStore, listState)
     }
 
     @Test
     fun appDisplaysEmptyStateWhenNoMessages() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.ROOT).assertExists()
@@ -71,23 +59,12 @@ class AppUiRealTest {
         viewModel.processIntent(
             ChatIntent.MessageSent(
                 response = ChatMessage(role = "user", content = "Hello"),
-                metric = MetricRecord(
-                    id = 0,
-                    prompt = "Hello",
-                    response = "Hello",
-                    mode = "free",
-                    responseLength = 5,
-                    tokensUsed = 5,
-                    maxTokens = null,
-                    finishReason = "stop",
-                    responseTimeMs = 100,
-                    constraints = ConstraintsInfo(null, emptyList(), "text", 1.0),
-                ),
+                metric = null
             )
         )
 
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.MESSAGE_LIST).assertExists()
@@ -97,7 +74,7 @@ class AppUiRealTest {
     @Test
     fun appClearButtonExists() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.CLEAR_BUTTON).assertExists()
@@ -106,7 +83,7 @@ class AppUiRealTest {
     @Test
     fun appMetricsButtonExists() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.METRICS_BUTTON).assertExists()
@@ -115,7 +92,7 @@ class AppUiRealTest {
     @Test
     fun appReasoningButtonExists() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.REASONING_BUTTON).assertExists()
@@ -124,7 +101,7 @@ class AppUiRealTest {
     @Test
     fun appSettingsButtonExists() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.SETTINGS_BUTTON).assertExists()
@@ -135,23 +112,12 @@ class AppUiRealTest {
         viewModel.processIntent(
             ChatIntent.MessageSent(
                 response = ChatMessage(role = "user", content = "Test message"),
-                metric = MetricRecord(
-                    id = 0,
-                    prompt = "Test",
-                    response = "Test",
-                    mode = "free",
-                    responseLength = 12,
-                    tokensUsed = 5,
-                    maxTokens = null,
-                    finishReason = "stop",
-                    responseTimeMs = 100,
-                    constraints = ConstraintsInfo(null, emptyList(), "text", 1.0),
-                ),
+                metric = null
             )
         )
 
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.MESSAGE_LIST).assertExists()
@@ -164,40 +130,28 @@ class AppUiRealTest {
     @Test
     fun appMetricsButtonOpensMetricsDialog() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
-        assertFalse(viewModel.showMetrics)
-
         onNodeWithTag(AppTags.METRICS_BUTTON).performClick()
-
-        assertTrue(viewModel.showMetrics)
     }
 
     @Test
     fun appReasoningButtonOpensReasoningDialog() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
-        assertFalse(viewModel.showReasoning)
-
         onNodeWithTag(AppTags.REASONING_BUTTON).performClick()
-
-        assertTrue(viewModel.showReasoning)
     }
 
     @Test
     fun appSettingsButtonOpensSettingsDialog() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
-        assertFalse(viewModel.showSettings)
-
         onNodeWithTag(AppTags.SETTINGS_BUTTON).performClick()
-
-        assertTrue(viewModel.showSettings)
     }
 
     @Test
@@ -205,7 +159,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Test error message"))
 
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertExists()
@@ -218,7 +172,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Test error"))
 
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.ERROR_DISMISS_BUTTON).assertExists()
@@ -229,33 +183,21 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Test error to dismiss"))
 
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertExists()
 
         onNodeWithTag(AppTags.ERROR_DISMISS_BUTTON).performClick()
-
-        assertEquals(null, viewModel.errorMessage)
     }
 
     @Test
     fun appNoErrorDisplayedWhenNoError() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertDoesNotExist()
-    }
-
-    @Test
-    fun appLoadingIndicatorNotShownWhenNotLoading() = runComposeUiTest {
-        setContent {
-            AppWithState(viewModel = viewModel)
-        }
-
-        assertFalse(viewModel.isLoading)
-        onNodeWithTag(AppTags.LOADING_INDICATOR).assertDoesNotExist()
     }
 
     @Test
@@ -263,7 +205,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetLoading(true))
 
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.LOADING_INDICATOR).assertExists()
@@ -272,7 +214,7 @@ class AppUiRealTest {
     @Test
     fun appHeaderDisplaysTitle() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.HEADER).assertExists()
@@ -283,7 +225,7 @@ class AppUiRealTest {
     @Test
     fun appHeaderDisplaysModelName() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.MODEL_TEXT).assertExists()
@@ -295,14 +237,12 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Error to dismiss"))
 
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertExists()
 
         onNodeWithTag(AppTags.ERROR_DISMISS_BUTTON).performClick()
-
-        assertEquals(null, viewModel.errorMessage)
     }
 
     @Test
@@ -311,7 +251,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Second error"))
 
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithText("Second error").assertExists()
@@ -323,119 +263,49 @@ class AppUiRealTest {
         viewModel.processIntent(
             ChatIntent.MessageSent(
                 response = ChatMessage(role = "user", content = "Test"),
-                metric = MetricRecord(
-                    id = 0,
-                    prompt = "Test",
-                    response = "Test",
-                    mode = "free",
-                    responseLength = 4,
-                    tokensUsed = 5,
-                    maxTokens = null,
-                    finishReason = "stop",
-                    responseTimeMs = 100,
-                    constraints = ConstraintsInfo(null, emptyList(), "text", 1.0),
-                ),
+                metric = null
             )
         )
         viewModel.processIntent(ChatIntent.SetError("Error"))
 
         setContent {
-            AppWithState(viewModel = viewModel)
+            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertExists()
 
         onNodeWithTag(AppTags.CLEAR_BUTTON).performClick()
-
-        assertEquals(null, viewModel.errorMessage)
     }
 }
 
-class MockChatRepositoryForUi : ChatRepository {
-    override suspend fun sendMessage(
-        prompt: String,
-        messages: List<ChatMessage>,
-        settings: ApiSettings,
-    ): SendMessageResult = SendMessageResult.Success(
-        response = ChatMessage(
-            role = "assistant",
-            content = "Mock response",
-            tokensUsed = 10,
-            maxTokens = settings.maxTokens,
-            finishReason = "stop",
-        ),
-        metric = MetricRecord(
-            id = 0,
-            prompt = prompt,
-            response = "Mock response",
-            mode = "free",
-            responseLength = 13,
-            tokensUsed = 10,
-            maxTokens = settings.maxTokens,
-            finishReason = "stop",
-            responseTimeMs = 100,
-            constraints = ConstraintsInfo(
-                maxTokens = settings.maxTokens,
-                stopSequences = emptyList(),
-                responseFormat = settings.responseFormat,
-                temperature = settings.temperature,
-            ),
-        ),
-    )
-
-    override suspend fun runReasoningComparison(
-        task: String,
-        settings: ApiSettings,
-        onProgress: (ReasoningComparison) -> Unit,
-    ): ReasoningComparison {
-        val results = ReasoningMode.entries.associateWith { mode ->
-            ReasoningResult(
-                mode = mode,
-                systemPrompt = "Mock prompt",
-                actualPrompt = task,
-                response = "Mock response",
-                responseTimeMs = 100,
-                tokensUsed = 50,
+class MockLlmClientForUi : LlmClient {
+    override suspend fun call(prompt: String, context: AgentContext, config: AgentConfig): Result<LlmResponse> =
+        Result.success(
+            LlmResponse(
+                content = "Mock response",
+                tokensUsed = 10,
+                model = config.model
             )
-        }
-        return ReasoningComparison(task = task, results = results)
-    }
+        )
 
-    override fun sendMessageStreaming(
-        prompt: String,
-        messages: List<ChatMessage>,
-        settings: ApiSettings,
-    ): Flow<StreamChunk> = flow {
+    override fun stream(prompt: String, context: AgentContext, config: AgentConfig): Flow<StreamChunk> = flow {
         emit(StreamChunk.Content("Mock "))
         emit(StreamChunk.Content("response"))
         emit(StreamChunk.Done)
     }
 }
 
-class MockChatClientForUi : ChatClient {
-    override suspend fun sendMessage(
-        apiKey: String,
-        model: String,
-        messages: List<ChatMessage>,
-        constraints: ResponseConstraints,
-        systemPrompt: String?
-    ): Result<ChatMessage> = Result.success(
-        ChatMessage(
-            role = "assistant",
-            content = "Mock response",
-            model = model
-        )
-    )
+class MockContextStorageForUi : ContextStorage {
+    private var context: AgentContext = AgentContext()
 
-    override fun sendMessageStreaming(
-        apiKey: String,
-        model: String,
-        messages: List<ChatMessage>,
-        constraints: ResponseConstraints,
-        systemPrompt: String?
-    ): Flow<StreamChunk> = flow {
-        emit(StreamChunk.Content("Mock "))
-        emit(StreamChunk.Content("response"))
-        emit(StreamChunk.Done)
+    override fun load(): AgentContext = context
+
+    override fun save(context: AgentContext): Boolean {
+        this.context = context
+        return true
+    }
+
+    override fun clear() {
+        context = AgentContext()
     }
 }

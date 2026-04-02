@@ -14,11 +14,11 @@ sealed class ChatIntent {
     data class ToggleMetrics(val show: Boolean) : ChatIntent()
     data class ToggleReasoning(val show: Boolean) : ChatIntent()
     data class RunReasoningComparison(val task: String) : ChatIntent()
-    data class MessageSent(val response: ChatMessage, val metric: MetricRecord) : ChatIntent()
+    data class MessageSent(val response: ChatMessage, val metric: MetricRecord?) : ChatIntent()
     data object MessageSendFailed : ChatIntent()
     data class SetError(val message: String?) : ChatIntent()
     data object ClearError : ChatIntent()
     data class SetLoading(val loading: Boolean) : ChatIntent()
-    data class UpdateReasoningComparison(val comparison: ReasoningComparison) : ChatIntent()
+    data class UpdateReasoningComparison(val comparison: ReasoningComparison?) : ChatIntent()
     data class SetReasoningLoading(val loading: Boolean) : ChatIntent()
 }

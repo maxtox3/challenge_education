@@ -1,182 +1,100 @@
 package chat
 
-import agent.AgentFactory
+import agent.AgentMsg
+import agent.AgentState
+import agent.AgentStatus
+import agent.AgentStore
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import core.util.typedProp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import model.ChatMessage
-import model.MetricRecord
-import model.ReasoningComparison
-import network.ChatClient
-import network.ChatClientImpl
 import settings.ApiSettings
 
-class ChatViewModel(
-    private val repository: ChatRepository,
-    private val chatClient: ChatClient,
-    viewModelScope: CoroutineScope,
-    val listState: LazyListState,
-) {
+class ChatViewModel(private val agentStore: AgentStore, val listState: LazyListState,) {
+    val state: StateFlow<AgentState> = agentStore.stateFlow
 
-    private val _uiState = MutableStateFlow(ChatState())
-    val uiState: StateFlow<ChatState> = _uiState.asStateFlow()
-
-    private val _sideEffects = MutableSharedFlow<ChatSideEffect>()
-    val sideEffects: SharedFlow<ChatSideEffect> = _sideEffects.asSharedFlow()
-
-    val state: ChatState get() = _uiState.value
-
-    private val useCases = ChatUseCases(
-        repository,
-        AgentFactory.create(chatClient, ""),
-        viewModelScope
-    )
-    private val intentHandlers = ChatIntents(this)
-
-    var inputText: String by _uiState.typedProp(
-        getter = { it.inputText },
-        setter = { state, value -> state.copy(inputText = value) }
-    )
-
-    var messages: List<ChatMessage> by _uiState.typedProp(
-        getter = { it.messages },
-        setter = { state, value -> state.copy(messages = value) }
-    )
-
-    var isLoading: Boolean by _uiState.typedProp(
-        getter = { it.isLoading },
-        setter = { state, value -> state.copy(isLoading = value) }
-    )
-
-    var errorMessage: String? by _uiState.typedProp(
-        getter = { it.errorMessage },
-        setter = { state, value -> state.copy(errorMessage = value) }
-    )
-
-    var showSettings: Boolean by _uiState.typedProp(
-        getter = { it.showSettings },
-        setter = { state, value -> state.copy(showSettings = value) }
-    )
-
-    var showMetrics: Boolean by _uiState.typedProp(
-        getter = { it.showMetrics },
-        setter = { state, value -> state.copy(showMetrics = value) }
-    )
-
-    var showReasoning: Boolean by _uiState.typedProp(
-        getter = { it.showReasoning },
-        setter = { state, value -> state.copy(showReasoning = value) }
-    )
-
-    var metrics: List<MetricRecord> by _uiState.typedProp(
-        getter = { it.metrics },
-        setter = { state, value -> state.copy(metrics = value) }
-    )
-
-    var metricCounter: Int by _uiState.typedProp(
-        getter = { it.metricCounter },
-        setter = { state, value -> state.copy(metricCounter = value) }
-    )
-
-    var settings: ApiSettings by _uiState.typedProp(
-        getter = { it.settings },
-        setter = { state, value -> state.copy(settings = value) }
-    )
-
-    var reasoningComparison: ReasoningComparison by _uiState.typedProp(
-        getter = { it.reasoningComparison },
-        setter = { state, value -> state.copy(reasoningComparison = value) }
-    )
-
-    var isReasoningLoading: Boolean by _uiState.typedProp(
-        getter = { it.isReasoningLoading },
-        setter = { state, value -> state.copy(isReasoningLoading = value) }
-    )
+    val inputText: String get() = state.value.inputText
+    val messages get() = state.value.messages
+    val isLoading: Boolean get() = state.value.status == AgentStatus.Loading
+    val errorMessage: String? get() = (state.value.status as? AgentStatus.Error)?.message
 
     fun processIntent(intent: ChatIntent) {
         when (intent) {
-            is ChatIntent.UpdateInputText -> intentHandlers.handleInputIntent(intent)
+            is ChatIntent.UpdateInputText -> handleUpdateInputText(intent.text)
 
-            is ChatIntent.SendMessage, is ChatIntent.MessageSent, is ChatIntent.MessageSendFailed ->
-                intentHandlers.handleMessageIntent(intent)
+            is ChatIntent.SendMessage -> handleSendMessage()
 
-            is ChatIntent.ClearChat -> intentHandlers.handleClearChatIntent()
+            is ChatIntent.ClearChat -> handleClearChat()
 
-            is ChatIntent.UpdateSettings, is ChatIntent.ToggleSettings ->
-                intentHandlers.handleSettingsIntent(intent)
+            is ChatIntent.UpdateSettings -> handleUpdateSettings(intent.settings)
 
-            is ChatIntent.ToggleMetrics -> intentHandlers.handleMetricsIntent(intent)
-
-            is ChatIntent.ToggleReasoning, is ChatIntent.RunReasoningComparison,
-            is ChatIntent.UpdateReasoningComparison, is ChatIntent.SetReasoningLoading ->
-                intentHandlers.handleReasoningIntent(intent)
-
-            is ChatIntent.SetError, is ChatIntent.ClearError, is ChatIntent.SetLoading ->
-                intentHandlers.handleErrorIntent(intent)
+            is ChatIntent.ToggleSettings,
+            is ChatIntent.ToggleMetrics,
+            is ChatIntent.ToggleReasoning,
+            is ChatIntent.RunReasoningComparison,
+            is ChatIntent.MessageSent,
+            is ChatIntent.MessageSendFailed,
+            is ChatIntent.SetError,
+            is ChatIntent.ClearError,
+            is ChatIntent.SetLoading,
+            is ChatIntent.UpdateReasoningComparison,
+            is ChatIntent.SetReasoningLoading -> Unit
         }
     }
 
-    internal fun handleMessageSent(response: ChatMessage, metric: MetricRecord) {
-        messages = messages + response
-        metricCounter++
-        metrics = metrics + metric.copy(id = metricCounter)
+    private fun handleUpdateInputText(text: String) {
+        agentStore.dispatch(AgentMsg.Ui.UpdateInputText(text))
+    }
+
+    private fun handleSendMessage() {
+        val currentInput = state.value.inputText
+        if (currentInput.isNotBlank()) {
+            agentStore.dispatch(AgentMsg.SendMessage(currentInput))
+            agentStore.dispatch(AgentMsg.Ui.UpdateInputText(""))
+        }
+    }
+
+    private fun handleClearChat() {
+        agentStore.dispatch(AgentMsg.ClearContext)
+    }
+
+    private fun handleUpdateSettings(settings: ApiSettings) {
+        val newConfig = state.value.config.copy(
+            model = settings.model,
+            temperature = settings.temperature.toFloat(),
+            maxTokens = settings.maxTokens,
+            enablePersistence = settings.apiKey.isNotEmpty()
+        )
+        agentStore.dispatch(AgentMsg.UpdateConfig(newConfig))
     }
 
     fun clearChat() {
-        _uiState.update { it.copy(messages = emptyList(), errorMessage = null) }
+        agentStore.dispatch(AgentMsg.ClearContext)
     }
 
     fun updateSettings(newSettings: ApiSettings) {
-        _uiState.update { it.copy(settings = newSettings, showSettings = false) }
-        useCases.agent = AgentFactory.create(chatClient, newSettings.apiKey)
+        val newConfig = state.value.config.copy(
+            model = newSettings.model,
+            temperature = newSettings.temperature.toFloat(),
+            maxTokens = newSettings.maxTokens,
+            enablePersistence = newSettings.apiKey.isNotEmpty()
+        )
+        agentStore.dispatch(AgentMsg.UpdateConfig(newConfig))
     }
 
-    fun sendMessage() {
-        useCases.sendMessage(
-            config = ChatUseCases.SendMessageConfig(
-                inputText = inputText,
-                isLoading = isLoading,
-                currentMessages = messages,
-                settings = settings,
-            ),
-            callbacks = ChatUseCases.MessageCallbacks(
-                onMessagesUpdate = { messages = it },
-                onInputTextUpdate = { inputText = it },
-                onLoadingUpdate = { isLoading = it },
-                onErrorUpdate = { errorMessage = it },
-            ),
-        )
-    }
-
-    fun runReasoningComparison(task: String) {
-        useCases.runReasoningComparison(
-            task = task,
-            settings = settings,
-            onComparisonUpdate = { reasoningComparison = it },
-            onLoadingUpdate = { isReasoningLoading = it },
-        )
+    fun sendMessage(prompt: String) {
+        if (prompt.isNotBlank()) {
+            agentStore.dispatch(AgentMsg.SendMessage(prompt))
+        }
     }
 }
 
 @Composable
-fun rememberChatViewModel(): ChatViewModel {
-    val client = remember { ChatClientImpl() }
-    val scope = rememberCoroutineScope()
+fun rememberChatViewModel(agentStore: AgentStore): ChatViewModel {
     val listState = rememberLazyListState()
-    val repository = remember(client) { ChatRepositoryImpl(client, scope) }
 
-    return remember(repository, client, scope, listState) {
-        ChatViewModel(repository, client, scope, listState)
+    return remember(agentStore, listState) {
+        ChatViewModel(agentStore, listState)
     }
 }

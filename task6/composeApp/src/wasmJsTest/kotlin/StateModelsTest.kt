@@ -228,7 +228,7 @@ class StateModelsTest {
         )
         val intent = ChatIntent.MessageSent(message, metric)
         assertEquals("assistant", intent.response.role)
-        assertEquals(1, intent.metric.id)
+        assertEquals(1, intent.metric?.id)
     }
 
     @Test
@@ -259,7 +259,7 @@ class StateModelsTest {
     fun testChatIntentUpdateReasoningComparison() {
         val comparison = ReasoningComparison(task = "task", results = emptyMap())
         val intent = ChatIntent.UpdateReasoningComparison(comparison)
-        assertEquals("task", intent.comparison.task)
+        assertEquals("task", intent.comparison?.task)
     }
 
     @Test
