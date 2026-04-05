@@ -6,7 +6,6 @@ import model.StreamChunk
 
 interface ChatClient {
     suspend fun sendMessage(
-        apiKey: String,
         model: String,
         messages: List<ChatMessage>,
         constraints: ResponseConstraints = ResponseConstraints(),
@@ -14,7 +13,6 @@ interface ChatClient {
     ): Result<ChatMessage>
 
     fun sendMessageStreaming(
-        apiKey: String,
         model: String,
         messages: List<ChatMessage>,
         constraints: ResponseConstraints = ResponseConstraints(),

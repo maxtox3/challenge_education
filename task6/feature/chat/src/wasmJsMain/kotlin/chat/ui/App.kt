@@ -1,5 +1,6 @@
 package chat.ui
 
+import agent.AgentState
 import agent.AgentStore
 import agent.KtorLlmClient
 import agent.LocalStorageContextStorage
@@ -57,9 +58,9 @@ import ui.theme.AppTheme
 
 @Composable
 fun App() {
-    val chatClient = remember { ChatClientImpl() }
-    val apiKey = "9cccc72cda3c456c9263fe143dbae7b1.9ir3VQrPquSuSyvZ"
-    val llmClient = remember { KtorLlmClient(chatClient, apiKey) }
+    val apiSettings = remember { ApiSettings() }
+    val chatClient = remember { ChatClientImpl(apiKeyProvider = { apiSettings.apiKey }) }
+    val llmClient = remember { KtorLlmClient(chatClient) }
     val storage = remember { LocalStorageContextStorage() }
     val agentStore = remember { AgentStore(llmClient, storage) }
 
@@ -68,16 +69,15 @@ fun App() {
     }
 
     val viewModel = rememberChatViewModel(agentStore)
-    AppWithState(viewModel, apiKey)
+    AppWithState(viewModel)
 }
 
 @Composable
-fun AppWithState(viewModel: ChatViewModel, apiKey: String) {
+fun AppWithState(viewModel: ChatViewModel) {
     val state by viewModel.state.collectAsState()
 
     val settings = remember(state.config) {
         ApiSettings(
-            apiKey = apiKey,
             model = state.config.model,
             maxTokens = state.config.maxTokens,
             temperature = state.config.temperature?.toDouble() ?: 1.0
@@ -124,7 +124,7 @@ private fun DialogsOverlay(state: agent.AgentState, settings: ApiSettings, viewM
 }
 
 @Composable
-private fun ChatScreen(state: agent.AgentState, settings: ApiSettings, viewModel: ChatViewModel) {
+private fun ChatScreen(state: AgentState, settings: ApiSettings, viewModel: ChatViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()

@@ -10,6 +10,7 @@ import agent.LlmClient
 import agent.LlmResponse
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -45,7 +46,7 @@ class AppUiRealTest {
     @Test
     fun appDisplaysEmptyStateWhenNoMessages() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ROOT).assertExists()
@@ -64,7 +65,7 @@ class AppUiRealTest {
         )
 
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.MESSAGE_LIST).assertExists()
@@ -74,7 +75,7 @@ class AppUiRealTest {
     @Test
     fun appClearButtonExists() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.CLEAR_BUTTON).assertExists()
@@ -83,7 +84,7 @@ class AppUiRealTest {
     @Test
     fun appMetricsButtonExists() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.METRICS_BUTTON).assertExists()
@@ -92,7 +93,7 @@ class AppUiRealTest {
     @Test
     fun appReasoningButtonExists() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.REASONING_BUTTON).assertExists()
@@ -101,7 +102,7 @@ class AppUiRealTest {
     @Test
     fun appSettingsButtonExists() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.SETTINGS_BUTTON).assertExists()
@@ -117,7 +118,7 @@ class AppUiRealTest {
         )
 
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.MESSAGE_LIST).assertExists()
@@ -130,7 +131,7 @@ class AppUiRealTest {
     @Test
     fun appMetricsButtonOpensMetricsDialog() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.METRICS_BUTTON).performClick()
@@ -139,7 +140,7 @@ class AppUiRealTest {
     @Test
     fun appReasoningButtonOpensReasoningDialog() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.REASONING_BUTTON).performClick()
@@ -148,7 +149,7 @@ class AppUiRealTest {
     @Test
     fun appSettingsButtonOpensSettingsDialog() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.SETTINGS_BUTTON).performClick()
@@ -159,7 +160,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Test error message"))
 
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertExists()
@@ -172,7 +173,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Test error"))
 
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ERROR_DISMISS_BUTTON).assertExists()
@@ -183,7 +184,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Test error to dismiss"))
 
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertExists()
@@ -194,7 +195,7 @@ class AppUiRealTest {
     @Test
     fun appNoErrorDisplayedWhenNoError() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertDoesNotExist()
@@ -205,7 +206,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetLoading(true))
 
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.LOADING_INDICATOR).assertExists()
@@ -214,7 +215,7 @@ class AppUiRealTest {
     @Test
     fun appHeaderDisplaysTitle() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.HEADER).assertExists()
@@ -225,7 +226,7 @@ class AppUiRealTest {
     @Test
     fun appHeaderDisplaysModelName() = runComposeUiTest {
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.MODEL_TEXT).assertExists()
@@ -237,7 +238,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Error to dismiss"))
 
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertExists()
@@ -251,7 +252,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Second error"))
 
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithText("Second error").assertExists()
@@ -269,7 +270,7 @@ class AppUiRealTest {
         viewModel.processIntent(ChatIntent.SetError("Error"))
 
         setContent {
-            AppWithState(viewModel = viewModel, apiKey = "test-api-key")
+            AppWithState(viewModel = viewModel)
         }
 
         onNodeWithTag(AppTags.ERROR_SURFACE).assertExists()

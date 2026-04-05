@@ -3,7 +3,6 @@
 package agent
 
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 external interface Storage {

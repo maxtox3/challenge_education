@@ -46,7 +46,6 @@ class ChatRepositoryImpl(private val client: ChatClient, private val scope: Coro
 
         return try {
             val result = client.sendMessage(
-                apiKey = settings.apiKey,
                 model = settings.model,
                 messages = messages,
                 constraints = constraints,
@@ -94,7 +93,6 @@ class ChatRepositoryImpl(private val client: ChatClient, private val scope: Coro
     ): Flow<StreamChunk> {
         val constraints = settings.toResponseConstraints()
         return client.sendMessageStreaming(
-            apiKey = settings.apiKey,
             model = settings.model,
             messages = messages,
             constraints = constraints,
@@ -125,7 +123,6 @@ class ChatRepositoryImpl(private val client: ChatClient, private val scope: Coro
                 val startTime = getTimeMillis()
 
                 val result = client.sendMessage(
-                    apiKey = settings.apiKey,
                     model = settings.model,
                     messages = listOf(ChatMessage(role = "user", content = task)),
                     systemPrompt = systemPrompt,

@@ -166,4 +166,20 @@ private fun handleUiMessage(state: AgentState, msg: AgentMsg.Ui): Pair<AgentStat
         metrics = state.metrics + msg.metric,
         metricCounter = state.metricCounter + 1
     ) to null
+
+    is AgentMsg.Ui.AddMessage -> state.copy(
+        messages = state.messages + msg.message
+    ) to null
+
+    is AgentMsg.Ui.SetError -> state.copy(
+        status = if (msg.error != null) AgentStatus.Error(msg.error) else AgentStatus.Idle
+    ) to null
+
+    is AgentMsg.Ui.ClearError -> state.copy(
+        status = AgentStatus.Idle
+    ) to null
+
+    is AgentMsg.Ui.SetLoading -> state.copy(
+        status = if (msg.isLoading) AgentStatus.Loading else AgentStatus.Idle
+    ) to null
 }

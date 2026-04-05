@@ -35,7 +35,9 @@ import model.ZAiRequest
 import model.ZAiResponse
 import model.ZAiStreamChunk
 
-class ChatClientImpl : ChatClient {
+class ChatClientImpl(
+    val apiKeyProvider: () -> String
+) : ChatClient {
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
@@ -113,7 +115,6 @@ class ChatClientImpl : ChatClient {
     }
 
     override suspend fun sendMessage(
-        apiKey: String,
         model: String,
         messages: List<ChatMessage>,
         constraints: ResponseConstraints,
@@ -128,7 +129,7 @@ class ChatClientImpl : ChatClient {
 
         val response: HttpResponse = client.post(baseUrl) {
             headers {
-                append(HttpHeaders.Authorization, "Bearer $apiKey")
+                append(HttpHeaders.Authorization, "Bearer ${apiKeyProvider.invoke()}")
                 append(HttpHeaders.AcceptLanguage, "en-US,en")
             }
             contentType(ContentType.Application.Json)
@@ -208,7 +209,6 @@ class ChatClientImpl : ChatClient {
     }
 
     override fun sendMessageStreaming(
-        apiKey: String,
         model: String,
         messages: List<ChatMessage>,
         constraints: ResponseConstraints,
@@ -225,7 +225,7 @@ class ChatClientImpl : ChatClient {
                 url { takeFrom(baseUrl) }
                 method = HttpMethod.Post
                 contentType(ContentType.Application.Json)
-                header(HttpHeaders.Authorization, "Bearer $apiKey")
+                header(HttpHeaders.Authorization, "Bearer ${apiKeyProvider.invoke()}")
                 header(HttpHeaders.AcceptLanguage, "en-US,en")
                 setBody(requestBody)
             }

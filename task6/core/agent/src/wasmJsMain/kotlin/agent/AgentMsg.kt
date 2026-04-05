@@ -1,5 +1,6 @@
 package agent
 
+import model.ChatMessage
 import model.MetricRecord
 import model.ReasoningComparison
 import model.StreamChunk
@@ -25,5 +26,9 @@ sealed class AgentMsg {
         data class UpdateReasoningComparison(val comparison: ReasoningComparison) : Ui()
         data class SetReasoningLoading(val loading: Boolean) : Ui()
         data class AddMetric(val metric: MetricRecord) : Ui()
+        data class AddMessage(val message: ChatMessage) : Ui()
+        data class SetError(val error: String?) : Ui()
+        data object ClearError : Ui()
+        data class SetLoading(val isLoading: Boolean) : Ui()
     }
 }

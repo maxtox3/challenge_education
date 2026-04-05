@@ -1,22 +1,22 @@
-@file:OptIn(ExperimentalCoroutinesApi::class)
-
 package agent
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import model.ChatMessage
 import model.StreamChunk
 import network.ChatClient
 import network.ResponseConstraints
 
-class KtorLlmClient(private val chatClient: ChatClient, private val apiKey: String) : LlmClient {
+class KtorLlmClient(private val chatClient: ChatClient) : LlmClient {
 
-    override suspend fun call(prompt: String, context: AgentContext, config: AgentConfig): Result<LlmResponse> {
+    override suspend fun call(
+        prompt: String,
+        context: AgentContext,
+        config: AgentConfig
+    ): Result<LlmResponse> {
         val messages = context.messages + ChatMessage(role = "user", content = prompt)
         val constraints = config.toResponseConstraints()
 
         return chatClient.sendMessage(
-            apiKey = apiKey,
             model = config.model,
             messages = messages,
             constraints = constraints
@@ -34,7 +34,6 @@ class KtorLlmClient(private val chatClient: ChatClient, private val apiKey: Stri
         val constraints = config.toResponseConstraints()
 
         return chatClient.sendMessageStreaming(
-            apiKey = apiKey,
             model = config.model,
             messages = messages,
             constraints = constraints

@@ -29,15 +29,31 @@ class ChatViewModel(private val agentStore: AgentStore, val listState: LazyListS
 
             is ChatIntent.UpdateSettings -> handleUpdateSettings(intent.settings)
 
+            is ChatIntent.MessageSent -> {
+                agentStore.dispatch(AgentMsg.Ui.AddMessage(intent.response))
+            }
+
+            is ChatIntent.SetError -> {
+                agentStore.dispatch(AgentMsg.Ui.SetError(intent.message))
+            }
+
+            is ChatIntent.ClearError -> {
+                agentStore.dispatch(AgentMsg.Ui.ClearError)
+            }
+
+            is ChatIntent.SetLoading -> {
+                agentStore.dispatch(AgentMsg.Ui.SetLoading(intent.loading))
+            }
+
+            is ChatIntent.MessageSendFailed -> {
+                agentStore.dispatch(AgentMsg.Ui.SetError("Failed to send message"))
+                agentStore.dispatch(AgentMsg.Ui.SetLoading(false))
+            }
+
             is ChatIntent.ToggleSettings,
             is ChatIntent.ToggleMetrics,
             is ChatIntent.ToggleReasoning,
             is ChatIntent.RunReasoningComparison,
-            is ChatIntent.MessageSent,
-            is ChatIntent.MessageSendFailed,
-            is ChatIntent.SetError,
-            is ChatIntent.ClearError,
-            is ChatIntent.SetLoading,
             is ChatIntent.UpdateReasoningComparison,
             is ChatIntent.SetReasoningLoading -> Unit
         }
