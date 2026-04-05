@@ -54,6 +54,10 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:3.4.1")
                 implementation("io.ktor:ktor-client-content-negotiation:3.4.1")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:3.4.1")
+                implementation("com.arkivanov.decompose:decompose:3.2.2")
+                implementation("com.arkivanov.decompose:extensions-compose:3.2.2")
+                implementation("com.arkivanov.mvikotlin:mvikotlin:4.2.0")
+                implementation("com.arkivanov.mvikotlin:mvikotlin-extensions-coroutines:4.2.0")
             }
         }
 

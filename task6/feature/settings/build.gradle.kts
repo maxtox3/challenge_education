@@ -41,6 +41,10 @@ kotlin {
                 implementation("org.jetbrains.compose.ui:ui:1.10.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
+                implementation("com.arkivanov.decompose:decompose:3.2.2")
+                implementation("com.arkivanov.decompose:extensions-compose:3.2.2")
+                implementation("com.arkivanov.mvikotlin:mvikotlin:4.2.0")
+                implementation("com.arkivanov.mvikotlin:mvikotlin-extensions-coroutines:4.2.0")
             }
         }
 
