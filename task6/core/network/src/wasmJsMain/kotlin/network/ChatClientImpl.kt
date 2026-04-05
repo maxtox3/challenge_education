@@ -35,9 +35,7 @@ import model.ZAiRequest
 import model.ZAiResponse
 import model.ZAiStreamChunk
 
-class ChatClientImpl(
-    val apiKeyProvider: () -> String
-) : ChatClient {
+class ChatClientImpl(val apiKeyProvider: () -> String) : ChatClient {
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true

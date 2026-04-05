@@ -10,7 +10,6 @@ import agent.LlmClient
 import agent.LlmResponse
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick

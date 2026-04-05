@@ -39,6 +39,7 @@ kotlin {
                 implementation(project(":core"))
                 implementation(project(":core:model"))
                 implementation(project(":core:network"))
+                implementation(project(":core:agent"))
                 implementation(project(":feature:chat"))
                 implementation(project(":feature:settings"))
                 implementation(project(":feature:metrics"))
@@ -56,6 +57,7 @@ kotlin {
                 implementation("io.ktor:ktor-serialization-kotlinx-json:3.4.1")
                 implementation("com.arkivanov.decompose:decompose:3.2.2")
                 implementation("com.arkivanov.decompose:extensions-compose:3.2.2")
+                implementation("com.arkivanov.essenty:lifecycle:2.2.0")
                 implementation("com.arkivanov.mvikotlin:mvikotlin:4.2.0")
                 implementation("com.arkivanov.mvikotlin:mvikotlin-extensions-coroutines:4.2.0")
             }

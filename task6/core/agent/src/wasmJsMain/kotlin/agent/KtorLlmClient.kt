@@ -8,11 +8,7 @@ import network.ResponseConstraints
 
 class KtorLlmClient(private val chatClient: ChatClient) : LlmClient {
 
-    override suspend fun call(
-        prompt: String,
-        context: AgentContext,
-        config: AgentConfig
-    ): Result<LlmResponse> {
+    override suspend fun call(prompt: String, context: AgentContext, config: AgentConfig): Result<LlmResponse> {
         val messages = context.messages + ChatMessage(role = "user", content = prompt)
         val constraints = config.toResponseConstraints()
 
