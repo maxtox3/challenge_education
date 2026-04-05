@@ -23,6 +23,8 @@ class ChatMessageTest {
         assertNull(msg.maxTokens)
         assertNull(msg.finishReason)
         assertFalse(msg.isReasoningContent)
+        assertFalse(msg.isStreaming)
+        assertNull(msg.model)
     }
 
     @Test
@@ -36,6 +38,8 @@ class ChatMessageTest {
             maxTokens = TEST_MAX_TOKENS,
             finishReason = "stop",
             isReasoningContent = true,
+            isStreaming = true,
+            model = "glm-5",
         )
         assertEquals("assistant", msg.role)
         assertEquals("Response", msg.content)
@@ -44,5 +48,12 @@ class ChatMessageTest {
         assertEquals(TEST_TOKENS_USED, msg.tokensUsed)
         assertEquals(TEST_MAX_TOKENS, msg.maxTokens)
         assertEquals("stop", msg.finishReason)
+        assertTrue(msg.isReasoningContent)
+        assertTrue(msg.isStreaming)
+        assertEquals("glm-5", msg.model)
+    }
+
+    private fun assertTrue(condition: Boolean) {
+        kotlin.test.assertTrue(condition)
     }
 }

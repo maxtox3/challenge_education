@@ -55,6 +55,7 @@ class ModelBaselineTest {
         assertNull(msg.finishReason)
         assertFalse(msg.isReasoningContent)
         assertFalse(msg.isStreaming)
+        assertNull(msg.model)
     }
 
     @Test
@@ -68,7 +69,8 @@ class ModelBaselineTest {
             maxTokens = 500,
             finishReason = "stop",
             isReasoningContent = true,
-            isStreaming = true
+            isStreaming = true,
+            model = "glm-5"
         )
 
         assertEquals("assistant", msg.role)
@@ -80,6 +82,7 @@ class ModelBaselineTest {
         assertEquals("stop", msg.finishReason)
         assertTrue(msg.isReasoningContent)
         assertTrue(msg.isStreaming)
+        assertEquals("glm-5", msg.model)
     }
 
     @Test

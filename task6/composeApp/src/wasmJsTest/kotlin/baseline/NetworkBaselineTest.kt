@@ -1,6 +1,8 @@
 package baseline
 
 import kotlinx.serialization.json.Json
+import model.ResponseFormat
+import network.ResponseConstraints
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -13,18 +15,6 @@ import kotlin.test.assertTrue
  * Note: These tests verify data classes and serialization contracts.
  * Actual network calls are tested in integration tests.
  */
-
-// ResponseConstraints from ChatClient.kt
-data class ResponseConstraints(
-    val maxTokens: Int? = null,
-    val stop: List<String>? = null,
-    val responseFormat: ResponseFormat? = null,
-    val temperature: Double? = null,
-)
-
-// ResponseFormat from ZAiRequest.kt
-@kotlinx.serialization.Serializable
-data class ResponseFormat(val type: String)
 
 class NetworkBaselineTest {
 

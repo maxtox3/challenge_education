@@ -17,7 +17,7 @@ class DefaultRootComponent(
     override val chatComponent: ChatComponent = chatComponentFactory.create(
         repository = repository
     )
-    
+
     override val settingsComponent: SettingsComponent = DefaultSettingsComponent(
         initialSettings = ApiSettings()
     )

@@ -14,10 +14,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-class DefaultChatComponent(
-    private val repository: ChatRepository,
-    private val storeFactory: StoreFactory,
-) : ChatComponent {
+class DefaultChatComponent(private val repository: ChatRepository, private val storeFactory: StoreFactory,) :
+    ChatComponent {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -58,9 +56,8 @@ class DefaultChatComponent(
 }
 
 class DefaultChatComponentFactory(private val storeFactory: StoreFactory) {
-    fun create(repository: ChatRepository): DefaultChatComponent =
-        DefaultChatComponent(
-            repository = repository,
-            storeFactory = storeFactory
-        )
+    fun create(repository: ChatRepository): DefaultChatComponent = DefaultChatComponent(
+        repository = repository,
+        storeFactory = storeFactory
+    )
 }

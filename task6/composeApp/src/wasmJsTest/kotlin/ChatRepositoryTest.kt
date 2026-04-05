@@ -542,7 +542,6 @@ class FakeChatClient : ChatClient {
     var shouldThrow: Boolean = false
 
     override suspend fun sendMessage(
-        apiKey: String,
         model: String,
         messages: List<ChatMessage>,
         constraints: ResponseConstraints,
@@ -558,7 +557,6 @@ class FakeChatClient : ChatClient {
     }
 
     override fun sendMessageStreaming(
-        apiKey: String,
         model: String,
         messages: List<ChatMessage>,
         constraints: ResponseConstraints,

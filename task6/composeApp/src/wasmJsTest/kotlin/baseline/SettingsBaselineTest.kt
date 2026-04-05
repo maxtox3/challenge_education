@@ -3,7 +3,7 @@ package baseline
 import model.ResponseFormat
 import settings.ApiSettings
 import settings.SettingsIntent
-import settings.SettingsSideEffect
+import settings.SettingsLabel
 import settings.SettingsState
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -211,24 +211,24 @@ class SettingsBaselineTest {
         assertEquals("test-key", intent.apiKey)
     }
 
-    // ==================== SettingsSideEffect Sealed Class ====================
+    // ==================== SettingsLabel Sealed Class ====================
 
     @Test
-    fun settingsSideEffectShowToastHoldsMessage() {
-        val effect = SettingsSideEffect.ShowToast("Test message")
-        assertEquals("Test message", effect.message)
+    fun settingsLabelShowToastHoldsMessage() {
+        val label = SettingsLabel.ShowToast("Test message")
+        assertEquals("Test message", label.message)
     }
 
     @Test
-    fun settingsSideEffectSettingsSavedIsObject() {
-        val effect = SettingsSideEffect.SettingsSaved
-        assertEquals(SettingsSideEffect.SettingsSaved, effect)
+    fun settingsLabelSettingsSavedIsObject() {
+        val label = SettingsLabel.SettingsSaved
+        assertEquals(SettingsLabel.SettingsSaved, label)
     }
 
     @Test
-    fun settingsSideEffectValidationErrorHoldsError() {
-        val effect = SettingsSideEffect.ValidationError("Invalid input")
-        assertEquals("Invalid input", effect.error)
+    fun settingsLabelValidationErrorHoldsError() {
+        val label = SettingsLabel.ValidationError("Invalid input")
+        assertEquals("Invalid input", label.error)
     }
 
     // ==================== Dialog State Transformation (Private SettingsState) ====================
