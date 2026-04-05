@@ -14,10 +14,7 @@ import kotlinx.coroutines.launch
 import model.ChatMessage
 import settings.ApiSettings
 
-class ChatStoreFactory(
-    private val storeFactory: StoreFactory,
-    private val repository: ChatRepository,
-) {
+class ChatStoreFactory(private val storeFactory: StoreFactory, private val repository: ChatRepository,) {
 
     private sealed interface Msg {
         data class InputTextChanged(val text: String) : Msg
@@ -99,11 +96,7 @@ class ChatStoreFactory(
         }
     }
 
-    private suspend fun handleReasoningComparison(
-        task: String,
-        settings: ApiSettings,
-        ctx: ExecutorContext
-    ) {
+    private suspend fun handleReasoningComparison(task: String, settings: ApiSettings, ctx: ExecutorContext) {
         try {
             val result = repository.runReasoningComparison(
                 task = task,

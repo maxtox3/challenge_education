@@ -4,7 +4,6 @@ rootProject.name = "zai-chat"
 include(":core")
 include(":core:model")
 include(":core:network")
-include(":core:agent")
 
 // Feature modules
 include(":feature:chat")

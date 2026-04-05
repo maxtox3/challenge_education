@@ -39,7 +39,6 @@ kotlin {
                 implementation(project(":core"))
                 implementation(project(":core:model"))
                 implementation(project(":core:network"))
-                implementation(project(":core:agent"))
                 implementation(project(":feature:chat"))
                 implementation(project(":feature:settings"))
                 implementation(project(":feature:metrics"))
@@ -68,7 +67,6 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation("org.jetbrains.compose.ui:ui-test:1.10.2")
-                implementation(project(":core:agent"))
             }
         }
     }

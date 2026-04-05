@@ -2,7 +2,6 @@ package chat
 
 import chat.store.ChatStore
 import chat.store.ChatStoreFactory
-import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.mvikotlin.core.store.StoreFactory
@@ -16,11 +15,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class DefaultChatComponent(
-    componentContext: ComponentContext,
     private val repository: ChatRepository,
     private val storeFactory: StoreFactory,
-) : ChatComponent,
-    ComponentContext by componentContext {
+) : ChatComponent {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -61,9 +58,8 @@ class DefaultChatComponent(
 }
 
 class DefaultChatComponentFactory(private val storeFactory: StoreFactory) {
-    fun create(componentContext: ComponentContext, repository: ChatRepository): DefaultChatComponent =
+    fun create(repository: ChatRepository): DefaultChatComponent =
         DefaultChatComponent(
-            componentContext = componentContext,
             repository = repository,
             storeFactory = storeFactory
         )

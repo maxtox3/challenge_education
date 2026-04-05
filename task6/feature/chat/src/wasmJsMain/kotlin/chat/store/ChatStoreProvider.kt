@@ -7,18 +7,16 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 
 object ChatStoreProvider {
 
-    fun provideChatStore(repository: ChatRepository, storeFactory: StoreFactory): ChatStore =
-        ChatStoreFactory(
-            storeFactory = storeFactory,
-            repository = repository
-        ).create()
+    fun provideChatStore(repository: ChatRepository, storeFactory: StoreFactory): ChatStore = ChatStoreFactory(
+        storeFactory = storeFactory,
+        repository = repository
+    ).create()
 }
 
 @Composable
-fun rememberChatStore(repository: ChatRepository, storeFactory: StoreFactory): ChatStore =
-    remember(repository) {
-        ChatStoreProvider.provideChatStore(
-            repository = repository,
-            storeFactory = storeFactory
-        )
-    }
+fun rememberChatStore(repository: ChatRepository, storeFactory: StoreFactory): ChatStore = remember(repository) {
+    ChatStoreProvider.provideChatStore(
+        repository = repository,
+        storeFactory = storeFactory
+    )
+}
