@@ -1,9 +1,5 @@
-package chat.ui
+package chat
 
-import agent.AgentState
-import agent.AgentStore
-import agent.KtorLlmClient
-import agent.LocalStorageContextStorage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
@@ -29,7 +26,6 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -37,9 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import chat.ChatIntent
-import chat.ChatViewModel
-import chat.rememberChatViewModel
 import chat.ui.components.ChatInput
 import chat.ui.components.MessageBubble
 import chat.ui.components.TypingIndicator
@@ -48,104 +41,54 @@ import chat.ui.icons.Chart
 import chat.ui.icons.Close
 import chat.ui.icons.Delete
 import chat.ui.icons.Settings
-import com.arkivanov.decompose.value.MutableValue
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import metrics.ui.MetricsDialog
-import network.ChatClientImpl
 import reasoning.ui.ReasoningDialog
 import settings.ApiSettings
-import settings.SettingsIntent
-import settings.SettingsState
+import settings.SettingsComponent
 import settings.ui.SettingsDialog
 import ui.theme.AppColors
 import ui.theme.AppTheme
 
 @Composable
-fun App() {
-    val apiSettings = remember { ApiSettings() }
-    val chatClient = remember { ChatClientImpl(apiKeyProvider = { apiSettings.apiKey }) }
-    val llmClient = remember { KtorLlmClient(chatClient) }
-    val storage = remember { LocalStorageContextStorage() }
-    val agentStore = remember { AgentStore(llmClient, storage) }
+fun ChatContent(component: ChatComponent, settingsComponent: SettingsComponent) {
+    val state by component.state.subscribeAsState()
 
-    LaunchedEffect(Unit) {
-        agentStore.init()
-    }
-
-    val viewModel = rememberChatViewModel(agentStore)
-    AppWithState(viewModel)
-}
-
-@Composable
-fun AppWithState(viewModel: ChatViewModel) {
-    val state by viewModel.state.collectAsState()
-
-    val settings = remember(state.config) {
+    val settings = remember(state.settings) {
         ApiSettings(
-            model = state.config.model,
-            maxTokens = state.config.maxTokens,
-            temperature = state.config.temperature?.toDouble() ?: 1.0
+            model = state.settings.model,
+            maxTokens = state.settings.maxTokens,
+            temperature = state.settings.temperature
         )
     }
 
+    val listState = rememberLazyListState()
+
     LaunchedEffect(state.messages.size) {
         if (state.messages.isNotEmpty()) {
-            viewModel.listState.animateScrollToItem(state.messages.size - 1)
+            listState.animateScrollToItem(state.messages.size - 1)
         }
     }
 
     AppTheme {
-        DialogsOverlay(state, settings, viewModel)
-        ChatScreen(state, settings, viewModel)
+        DialogsOverlay(state, component, settingsComponent)
+        ChatScreen(state, settings, component, listState)
     }
 }
 
 @Composable
-private fun DialogsOverlay(state: agent.AgentState, apiSettings: ApiSettings, viewModel: ChatViewModel) {
+private fun DialogsOverlay(state: ChatState, component: ChatComponent, settingsComponent: SettingsComponent) {
     if (state.showSettings) {
-        val settingsComponent = remember(apiSettings) {
-            object : settings.SettingsComponent {
-                private val _state = MutableValue(SettingsState(settings = apiSettings))
-                override val state: com.arkivanov.decompose.value.Value<SettingsState> = _state
-
-                override fun accept(intent: SettingsIntent) {
-                    when (intent) {
-                        is SettingsIntent.UpdateModel -> {
-                            _state.value =
-                                _state.value.copy(settings = _state.value.settings.copy(model = intent.model))
-                        }
-
-                        is SettingsIntent.UpdateMaxTokens -> {
-                            _state.value =
-                                _state.value.copy(settings = _state.value.settings.copy(maxTokens = intent.maxTokens))
-                        }
-
-                        is SettingsIntent.UpdateTemperature -> {
-                            _state.value =
-                                _state.value.copy(
-                                    settings = _state.value.settings.copy(temperature = intent.temperature)
-                                )
-                        }
-
-                        is SettingsIntent.SaveSettings -> {
-                            viewModel.processIntent(ChatIntent.UpdateSettings(_state.value.settings))
-                        }
-
-                        else -> Unit
-                    }
-                }
-            }
-        }
-
         SettingsDialog(
             component = settingsComponent,
-            onDismiss = { viewModel.processIntent(ChatIntent.ToggleSettings(false)) },
+            onDismiss = { component.accept(ChatIntent.ToggleSettings(false)) },
         )
     }
 
     if (state.showMetrics) {
         MetricsDialog(
             metrics = state.metrics,
-            onDismiss = { viewModel.processIntent(ChatIntent.ToggleMetrics(false)) },
+            onDismiss = { component.accept(ChatIntent.ToggleMetrics(false)) },
         )
     }
 
@@ -153,43 +96,48 @@ private fun DialogsOverlay(state: agent.AgentState, apiSettings: ApiSettings, vi
         ReasoningDialog(
             comparison = state.reasoningComparison,
             isLoading = state.isReasoningLoading,
-            onDismiss = { viewModel.processIntent(ChatIntent.ToggleReasoning(false)) },
-            onRunComparison = { task -> viewModel.processIntent(ChatIntent.RunReasoningComparison(task)) },
+            onDismiss = { component.accept(ChatIntent.ToggleReasoning(false)) },
+            onRunComparison = { task -> component.accept(ChatIntent.RunReasoningComparison(task)) },
         )
     }
 }
 
 @Composable
-private fun ChatScreen(state: AgentState, settings: ApiSettings, viewModel: ChatViewModel) {
+private fun ChatScreen(
+    state: ChatState,
+    settings: ApiSettings,
+    component: ChatComponent,
+    listState: androidx.compose.foundation.lazy.LazyListState
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(AppColors.Background)
             .padding(16.dp)
-            .testTag(AppTags.ROOT),
+            .testTag(ChatContentTags.ROOT),
     ) {
-        ChatHeader(state, settings, viewModel)
-        MessageListArea(state, viewModel)
+        ChatHeader(state, settings, component)
+        MessageListArea(state, listState)
         state.errorMessage?.let { error ->
-            ErrorBanner(error, viewModel)
+            ErrorBanner(error, component)
         }
         Spacer(modifier = Modifier.height(12.dp))
         ChatInput(
             value = state.inputText,
-            onValueChange = { viewModel.processIntent(ChatIntent.UpdateInputText(it)) },
-            onSend = { viewModel.processIntent(ChatIntent.SendMessage) },
+            onValueChange = { component.accept(ChatIntent.UpdateInputText(it)) },
+            onSend = { component.accept(ChatIntent.SendMessage) },
             isLoading = state.isLoading,
         )
     }
 }
 
 @Composable
-private fun ChatHeader(state: agent.AgentState, settings: ApiSettings, viewModel: ChatViewModel) {
+private fun ChatHeader(state: ChatState, settings: ApiSettings, component: ChatComponent) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 16.dp)
-            .testTag(AppTags.HEADER),
+            .testTag(ChatContentTags.HEADER),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -198,29 +146,29 @@ private fun ChatHeader(state: agent.AgentState, settings: ApiSettings, viewModel
                 text = "Z.ai Chat",
                 style = MaterialTheme.typography.h5,
                 color = AppColors.TextPrimary,
-                modifier = Modifier.testTag(AppTags.TITLE),
+                modifier = Modifier.testTag(ChatContentTags.TITLE),
             )
             Text(
                 text = "Model: ${settings.model}",
                 style = MaterialTheme.typography.caption,
                 color = AppColors.TextMuted,
-                modifier = Modifier.testTag(AppTags.MODEL_TEXT),
+                modifier = Modifier.testTag(ChatContentTags.MODEL_TEXT),
             )
         }
 
-        HeaderActionButtons(state, viewModel)
+        HeaderActionButtons(state, component)
     }
 }
 
 @Composable
-private fun HeaderActionButtons(state: agent.AgentState, viewModel: ChatViewModel) {
+private fun HeaderActionButtons(state: ChatState, component: ChatComponent) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         IconButton(
-            onClick = { viewModel.processIntent(ChatIntent.ClearChat) },
+            onClick = { component.accept(ChatIntent.ClearChat) },
             modifier = Modifier
                 .background(AppColors.SurfaceLight, CircleShape)
                 .size(40.dp)
-                .testTag(AppTags.CLEAR_BUTTON),
+                .testTag(ChatContentTags.CLEAR_BUTTON),
         ) {
             Icon(
                 imageVector = Delete,
@@ -230,14 +178,14 @@ private fun HeaderActionButtons(state: agent.AgentState, viewModel: ChatViewMode
         }
 
         IconButton(
-            onClick = { viewModel.processIntent(ChatIntent.ToggleMetrics(true)) },
+            onClick = { component.accept(ChatIntent.ToggleMetrics(true)) },
             modifier = Modifier
                 .background(
                     if (state.metrics.isNotEmpty()) AppColors.Primary else AppColors.SurfaceLight,
                     CircleShape,
                 )
                 .size(40.dp)
-                .testTag(AppTags.METRICS_BUTTON),
+                .testTag(ChatContentTags.METRICS_BUTTON),
         ) {
             Icon(
                 imageVector = Chart,
@@ -247,11 +195,11 @@ private fun HeaderActionButtons(state: agent.AgentState, viewModel: ChatViewMode
         }
 
         IconButton(
-            onClick = { viewModel.processIntent(ChatIntent.ToggleReasoning(true)) },
+            onClick = { component.accept(ChatIntent.ToggleReasoning(true)) },
             modifier = Modifier
                 .background(AppColors.SurfaceLight, CircleShape)
                 .size(40.dp)
-                .testTag(AppTags.REASONING_BUTTON),
+                .testTag(ChatContentTags.REASONING_BUTTON),
         ) {
             Icon(
                 imageVector = Brain,
@@ -261,11 +209,11 @@ private fun HeaderActionButtons(state: agent.AgentState, viewModel: ChatViewMode
         }
 
         IconButton(
-            onClick = { viewModel.processIntent(ChatIntent.ToggleSettings(true)) },
+            onClick = { component.accept(ChatIntent.ToggleSettings(true)) },
             modifier = Modifier
                 .background(AppColors.Primary, CircleShape)
                 .size(40.dp)
-                .testTag(AppTags.SETTINGS_BUTTON),
+                .testTag(ChatContentTags.SETTINGS_BUTTON),
         ) {
             Icon(
                 imageVector = Settings,
@@ -277,7 +225,7 @@ private fun HeaderActionButtons(state: agent.AgentState, viewModel: ChatViewMode
 }
 
 @Composable
-private fun ColumnScope.MessageListArea(state: agent.AgentState, viewModel: ChatViewModel) {
+private fun ColumnScope.MessageListArea(state: ChatState, listState: androidx.compose.foundation.lazy.LazyListState) {
     Box(
         modifier = Modifier
             .weight(1f)
@@ -288,7 +236,7 @@ private fun ColumnScope.MessageListArea(state: agent.AgentState, viewModel: Chat
         if (state.messages.isEmpty() && !state.isLoading) {
             EmptyStateContent()
         } else {
-            MessageList(state, viewModel)
+            MessageList(state, listState)
         }
     }
 }
@@ -298,7 +246,7 @@ private fun BoxScope.EmptyStateContent() {
     Column(
         modifier = Modifier
             .align(Alignment.Center)
-            .testTag(AppTags.EMPTY_STATE),
+            .testTag(ChatContentTags.EMPTY_STATE),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -316,12 +264,12 @@ private fun BoxScope.EmptyStateContent() {
 }
 
 @Composable
-private fun MessageList(state: agent.AgentState, viewModel: ChatViewModel) {
+private fun MessageList(state: ChatState, listState: androidx.compose.foundation.lazy.LazyListState) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .testTag(AppTags.MESSAGE_LIST),
-        state = viewModel.listState,
+            .testTag(ChatContentTags.MESSAGE_LIST),
+        state = listState,
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(vertical = 8.dp),
     ) {
@@ -331,7 +279,7 @@ private fun MessageList(state: agent.AgentState, viewModel: ChatViewModel) {
 
         if (state.isLoading) {
             item {
-                Box(modifier = Modifier.testTag(AppTags.LOADING_INDICATOR)) {
+                Box(modifier = Modifier.testTag(ChatContentTags.LOADING_INDICATOR)) {
                     TypingIndicator()
                 }
             }
@@ -340,13 +288,13 @@ private fun MessageList(state: agent.AgentState, viewModel: ChatViewModel) {
 }
 
 @Composable
-private fun ErrorBanner(error: String, viewModel: ChatViewModel) {
+private fun ErrorBanner(error: String, component: ChatComponent) {
     Surface(
         color = AppColors.Error.copy(alpha = 0.2f),
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
             .padding(vertical = 8.dp)
-            .testTag(AppTags.ERROR_SURFACE),
+            .testTag(ChatContentTags.ERROR_SURFACE),
     ) {
         Row(
             modifier = Modifier
@@ -359,12 +307,12 @@ private fun ErrorBanner(error: String, viewModel: ChatViewModel) {
                 color = AppColors.Error,
                 modifier = Modifier
                     .weight(1f)
-                    .testTag(AppTags.ERROR_TEXT),
+                    .testTag(ChatContentTags.ERROR_TEXT),
                 style = MaterialTheme.typography.body2,
             )
             IconButton(
-                onClick = { viewModel.processIntent(ChatIntent.ClearError) },
-                modifier = Modifier.testTag(AppTags.ERROR_DISMISS_BUTTON),
+                onClick = { component.accept(ChatIntent.ClearError) },
+                modifier = Modifier.testTag(ChatContentTags.ERROR_DISMISS_BUTTON),
             ) {
                 Icon(
                     imageVector = Close,
@@ -376,19 +324,19 @@ private fun ErrorBanner(error: String, viewModel: ChatViewModel) {
     }
 }
 
-object AppTags {
-    const val ROOT = "app_root"
-    const val HEADER = "app_header"
-    const val TITLE = "app_title"
-    const val MODEL_TEXT = "app_model_text"
-    const val CLEAR_BUTTON = "app_clear_button"
-    const val METRICS_BUTTON = "app_metrics_button"
-    const val REASONING_BUTTON = "app_reasoning_button"
-    const val SETTINGS_BUTTON = "app_settings_button"
-    const val MESSAGE_LIST = "app_message_list"
-    const val EMPTY_STATE = "app_empty_state"
-    const val ERROR_SURFACE = "app_error_surface"
-    const val ERROR_TEXT = "app_error_text"
-    const val ERROR_DISMISS_BUTTON = "app_error_dismiss_button"
-    const val LOADING_INDICATOR = "app_loading_indicator"
+object ChatContentTags {
+    const val ROOT = "chat_content_root"
+    const val HEADER = "chat_content_header"
+    const val TITLE = "chat_content_title"
+    const val MODEL_TEXT = "chat_content_model_text"
+    const val CLEAR_BUTTON = "chat_content_clear_button"
+    const val METRICS_BUTTON = "chat_content_metrics_button"
+    const val REASONING_BUTTON = "chat_content_reasoning_button"
+    const val SETTINGS_BUTTON = "chat_content_settings_button"
+    const val MESSAGE_LIST = "chat_content_message_list"
+    const val EMPTY_STATE = "chat_content_empty_state"
+    const val ERROR_SURFACE = "chat_content_error_surface"
+    const val ERROR_TEXT = "chat_content_error_text"
+    const val ERROR_DISMISS_BUTTON = "chat_content_error_dismiss_button"
+    const val LOADING_INDICATOR = "chat_content_loading_indicator"
 }

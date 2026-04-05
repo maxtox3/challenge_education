@@ -59,6 +59,7 @@ kotlin {
                 implementation("com.arkivanov.decompose:extensions-compose:3.2.2")
                 implementation("com.arkivanov.essenty:lifecycle:2.2.0")
                 implementation("com.arkivanov.mvikotlin:mvikotlin:4.2.0")
+                implementation("com.arkivanov.mvikotlin:mvikotlin-main:4.2.0")
                 implementation("com.arkivanov.mvikotlin:mvikotlin-extensions-coroutines:4.2.0")
             }
         }

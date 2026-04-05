@@ -9,8 +9,14 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.runComposeUiTest
+import com.arkivanov.decompose.value.MutableValue
+import com.arkivanov.decompose.value.Value
+import com.arkivanov.decompose.value.update
 import model.ModelType
 import settings.ApiSettings
+import settings.SettingsComponent
+import settings.SettingsIntent
+import settings.SettingsState
 import settings.ui.ModelSelectorTags
 import settings.ui.SettingsDialog
 import settings.ui.SettingsDialogTags
@@ -35,13 +41,55 @@ class SettingsDialogUiRealTest {
         responseFormat = "text",
     )
 
+    private fun createTestComponent(
+        initialSettings: ApiSettings = defaultSettings,
+        onSettingsSaved: (ApiSettings) -> Unit = {}
+    ): SettingsComponent = object : SettingsComponent {
+        private val _state = MutableValue(SettingsState(settings = initialSettings))
+
+        override val state: Value<SettingsState> = _state
+
+        override fun accept(intent: SettingsIntent) {
+            when (intent) {
+                is SettingsIntent.UpdateApiKey -> {
+                    _state.update { it.copy(settings = it.settings.copy(apiKey = intent.apiKey)) }
+                }
+
+                is SettingsIntent.UpdateModel -> {
+                    _state.update { it.copy(settings = it.settings.copy(model = intent.model)) }
+                }
+
+                is SettingsIntent.UpdateMaxTokens -> {
+                    _state.update { it.copy(settings = it.settings.copy(maxTokens = intent.maxTokens)) }
+                }
+
+                is SettingsIntent.UpdateTemperature -> {
+                    _state.update { it.copy(settings = it.settings.copy(temperature = intent.temperature)) }
+                }
+
+                is SettingsIntent.UpdateStopSequences -> {
+                    _state.update { it.copy(settings = it.settings.copy(stopSequences = intent.stopSequences)) }
+                }
+
+                is SettingsIntent.UpdateResponseFormat -> {
+                    _state.update { it.copy(settings = it.settings.copy(responseFormat = intent.responseFormat)) }
+                }
+
+                is SettingsIntent.SaveSettings -> {
+                    onSettingsSaved(_state.value.settings)
+                }
+
+                else -> Unit
+            }
+        }
+    }
+
     @Test
     fun settingsDialogRootExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings,
+                component = createTestComponent(),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -52,9 +100,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogDialogSurfaceExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings,
+                component = createTestComponent(),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -65,9 +112,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogTitleDisplayed() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings,
+                component = createTestComponent(),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -79,9 +125,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogApiKeyFieldDisplaysValue() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(apiKey = "my-secret-key"),
+                component = createTestComponent(initialSettings = defaultSettings.copy(apiKey = "my-secret-key")),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -94,9 +139,8 @@ class SettingsDialogUiRealTest {
         val model = ModelType.MIDDLE
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(model = model.id),
+                component = createTestComponent(initialSettings = defaultSettings.copy(model = model.id)),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -108,9 +152,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogMaxTokensFieldDisplaysValue() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(maxTokens = 2000),
+                component = createTestComponent(initialSettings = defaultSettings.copy(maxTokens = 2000)),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -122,9 +165,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogMaxTokensFieldEmptyWhenNull() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(maxTokens = null),
+                component = createTestComponent(initialSettings = defaultSettings.copy(maxTokens = null)),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -135,9 +177,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogTemperatureSliderExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings,
+                component = createTestComponent(),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -148,9 +189,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogTemperatureLabelDisplaysValue() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(temperature = 0.5),
+                component = createTestComponent(initialSettings = defaultSettings.copy(temperature = 0.5)),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -161,9 +201,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogStopSequencesFieldDisplaysValue() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(stopSequences = "stop1,stop2"),
+                component = createTestComponent(initialSettings = defaultSettings.copy(stopSequences = "stop1,stop2")),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -175,9 +214,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogTextFormatChipExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(responseFormat = "text"),
+                component = createTestComponent(initialSettings = defaultSettings.copy(responseFormat = "text")),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -189,9 +227,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogJsonFormatChipExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(responseFormat = "json"),
+                component = createTestComponent(initialSettings = defaultSettings.copy(responseFormat = "json")),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -203,9 +240,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogCancelButtonExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings,
+                component = createTestComponent(),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -217,9 +253,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogSaveButtonExists() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings,
+                component = createTestComponent(),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -233,9 +268,8 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings,
+                component = createTestComponent(),
                 onDismiss = { dismissCalled = true },
-                onSave = {},
             )
         }
 
@@ -250,9 +284,8 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings,
+                component = createTestComponent(onSettingsSaved = { savedSettings = it }),
                 onDismiss = {},
-                onSave = { savedSettings = it },
             )
         }
 
@@ -267,9 +300,11 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(apiKey = "saved-api-key"),
+                component = createTestComponent(
+                    initialSettings = defaultSettings.copy(apiKey = "saved-api-key"),
+                    onSettingsSaved = { savedSettings = it }
+                ),
                 onDismiss = {},
-                onSave = { savedSettings = it },
             )
         }
 
@@ -284,9 +319,11 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(model = "saved-model"),
+                component = createTestComponent(
+                    initialSettings = defaultSettings.copy(model = "saved-model"),
+                    onSettingsSaved = { savedSettings = it }
+                ),
                 onDismiss = {},
-                onSave = { savedSettings = it },
             )
         }
 
@@ -301,9 +338,11 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(temperature = 1.5),
+                component = createTestComponent(
+                    initialSettings = defaultSettings.copy(temperature = 1.5),
+                    onSettingsSaved = { savedSettings = it }
+                ),
                 onDismiss = {},
-                onSave = { savedSettings = it },
             )
         }
 
@@ -318,9 +357,11 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(responseFormat = "json"),
+                component = createTestComponent(
+                    initialSettings = defaultSettings.copy(responseFormat = "json"),
+                    onSettingsSaved = { savedSettings = it }
+                ),
                 onDismiss = {},
-                onSave = { savedSettings = it },
             )
         }
 
@@ -335,9 +376,11 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(stopSequences = "stop,end"),
+                component = createTestComponent(
+                    initialSettings = defaultSettings.copy(stopSequences = "stop,end"),
+                    onSettingsSaved = { savedSettings = it }
+                ),
                 onDismiss = {},
-                onSave = { savedSettings = it },
             )
         }
 
@@ -352,9 +395,8 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings,
+                component = createTestComponent(onSettingsSaved = { savedSettings = it }),
                 onDismiss = {},
-                onSave = { savedSettings = it },
             )
         }
 
@@ -371,9 +413,11 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(maxTokens = null),
+                component = createTestComponent(
+                    initialSettings = defaultSettings.copy(maxTokens = null),
+                    onSettingsSaved = { savedSettings = it }
+                ),
                 onDismiss = {},
-                onSave = { savedSettings = it },
             )
         }
 
@@ -390,9 +434,11 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(stopSequences = ""),
+                component = createTestComponent(
+                    initialSettings = defaultSettings.copy(stopSequences = ""),
+                    onSettingsSaved = { savedSettings = it }
+                ),
                 onDismiss = {},
-                onSave = { savedSettings = it },
             )
         }
 
@@ -409,9 +455,11 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(maxTokens = 1000),
+                component = createTestComponent(
+                    initialSettings = defaultSettings.copy(maxTokens = 1000),
+                    onSettingsSaved = { savedSettings = it }
+                ),
                 onDismiss = {},
-                onSave = { savedSettings = it },
             )
         }
 
@@ -428,9 +476,11 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(responseFormat = "json"),
+                component = createTestComponent(
+                    initialSettings = defaultSettings.copy(responseFormat = "json"),
+                    onSettingsSaved = { savedSettings = it }
+                ),
                 onDismiss = {},
-                onSave = { savedSettings = it },
             )
         }
 
@@ -446,9 +496,11 @@ class SettingsDialogUiRealTest {
 
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings.copy(responseFormat = "text"),
+                component = createTestComponent(
+                    initialSettings = defaultSettings.copy(responseFormat = "text"),
+                    onSettingsSaved = { savedSettings = it }
+                ),
                 onDismiss = {},
-                onSave = { savedSettings = it },
             )
         }
 
@@ -462,9 +514,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogAllFieldsPresent() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings,
+                component = createTestComponent(),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -481,9 +532,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogAllButtonsPresent() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings,
+                component = createTestComponent(),
                 onDismiss = {},
-                onSave = {},
             )
         }
 
@@ -495,9 +545,8 @@ class SettingsDialogUiRealTest {
     fun settingsDialogLabelsDisplayed() = runComposeUiTest {
         setContent {
             SettingsDialog(
-                currentSettings = defaultSettings,
+                component = createTestComponent(),
                 onDismiss = {},
-                onSave = {},
             )
         }
 

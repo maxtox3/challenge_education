@@ -5,7 +5,7 @@ import agent.KtorLlmClient
 import agent.LocalStorageContextStorage
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
-import chat.ui.App
+import chat.ChatContent
 import network.ChatClientImpl
 import root.DefaultRootComponent
 
@@ -15,9 +15,12 @@ fun main() {
     val storage = LocalStorageContextStorage()
     val agentStore = AgentStore(llmClient, storage)
 
-    DefaultRootComponent(agentStore = agentStore)
+    val rootComponent = DefaultRootComponent(agentStore = agentStore)
 
     ComposeViewport("ComposeTarget") {
-        App()
+        ChatContent(
+            component = rootComponent.chatComponent,
+            settingsComponent = rootComponent.settingsComponent
+        )
     }
 }

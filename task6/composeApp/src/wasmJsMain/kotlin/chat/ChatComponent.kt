@@ -1,10 +1,9 @@
 package chat
 
-import agent.AgentState
 import com.arkivanov.decompose.value.Value
 
 interface ChatComponent {
-    val state: Value<AgentState>
+    val state: Value<ChatState>
 
     fun accept(intent: ChatIntent)
 }

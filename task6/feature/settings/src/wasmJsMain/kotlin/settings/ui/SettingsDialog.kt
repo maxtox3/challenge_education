@@ -22,54 +22,24 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import settings.ApiSettings
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import settings.SettingsComponent
+import settings.SettingsIntent
 import ui.components.DialogSurface
 import ui.components.primaryButtonColors
 import ui.components.primaryTextFieldColors
 import ui.theme.AppColors
 import kotlin.math.roundToInt
 
-private data class SettingsState(
-    val apiKey: String,
-    val model: String,
-    val maxTokensText: String,
-    val temperature: Double,
-    val stopSequences: String,
-    val responseFormat: String,
-) {
-    fun toApiSettings(): ApiSettings = ApiSettings(
-        apiKey = apiKey,
-        model = model,
-        maxTokens = maxTokensText.toIntOrNull(),
-        temperature = temperature,
-        stopSequences = stopSequences,
-        responseFormat = responseFormat,
-    )
-
-    companion object {
-        fun from(settings: ApiSettings): SettingsState = SettingsState(
-            apiKey = settings.apiKey,
-            model = settings.model,
-            maxTokensText = settings.maxTokens?.toString() ?: "",
-            temperature = settings.temperature,
-            stopSequences = settings.stopSequences,
-            responseFormat = settings.responseFormat,
-        )
-    }
-}
-
 @Composable
-fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: (ApiSettings) -> Unit,) {
-    var state by remember { mutableStateOf(SettingsState.from(currentSettings)) }
+fun SettingsDialog(component: SettingsComponent, onDismiss: () -> Unit,) {
+    val state by component.state.subscribeAsState()
 
     Dialog(onDismissRequest = onDismiss) {
         DialogSurface(
@@ -85,15 +55,17 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
                     .testTag(SettingsDialogTags.ROOT),
             ) {
                 SettingsDialogContent(
-                    state = state,
-                    onStateChange = { state = it },
+                    state = state.settings,
+                    onIntent = component::accept,
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 SettingsDialogButtons(
                     onDismiss = onDismiss,
-                    onSave = { onSave(state.toApiSettings()) },
+                    onSave = {
+                        component.accept(SettingsIntent.SaveSettings)
+                    },
                 )
             }
         }
@@ -101,7 +73,7 @@ fun SettingsDialog(currentSettings: ApiSettings, onDismiss: () -> Unit, onSave: 
 }
 
 @Composable
-private fun SettingsDialogContent(state: SettingsState, onStateChange: (SettingsState) -> Unit) {
+private fun SettingsDialogContent(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit,) {
     Text(
         text = "API Settings",
         style = MaterialTheme.typography.h6,
@@ -109,49 +81,58 @@ private fun SettingsDialogContent(state: SettingsState, onStateChange: (Settings
         modifier = Modifier.testTag(SettingsDialogTags.TITLE),
     )
     Spacer(modifier = Modifier.height(20.dp))
-    ApiKeyInput(state, onStateChange)
+    ApiKeyInput(state, onIntent)
     ModelSelector(
         selectedModelId = state.model,
-        onModelSelected = { onStateChange(state.copy(model = it)) },
+        onModelSelected = { onIntent(SettingsIntent.UpdateModel(it)) },
         modifier = Modifier.fillMaxWidth(),
     )
     Spacer(modifier = Modifier.height(12.dp))
-    MaxTokensInput(state, onStateChange)
-    TemperatureInput(state, onStateChange)
-    StopSequencesInput(state, onStateChange)
-    ResponseFormatInput(state, onStateChange)
+    MaxTokensInput(state, onIntent)
+    TemperatureInput(state, onIntent)
+    StopSequencesInput(state, onIntent)
+    ResponseFormatInput(state, onIntent)
 }
 
 @Composable
-private fun ApiKeyInput(state: SettingsState, onStateChange: (SettingsState) -> Unit) {
+private fun ApiKeyInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit,) {
     OutlinedTextField(
         value = state.apiKey,
-        onValueChange = { onStateChange(state.copy(apiKey = it)) },
+        onValueChange = { onIntent(SettingsIntent.UpdateApiKey(it)) },
         label = { Text("API Key", color = AppColors.TextSecondary) },
-        modifier = Modifier.fillMaxWidth().testTag(SettingsDialogTags.API_KEY_FIELD),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(SettingsDialogTags.API_KEY_FIELD),
         colors = primaryTextFieldColors(),
     )
     Spacer(modifier = Modifier.height(12.dp))
 }
 
 @Composable
-private fun MaxTokensInput(state: SettingsState, onStateChange: (SettingsState) -> Unit) {
+private fun MaxTokensInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit,) {
     OutlinedTextField(
-        value = state.maxTokensText,
+        value = state.maxTokens?.toString() ?: "",
         onValueChange = {
             if (it.isEmpty() || it.all { c -> c.isDigit() }) {
-                onStateChange(state.copy(maxTokensText = it))
+                onIntent(SettingsIntent.UpdateMaxTokens(it.toIntOrNull()))
             }
         },
-        label = { Text("Max Tokens (empty = unlimited)", color = AppColors.TextSecondary) },
-        modifier = Modifier.fillMaxWidth().testTag(SettingsDialogTags.MAX_TOKENS_FIELD),
+        label = {
+            Text(
+                "Max Tokens (empty = unlimited)",
+                color = AppColors.TextSecondary,
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(SettingsDialogTags.MAX_TOKENS_FIELD),
         colors = primaryTextFieldColors(),
     )
     Spacer(modifier = Modifier.height(12.dp))
 }
 
 @Composable
-private fun TemperatureInput(state: SettingsState, onStateChange: (SettingsState) -> Unit) {
+private fun TemperatureInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit,) {
     Text(
         text = "Temperature: ${(state.temperature * 100).roundToInt() / 100.0}",
         color = AppColors.TextSecondary,
@@ -159,9 +140,11 @@ private fun TemperatureInput(state: SettingsState, onStateChange: (SettingsState
     )
     Slider(
         value = state.temperature.toFloat(),
-        onValueChange = { onStateChange(state.copy(temperature = it.toDouble())) },
+        onValueChange = { onIntent(SettingsIntent.UpdateTemperature(it.toDouble())) },
         valueRange = 0f..2f,
-        modifier = Modifier.fillMaxWidth().testTag(SettingsDialogTags.TEMPERATURE_SLIDER),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(SettingsDialogTags.TEMPERATURE_SLIDER),
         colors = SliderDefaults.colors(
             thumbColor = AppColors.Primary,
             activeTrackColor = AppColors.Primary,
@@ -171,19 +154,26 @@ private fun TemperatureInput(state: SettingsState, onStateChange: (SettingsState
 }
 
 @Composable
-private fun StopSequencesInput(state: SettingsState, onStateChange: (SettingsState) -> Unit) {
+private fun StopSequencesInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit,) {
     OutlinedTextField(
         value = state.stopSequences,
-        onValueChange = { onStateChange(state.copy(stopSequences = it)) },
-        label = { Text("Stop Sequences (comma-separated)", color = AppColors.TextSecondary) },
-        modifier = Modifier.fillMaxWidth().testTag(SettingsDialogTags.STOP_SEQUENCES_FIELD),
+        onValueChange = { onIntent(SettingsIntent.UpdateStopSequences(it)) },
+        label = {
+            Text(
+                "Stop Sequences (comma-separated)",
+                color = AppColors.TextSecondary,
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(SettingsDialogTags.STOP_SEQUENCES_FIELD),
         colors = primaryTextFieldColors(),
     )
     Spacer(modifier = Modifier.height(12.dp))
 }
 
 @Composable
-private fun ResponseFormatInput(state: SettingsState, onStateChange: (SettingsState) -> Unit) {
+private fun ResponseFormatInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit,) {
     Text(
         text = "Response Format",
         color = AppColors.TextSecondary,
@@ -195,13 +185,13 @@ private fun ResponseFormatInput(state: SettingsState, onStateChange: (SettingsSt
     ) {
         ResponseFormatChip(
             selected = state.responseFormat == "text",
-            onClick = { onStateChange(state.copy(responseFormat = "text")) },
+            onClick = { onIntent(SettingsIntent.UpdateResponseFormat("text")) },
             label = "Text",
             modifier = Modifier.testTag(SettingsDialogTags.TEXT_FORMAT_CHIP),
         )
         ResponseFormatChip(
             selected = state.responseFormat == "json",
-            onClick = { onStateChange(state.copy(responseFormat = "json")) },
+            onClick = { onIntent(SettingsIntent.UpdateResponseFormat("json")) },
             label = "JSON",
             modifier = Modifier.testTag(SettingsDialogTags.JSON_FORMAT_CHIP),
         )
@@ -209,7 +199,7 @@ private fun ResponseFormatInput(state: SettingsState, onStateChange: (SettingsSt
 }
 
 @Composable
-private fun SettingsDialogButtons(onDismiss: () -> Unit, onSave: () -> Unit) {
+private fun SettingsDialogButtons(onDismiss: () -> Unit, onSave: () -> Unit,) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
