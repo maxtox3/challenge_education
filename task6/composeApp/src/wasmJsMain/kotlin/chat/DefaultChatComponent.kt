@@ -31,6 +31,7 @@ class DefaultChatComponent(private val repository: ChatRepository, private val s
     init {
         store.states
             .onEach { newState ->
+                println("handle state = $newState")
                 _state.value = newState
             }
             .launchIn(scope)

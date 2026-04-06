@@ -33,12 +33,32 @@ kotlin {
             dependencies {
                 implementation(project(":core"))
                 implementation(project(":core:model"))
-                implementation("org.jetbrains.compose.runtime:runtime:1.10.2")
-                implementation("org.jetbrains.compose.foundation:foundation:1.10.2")
-                implementation("org.jetbrains.compose.material:material:1.10.2")
-                implementation("org.jetbrains.compose.material3:material3:1.10.0-alpha05")
+                implementation(project(":core:network"))
+                implementation(project(":feature:settings"))
+
+                // Decompose
+                implementation("com.arkivanov.decompose:decompose:3.2.2")
+                implementation("com.arkivanov.decompose:extensions-compose:3.2.2")
+
+                // MVIKotlin
+                implementation("com.arkivanov.mvikotlin:mvikotlin:4.2.0")
+                implementation("com.arkivanov.mvikotlin:mvikotlin-extensions-coroutines:4.2.0")
+
+                // Essenty
+                implementation("com.arkivanov.essenty:lifecycle:2.1.0")
+                implementation("com.arkivanov.essenty:instance-keeper:2.1.0")
+                implementation("com.arkivanov.essenty:state-keeper:2.1.0")
+
+                // Compose
+                implementation(compose.foundation)
+                implementation(compose.material3)
+                implementation(compose.runtime)
                 implementation("org.jetbrains.compose.ui:ui:1.10.2")
+
+                // Coroutines
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+
+                // Serialization
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
             }
         }
@@ -46,7 +66,7 @@ kotlin {
         val wasmJsTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("org.jetbrains.compose.ui:ui-test:1.10.2")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
             }
         }
     }

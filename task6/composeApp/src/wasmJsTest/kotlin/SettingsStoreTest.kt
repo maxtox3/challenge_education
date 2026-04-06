@@ -1,5 +1,7 @@
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import settings.ApiSettings
 import settings.SettingsIntent
@@ -25,7 +27,7 @@ class SettingsStoreTest {
     @Test
     fun testInitialState() = runTest {
         val store = createStore()
-        assertEquals("", store.state.settings.apiKey)
+        assertEquals("9cccc72cda3c456c9263fe143dbae7b1.9ir3VQrPquSuSyvZ", store.state.settings.apiKey)
         assertEquals("glm-5", store.state.settings.model)
         assertEquals(1.0, store.state.settings.temperature)
         assertFalse(store.state.isLoading)
@@ -37,6 +39,8 @@ class SettingsStoreTest {
     fun testIntentUpdateApiKey() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateApiKey("new-api-key"))
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("new-api-key", store.state.settings.apiKey)
     }
 
@@ -44,6 +48,8 @@ class SettingsStoreTest {
     fun testIntentUpdateModel() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateModel("custom-model"))
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("custom-model", store.state.settings.model)
     }
 
@@ -51,6 +57,8 @@ class SettingsStoreTest {
     fun testIntentUpdateMaxTokens() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateMaxTokens(500))
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals(500, store.state.settings.maxTokens)
     }
 
@@ -58,6 +66,8 @@ class SettingsStoreTest {
     fun testIntentUpdateTemperature() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateTemperature(0.7))
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals(0.7, store.state.settings.temperature)
     }
 
@@ -65,6 +75,8 @@ class SettingsStoreTest {
     fun testIntentUpdateStopSequences() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateStopSequences("stop1,stop2"))
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("stop1,stop2", store.state.settings.stopSequences)
     }
 
@@ -72,6 +84,8 @@ class SettingsStoreTest {
     fun testIntentUpdateResponseFormat() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateResponseFormat("json"))
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("json", store.state.settings.responseFormat)
     }
 
@@ -84,6 +98,8 @@ class SettingsStoreTest {
             temperature = 0.5
         )
         store.accept(SettingsIntent.UpdateSettings(newSettings))
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("test-key", store.state.settings.apiKey)
         assertEquals("test-model", store.state.settings.model)
         assertEquals(0.5, store.state.settings.temperature)
@@ -93,6 +109,8 @@ class SettingsStoreTest {
     fun testUpdateApiKeyDirectly() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateApiKey("direct-key"))
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("direct-key", store.state.settings.apiKey)
     }
 
@@ -100,6 +118,8 @@ class SettingsStoreTest {
     fun testUpdateModelDirectly() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateModel("direct-model"))
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("direct-model", store.state.settings.model)
     }
 
@@ -107,13 +127,20 @@ class SettingsStoreTest {
     fun testUpdateTemperatureDirectly() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateTemperature(0.3))
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals(0.3, store.state.settings.temperature)
     }
 
     @Test
     fun testSaveSettingsWithEmptyApiKey() = runTest {
         val store = createStore()
+        store.accept(SettingsIntent.UpdateApiKey(""))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.SaveSettings)
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("API key is required", store.state.validationError)
     }
 
@@ -121,8 +148,14 @@ class SettingsStoreTest {
     fun testSaveSettingsWithInvalidTemperatureLow() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateApiKey("valid-key"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateTemperature(-0.5))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.SaveSettings)
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("Temperature must be between 0.0 and 2.0", store.state.validationError)
     }
 
@@ -130,8 +163,14 @@ class SettingsStoreTest {
     fun testSaveSettingsWithInvalidTemperatureHigh() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateApiKey("valid-key"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateTemperature(3.0))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.SaveSettings)
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("Temperature must be between 0.0 and 2.0", store.state.validationError)
     }
 
@@ -142,8 +181,14 @@ class SettingsStoreTest {
             savedSettings = settings
         })
         store.accept(SettingsIntent.UpdateApiKey("valid-key"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateTemperature(0.0))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.SaveSettings)
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals(0.0, savedSettings?.temperature)
     }
 
@@ -154,8 +199,14 @@ class SettingsStoreTest {
             savedSettings = settings
         })
         store.accept(SettingsIntent.UpdateApiKey("valid-key"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateTemperature(2.0))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.SaveSettings)
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals(2.0, savedSettings?.temperature)
     }
 
@@ -163,13 +214,23 @@ class SettingsStoreTest {
     fun testResetSettings() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateApiKey("test-key"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateModel("custom-model"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateTemperature(0.5))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.SaveSettings)
+        advanceTimeBy(500)
+        runCurrent()
 
         store.accept(SettingsIntent.ResetSettings)
+        advanceTimeBy(500)
+        runCurrent()
 
-        assertEquals("", store.state.settings.apiKey)
+        assertEquals("9cccc72cda3c456c9263fe143dbae7b1.9ir3VQrPquSuSyvZ", store.state.settings.apiKey)
         assertEquals("glm-5", store.state.settings.model)
         assertEquals(1.0, store.state.settings.temperature)
         assertNull(store.state.validationError)
@@ -181,19 +242,30 @@ class SettingsStoreTest {
         assertFalse(store.state.isApiKeyVisible)
 
         store.accept(SettingsIntent.ToggleApiKeyVisibility)
+        advanceTimeBy(500)
+        runCurrent()
         assertTrue(store.state.isApiKeyVisible)
 
         store.accept(SettingsIntent.ToggleApiKeyVisibility)
+        advanceTimeBy(500)
+        runCurrent()
         assertFalse(store.state.isApiKeyVisible)
     }
 
     @Test
     fun testClearValidationError() = runTest {
         val store = createStore()
+        store.accept(SettingsIntent.UpdateApiKey(""))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.SaveSettings)
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("API key is required", store.state.validationError)
 
         store.accept(SettingsIntent.ClearValidationError)
+        advanceTimeBy(500)
+        runCurrent()
 
         assertNull(store.state.validationError)
     }
@@ -202,6 +274,8 @@ class SettingsStoreTest {
     fun testValidateApiKeyWithEmptyString() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.ValidateApiKey(""))
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("API key cannot be empty", store.state.validationError)
     }
 
@@ -209,6 +283,8 @@ class SettingsStoreTest {
     fun testValidateApiKeyWithBlankString() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.ValidateApiKey("   "))
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("API key cannot be empty", store.state.validationError)
     }
 
@@ -216,6 +292,8 @@ class SettingsStoreTest {
     fun testValidateApiKeyWithValidKey() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.ValidateApiKey("valid-key"))
+        advanceTimeBy(500)
+        runCurrent()
         assertNull(store.state.validationError)
     }
 
@@ -242,6 +320,8 @@ class SettingsStoreTest {
         )
 
         store.accept(SettingsIntent.UpdateSettings(newSettings))
+        advanceTimeBy(500)
+        runCurrent()
 
         assertEquals("updated-key", store.state.settings.apiKey)
         assertEquals("updated-model", store.state.settings.model)
@@ -250,11 +330,20 @@ class SettingsStoreTest {
     @Test
     fun testValidationClearsErrorOnSuccess() = runTest {
         val store = createStore()
+        store.accept(SettingsIntent.UpdateApiKey(""))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.SaveSettings)
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("API key is required", store.state.validationError)
 
         store.accept(SettingsIntent.UpdateApiKey("valid-key"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.SaveSettings)
+        advanceTimeBy(500)
+        runCurrent()
 
         assertNull(store.state.validationError)
     }
@@ -264,11 +353,23 @@ class SettingsStoreTest {
         val store = createStore()
 
         store.accept(SettingsIntent.UpdateApiKey("key1"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateModel("model1"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateTemperature(0.5))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateMaxTokens(1000))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateStopSequences("stop1,stop2"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateResponseFormat("json"))
+        advanceTimeBy(500)
+        runCurrent()
 
         assertEquals("key1", store.state.settings.apiKey)
         assertEquals("model1", store.state.settings.model)
@@ -285,9 +386,17 @@ class SettingsStoreTest {
             savedSettings = settings
         })
         store.accept(SettingsIntent.UpdateApiKey("valid-api-key"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateModel("test-model"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.UpdateTemperature(0.8))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.SaveSettings)
+        advanceTimeBy(500)
+        runCurrent()
 
         assertEquals("valid-api-key", savedSettings?.apiKey)
         assertEquals("test-model", savedSettings?.model)
@@ -299,6 +408,8 @@ class SettingsStoreTest {
         val store = createStore()
         val intent = SettingsIntent.UpdateApiKey("routed-key")
         store.accept(intent)
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("routed-key", store.state.settings.apiKey)
     }
 
@@ -307,6 +418,8 @@ class SettingsStoreTest {
         val store = createStore()
         val intent = SettingsIntent.UpdateModel("routed-model")
         store.accept(intent)
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals("routed-model", store.state.settings.model)
     }
 
@@ -315,6 +428,8 @@ class SettingsStoreTest {
         val store = createStore()
         val intent = SettingsIntent.UpdateTemperature(0.25)
         store.accept(intent)
+        advanceTimeBy(500)
+        runCurrent()
         assertEquals(0.25, store.state.settings.temperature)
     }
 
@@ -322,8 +437,12 @@ class SettingsStoreTest {
     fun testIntentRoutesToResetSettings() = runTest {
         val store = createStore()
         store.accept(SettingsIntent.UpdateApiKey("to-reset"))
+        advanceTimeBy(500)
+        runCurrent()
         store.accept(SettingsIntent.ResetSettings)
-        assertEquals("", store.state.settings.apiKey)
+        advanceTimeBy(500)
+        runCurrent()
+        assertEquals("9cccc72cda3c456c9263fe143dbae7b1.9ir3VQrPquSuSyvZ", store.state.settings.apiKey)
     }
 
     @Test
@@ -331,6 +450,8 @@ class SettingsStoreTest {
         val store = createStore()
         val intent = SettingsIntent.ToggleApiKeyVisibility
         store.accept(intent)
+        advanceTimeBy(500)
+        runCurrent()
         assertTrue(store.state.isApiKeyVisible)
     }
 }

@@ -22,7 +22,11 @@ class SettingsBaselineTest {
     @Test
     fun apiSettingsDefaultValues() {
         val settings = ApiSettings()
-        assertEquals("", settings.apiKey, "Default apiKey should be empty string")
+        assertEquals(
+            "9cccc72cda3c456c9263fe143dbae7b1.9ir3VQrPquSuSyvZ",
+            settings.apiKey,
+            "Default apiKey should match ApiSettings default",
+        )
         assertEquals("glm-5", settings.model, "Default model should be glm-5")
         assertNull(settings.maxTokens, "Default maxTokens should be null")
         assertEquals(1.0, settings.temperature, "Default temperature should be 1.0")

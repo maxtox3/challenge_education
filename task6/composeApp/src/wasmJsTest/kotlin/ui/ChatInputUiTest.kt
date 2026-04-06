@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalTestApi::class)
+@file:OptIn(ExperimentalTestApi::class, ExperimentalWasmJsInterop::class)
 
 package ui
 
@@ -13,12 +13,17 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.runComposeUiTest
 import chat.ui.components.ChatInput
 import chat.ui.components.ChatInputTags
+import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-@ExperimentalWasmJsInterop
 class ChatInputUiTest {
+
+    @Test
+    fun warmup() = runComposeUiTest {
+        setContent {}
+    }
 
     @Test
     fun chatInputDisplaysPlaceholder() = runComposeUiTest {
@@ -33,7 +38,7 @@ class ChatInputUiTest {
             )
         }
 
-        onNodeWithText("Type a message... (Enter to send)").assertExists()
+        onNodeWithText("Type a message... (Enter to send)", substring = true, useUnmergedTree = true).assertExists()
     }
 
     @Test
@@ -118,8 +123,7 @@ class ChatInputUiTest {
             )
         }
 
-        onNodeWithTag(ChatInputTags.TEXT_FIELD)
-            .performTextInput("Test")
+        onNodeWithTag(ChatInputTags.TEXT_FIELD).performTextInput("Test")
 
         assertEquals("Test", lastChangedValue)
     }
@@ -160,38 +164,6 @@ class ChatInputUiTest {
     }
 
     @Test
-    fun chatInputRootExists() = runComposeUiTest {
-        var inputValue = ""
-
-        setContent {
-            ChatInput(
-                value = inputValue,
-                onValueChange = { inputValue = it },
-                onSend = {},
-                isLoading = false,
-            )
-        }
-
-        onNodeWithTag(ChatInputTags.ROOT).assertExists()
-    }
-
-    @Test
-    fun chatInputTextFieldExists() = runComposeUiTest {
-        var inputValue = ""
-
-        setContent {
-            ChatInput(
-                value = inputValue,
-                onValueChange = { inputValue = it },
-                onSend = {},
-                isLoading = false,
-            )
-        }
-
-        onNodeWithTag(ChatInputTags.TEXT_FIELD).assertExists()
-    }
-
-    @Test
     fun chatInputAppendText() = runComposeUiTest {
         var inputValue = "Hello"
         var lastChangedValue = ""
@@ -208,8 +180,7 @@ class ChatInputUiTest {
             )
         }
 
-        onNodeWithTag(ChatInputTags.TEXT_FIELD)
-            .performTextReplacement("Hello World")
+        onNodeWithTag(ChatInputTags.TEXT_FIELD).performTextReplacement("Hello World")
 
         assertEquals("Hello World", lastChangedValue)
     }

@@ -10,7 +10,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
-import kotlinx.coroutines.test.TestResult
 import ui.components.DialogHeader
 import ui.components.DialogHeaderTags
 import ui.components.DialogSurface
@@ -281,39 +280,35 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun loadingButtonContentLoadingStateTransition(): TestResult {
+    fun loadingButtonContentLoadingStateTransition() = runComposeUiTest {
         val buttonText = "Start"
 
-        return runComposeUiTest {
-            setContent {
-                LoadingButtonContent(
-                    isLoading = false,
-                    loadingText = "Processing...",
-                    buttonText = buttonText,
-                )
-            }
-
-            onNodeWithText(buttonText).assertExists()
-            onNodeWithTag(LoadingButtonContentTags.LOADING_INDICATOR).assertDoesNotExist()
+        setContent {
+            LoadingButtonContent(
+                isLoading = false,
+                loadingText = "Processing...",
+                buttonText = buttonText,
+            )
         }
+
+        onNodeWithText(buttonText).assertExists()
+        onNodeWithTag(LoadingButtonContentTags.LOADING_INDICATOR).assertDoesNotExist()
     }
 
     @Test
-    fun dialogHeaderCustomDismissTextVariations(): TestResult {
+    fun dialogHeaderCustomDismissTextVariations() = runComposeUiTest {
         val dismissText = "Done"
 
-        return runComposeUiTest {
-            setContent {
-                DialogHeader(
-                    title = "Settings",
-                    onDismiss = {},
-                    dismissText = dismissText,
-                )
-            }
-
-            onNodeWithText(dismissText).assertExists()
-            onNodeWithText("Close").assertDoesNotExist()
+        setContent {
+            DialogHeader(
+                title = "Settings",
+                onDismiss = {},
+                dismissText = dismissText,
+            )
         }
+
+        onNodeWithText(dismissText).assertExists()
+        onNodeWithText("Close").assertDoesNotExist()
     }
 
     @Test
@@ -328,20 +323,18 @@ class CommonComponentsUiRealTest {
     }
 
     @Test
-    fun loadingButtonContentCustomTexts(): TestResult {
+    fun loadingButtonContentCustomTexts() = runComposeUiTest {
         val loadingText = "Saving..."
 
-        return runComposeUiTest {
-            setContent {
-                LoadingButtonContent(
-                    isLoading = true,
-                    loadingText = loadingText,
-                    buttonText = "Save",
-                )
-            }
-
-            onNodeWithText(loadingText).assertExists()
-            onNodeWithTag(LoadingButtonContentTags.LOADING_INDICATOR).assertExists()
+        setContent {
+            LoadingButtonContent(
+                isLoading = true,
+                loadingText = loadingText,
+                buttonText = "Save",
+            )
         }
+
+        onNodeWithText(loadingText).assertExists()
+        onNodeWithTag(LoadingButtonContentTags.LOADING_INDICATOR).assertExists()
     }
 }

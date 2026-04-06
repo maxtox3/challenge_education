@@ -36,14 +36,10 @@ import androidx.compose.ui.unit.dp
 import chat.ui.components.ChatInput
 import chat.ui.components.MessageBubble
 import chat.ui.components.TypingIndicator
-import chat.ui.icons.Brain
-import chat.ui.icons.Chart
 import chat.ui.icons.Close
 import chat.ui.icons.Delete
 import chat.ui.icons.Settings
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import metrics.ui.MetricsDialog
-import reasoning.ui.ReasoningDialog
 import settings.ApiSettings
 import settings.SettingsComponent
 import settings.ui.SettingsDialog
@@ -84,22 +80,6 @@ private fun DialogsOverlay(state: ChatState, component: ChatComponent, settingsC
             onDismiss = { component.accept(ChatIntent.ToggleSettings(false)) },
         )
     }
-
-    if (state.showMetrics) {
-        MetricsDialog(
-            metrics = state.metrics,
-            onDismiss = { component.accept(ChatIntent.ToggleMetrics(false)) },
-        )
-    }
-
-    if (state.showReasoning) {
-        ReasoningDialog(
-            comparison = state.reasoningComparison,
-            isLoading = state.isReasoningLoading,
-            onDismiss = { component.accept(ChatIntent.ToggleReasoning(false)) },
-            onRunComparison = { task -> component.accept(ChatIntent.RunReasoningComparison(task)) },
-        )
-    }
 }
 
 @Composable
@@ -116,7 +96,7 @@ private fun ChatScreen(
             .padding(16.dp)
             .testTag(ChatContentTags.ROOT),
     ) {
-        ChatHeader(state, settings, component)
+        ChatHeader(settings, component)
         MessageListArea(state, listState)
         state.errorMessage?.let { error ->
             ErrorBanner(error, component)
@@ -132,7 +112,7 @@ private fun ChatScreen(
 }
 
 @Composable
-private fun ChatHeader(state: ChatState, settings: ApiSettings, component: ChatComponent) {
+private fun ChatHeader(settings: ApiSettings, component: ChatComponent) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -156,12 +136,12 @@ private fun ChatHeader(state: ChatState, settings: ApiSettings, component: ChatC
             )
         }
 
-        HeaderActionButtons(state, component)
+        HeaderActionButtons(component)
     }
 }
 
 @Composable
-private fun HeaderActionButtons(state: ChatState, component: ChatComponent) {
+private fun HeaderActionButtons(component: ChatComponent) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         IconButton(
             onClick = { component.accept(ChatIntent.ClearChat) },
@@ -173,37 +153,6 @@ private fun HeaderActionButtons(state: ChatState, component: ChatComponent) {
             Icon(
                 imageVector = Delete,
                 contentDescription = "Clear chat",
-                tint = AppColors.TextSecondary,
-            )
-        }
-
-        IconButton(
-            onClick = { component.accept(ChatIntent.ToggleMetrics(true)) },
-            modifier = Modifier
-                .background(
-                    if (state.metrics.isNotEmpty()) AppColors.Primary else AppColors.SurfaceLight,
-                    CircleShape,
-                )
-                .size(40.dp)
-                .testTag(ChatContentTags.METRICS_BUTTON),
-        ) {
-            Icon(
-                imageVector = Chart,
-                contentDescription = "Metrics",
-                tint = if (state.metrics.isNotEmpty()) Color.White else AppColors.TextSecondary,
-            )
-        }
-
-        IconButton(
-            onClick = { component.accept(ChatIntent.ToggleReasoning(true)) },
-            modifier = Modifier
-                .background(AppColors.SurfaceLight, CircleShape)
-                .size(40.dp)
-                .testTag(ChatContentTags.REASONING_BUTTON),
-        ) {
-            Icon(
-                imageVector = Brain,
-                contentDescription = "Reasoning comparison",
                 tint = AppColors.TextSecondary,
             )
         }
@@ -330,8 +279,6 @@ object ChatContentTags {
     const val TITLE = "chat_content_title"
     const val MODEL_TEXT = "chat_content_model_text"
     const val CLEAR_BUTTON = "chat_content_clear_button"
-    const val METRICS_BUTTON = "chat_content_metrics_button"
-    const val REASONING_BUTTON = "chat_content_reasoning_button"
     const val SETTINGS_BUTTON = "chat_content_settings_button"
     const val MESSAGE_LIST = "chat_content_message_list"
     const val EMPTY_STATE = "chat_content_empty_state"

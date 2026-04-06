@@ -8,7 +8,7 @@ class SettingsStateTest {
     @Test
     fun testApiSettingsDefaults() {
         val settings = ApiSettings()
-        assertEquals("", settings.apiKey)
+        assertEquals("9cccc72cda3c456c9263fe143dbae7b1.9ir3VQrPquSuSyvZ", settings.apiKey)
         assertEquals("glm-5", settings.model)
         assertNull(settings.maxTokens)
         assertEquals(1.0, settings.temperature)

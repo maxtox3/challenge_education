@@ -35,8 +35,6 @@ kotlin {
                 implementation(project(":core:model"))
                 implementation(project(":core:network"))
                 implementation(project(":feature:settings"))
-                implementation(project(":feature:metrics"))
-                implementation(project(":feature:reasoning"))
                 implementation("org.jetbrains.compose.runtime:runtime:1.10.2")
                 implementation("org.jetbrains.compose.foundation:foundation:1.10.2")
                 implementation("org.jetbrains.compose.material:material:1.10.2")
