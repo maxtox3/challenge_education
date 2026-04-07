@@ -1,7 +1,7 @@
 ---
 description: агент оценки кода. Анализирует объём и разбивает на чанки для параллельной/последовательной обработки.
 mode: subagent
-model: openai/gpt-5.3
+model: openai/gpt-5.2-codex
 tools:
   task: false
   todowrite: false

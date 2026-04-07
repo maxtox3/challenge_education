@@ -1,7 +1,7 @@
 ---
 description: Системный аналитик. Формирует бизнес-спеку по запросу пользователя для передачи архитектору.
 mode: subagent
-model: openai/gpt-5.3
+model: openai/gpt-5.2-codex
 tools:
   task: false
   todowrite: false

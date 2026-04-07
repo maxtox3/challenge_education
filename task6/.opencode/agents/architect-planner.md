@@ -1,7 +1,7 @@
 ---
 description: Архитектурный планировщик. Анализирует проект и создаёт план изменений для новой функциональности.
 mode: subagent
-model: openai/gpt-5.3
+model: openai/gpt-5.2-codex
 tools:
   task: false
   todowrite: false
