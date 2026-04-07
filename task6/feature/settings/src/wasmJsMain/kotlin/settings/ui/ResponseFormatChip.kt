@@ -13,12 +13,7 @@ import ui.theme.AppColors
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-internal fun ResponseFormatChip(
-    selected: Boolean,
-    onClick: () -> Unit,
-    label: String,
-    modifier: Modifier = Modifier
-) {
+internal fun ResponseFormatChip(selected: Boolean, onClick: () -> Unit, label: String, modifier: Modifier = Modifier) {
     Surface(
         color = if (selected) AppColors.Primary else AppColors.SurfaceLight,
         shape = RoundedCornerShape(16.dp),
