@@ -9,9 +9,6 @@ import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.coroutineExecutorFactory
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -26,8 +23,6 @@ class ChatStoreFactory(
     private val storage: StorageService
 ) {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-
     private sealed interface Msg {
         data class InputTextChanged(val text: String) : Msg
         data class MessagesUpdated(val messages: List<ChatMessage>) : Msg
@@ -35,7 +30,8 @@ class ChatStoreFactory(
         data class ErrorChanged(val error: String?) : Msg
         data class SettingsToggled(val show: Boolean) : Msg
         data class SettingsUpdated(val settings: ApiSettings) : Msg
-        data class StreamingMessageUpdated(val content: String) : Msg
+        data class StreamingReasoningUpdated(val content: String) : Msg
+        data class StreamingContentUpdated(val content: String) : Msg
         data object StreamingStarted : Msg
         data object StreamingFinished : Msg
     }
@@ -86,13 +82,31 @@ class ChatStoreFactory(
         ctx: ExecutorContext,
         updatedMessages: List<ChatMessage>
     ) {
+        var streamingContentAccumulator = ""
+        var streamingReasoningAccumulator = ""
+        var streamingCompleted = false
+
         repository.sendMessageStreaming(
             prompt = prompt,
             messages = messages,
             settings = settings
         )
             .onEach { chunk ->
-                handleStreamChunk(chunk, ctx, updatedMessages)
+                when (chunk) {
+                    is StreamChunk.Reasoning -> {
+                        streamingReasoningAccumulator += chunk.text
+                        ctx.dispatchFn(Msg.StreamingReasoningUpdated(streamingReasoningAccumulator))
+                    }
+
+                    is StreamChunk.Content -> {
+                        streamingContentAccumulator += chunk.text
+                        ctx.dispatchFn(Msg.StreamingContentUpdated(streamingContentAccumulator))
+                    }
+
+                    is StreamChunk.Done -> {
+                        streamingCompleted = true
+                    }
+                }
             }
             .catch { e ->
                 if (e !is CancellationException) {
@@ -102,32 +116,25 @@ class ChatStoreFactory(
                 }
             }
             .collect {}
-    }
 
-    private fun handleStreamChunk(chunk: StreamChunk, ctx: ExecutorContext, updatedMessages: List<ChatMessage>) {
-        when (chunk) {
-            is StreamChunk.Content -> {
-                val current = ctx.getStateFn().streamingMessage ?: ""
-                ctx.dispatchFn(Msg.StreamingMessageUpdated(current + chunk.text))
-            }
-
-            is StreamChunk.Reasoning -> {
-                val current = ctx.getStateFn().streamingMessage ?: ""
-                ctx.dispatchFn(Msg.StreamingMessageUpdated(current + chunk.text))
-            }
-
-            is StreamChunk.Done -> {
-                handleStreamingComplete(ctx, updatedMessages)
-            }
+        if (streamingCompleted) {
+            handleStreamingComplete(ctx, updatedMessages, streamingContentAccumulator, streamingReasoningAccumulator)
         }
     }
 
-    private fun handleStreamingComplete(ctx: ExecutorContext, updatedMessages: List<ChatMessage>) {
-        val finalContent = ctx.getStateFn().streamingMessage ?: ""
+    private fun handleStreamingComplete(
+        ctx: ExecutorContext,
+        updatedMessages: List<ChatMessage>,
+        finalContent: String,
+        finalReasoning: String
+    ) {
+        val hasReasoning = finalReasoning.isNotBlank()
+
         if (finalContent.isNotEmpty()) {
             val finalMessage = ChatMessage(
                 role = "assistant",
-                content = finalContent
+                content = finalContent,
+                isReasoningContent = hasReasoning
             )
             val finalMessages = updatedMessages + finalMessage
             ctx.dispatchFn(Msg.MessagesUpdated(finalMessages))
@@ -188,20 +195,9 @@ class ChatStoreFactory(
                     onIntent<ChatIntent.SetError> { dispatch(Msg.ErrorChanged(it.message)) }
                     onIntent<ChatIntent.ClearError> { dispatch(Msg.ErrorChanged(null)) }
                     onIntent<ChatIntent.SetLoading> { dispatch(Msg.LoadingChanged(it.loading)) }
-                },
-                reducer = MessageReducer
-            ) {}
-
-        scope.launch {
-            try {
-                val history = storage.getChatHistory()
-                store.accept(ChatIntent.UpdateMessages(history))
-            } catch (e: IllegalStateException) {
-                println("Failed to load chat history: ${e.message}")
-            } catch (e: IllegalArgumentException) {
-                println("Failed to load chat history: ${e.message}")
-            }
-        }
+                 },
+                 reducer = MessageReducer
+             ) {}
 
         return store
     }
@@ -225,15 +221,19 @@ class ChatStoreFactory(
 
             is Msg.StreamingStarted -> copy(
                 isStreaming = true,
-                streamingMessage = "",
+                streamingReasoning = "",
+                streamingContent = "",
                 isLoading = true
             )
 
-            is Msg.StreamingMessageUpdated -> copy(streamingMessage = message.content)
+            is Msg.StreamingReasoningUpdated -> copy(streamingReasoning = message.content)
+
+            is Msg.StreamingContentUpdated -> copy(streamingContent = message.content)
 
             is Msg.StreamingFinished -> copy(
                 isStreaming = false,
-                streamingMessage = null,
+                streamingReasoning = null,
+                streamingContent = null,
                 isLoading = false
             )
         }

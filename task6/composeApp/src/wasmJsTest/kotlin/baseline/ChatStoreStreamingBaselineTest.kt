@@ -43,7 +43,8 @@ class ChatStoreStreamingBaselineTest {
         assertEquals("", state.inputText, "Default inputText should be empty")
         assertEquals(emptyList(), state.messages, "Default messages should be empty list")
         assertFalse(state.isLoading, "Default isLoading should be false")
-        assertNull(state.streamingMessage, "Default streamingMessage should be null")
+        assertNull(state.streamingContent, "Default streamingContent should be null")
+        assertNull(state.streamingReasoning, "Default streamingReasoning should be null")
         assertFalse(state.isStreaming, "Default isStreaming should be false")
         assertNull(state.errorMessage, "Default errorMessage should be null")
         assertFalse(state.showSettings, "Default showSettings should be false")
@@ -53,11 +54,13 @@ class ChatStoreStreamingBaselineTest {
     @Test
     fun chatStateStreamingFieldsCanBeSet() {
         val state = ChatState(
-            streamingMessage = "Partial response",
+            streamingContent = "Partial response",
+            streamingReasoning = "Thinking...",
             isStreaming = true,
             isLoading = true
         )
-        assertEquals("Partial response", state.streamingMessage, "streamingMessage should be set")
+        assertEquals("Partial response", state.streamingContent, "streamingContent should be set")
+        assertEquals("Thinking...", state.streamingReasoning, "streamingReasoning should be set")
         assertTrue(state.isStreaming, "isStreaming should be true")
         assertTrue(state.isLoading, "isLoading should be true")
     }
@@ -65,12 +68,14 @@ class ChatStoreStreamingBaselineTest {
     @Test
     fun chatStateCopyPreservesStreamingFields() {
         val original = ChatState(
-            streamingMessage = "Streaming text",
+            streamingContent = "Streaming content",
+            streamingReasoning = "Streaming reasoning",
             isStreaming = true,
             isLoading = true
         )
         val copied = original.copy(errorMessage = "Error occurred")
-        assertEquals("Streaming text", copied.streamingMessage, "streamingMessage should be preserved")
+        assertEquals("Streaming content", copied.streamingContent, "streamingContent should be preserved")
+        assertEquals("Streaming reasoning", copied.streamingReasoning, "streamingReasoning should be preserved")
         assertTrue(copied.isStreaming, "isStreaming should be preserved")
         assertTrue(copied.isLoading, "isLoading should be preserved")
         assertEquals("Error occurred", copied.errorMessage, "errorMessage should be updated")
@@ -113,12 +118,13 @@ class ChatStoreStreamingBaselineTest {
         store.accept(ChatIntent.UpdateInputText("Test"))
         store.accept(ChatIntent.SendMessage)
 
-        advanceTimeBy(200)
+        advanceTimeBy(100)
         runCurrent()
 
         val finalState = store.state
         assertFalse(finalState.isStreaming, "isStreaming should be false after streaming finished")
-        assertNull(finalState.streamingMessage, "streamingMessage should be null after streaming finished")
+        assertNull(finalState.streamingContent, "streamingContent should be null after streaming finished")
+        assertNull(finalState.streamingReasoning, "streamingReasoning should be null after streaming finished")
         assertFalse(finalState.isLoading, "isLoading should be false after streaming finished")
     }
 
@@ -168,9 +174,9 @@ class ChatStoreStreamingBaselineTest {
 
         val finalState = store.state
         assertEquals(
-            "Thinking...Answer",
+            "Answer",
             finalState.messages[1].content,
-            "Reasoning and Content chunks should both be appended (CURRENT BEHAVIOR: they mix together)"
+            "Final message should contain only content chunks (NEW BEHAVIOR: reasoning is separated)"
         )
     }
 
@@ -223,7 +229,7 @@ class ChatStoreStreamingBaselineTest {
         runCurrent()
 
         val finalState = store.state
-        assertEquals(1, finalState.messages.size, "Should only have user message when streamingMessage is empty")
+        assertEquals(1, finalState.messages.size, "Should only have user message when streamingContent is empty")
         assertEquals("user", finalState.messages[0].role, "Only message should be from user")
     }
 
@@ -247,7 +253,8 @@ class ChatStoreStreamingBaselineTest {
 
         val finalState = store.state
         assertFalse(finalState.isStreaming, "isStreaming should be false after error")
-        assertNull(finalState.streamingMessage, "streamingMessage should be null after error")
+        assertNull(finalState.streamingContent, "streamingContent should be null after error")
+        assertNull(finalState.streamingReasoning, "streamingReasoning should be null after error")
         assertFalse(finalState.isLoading, "isLoading should be false after error")
         assertTrue(finalState.errorMessage != null, "errorMessage should be set")
     }
@@ -269,7 +276,9 @@ class ChatStoreStreamingBaselineTest {
             override fun onNext(value: ChatLabel) {
                 labels.add(value)
             }
-            override fun onComplete() {}
+            override fun onComplete() {
+                // No-op: completion not tracked in this test
+            }
         })
 
         store.accept(ChatIntent.UpdateInputText("Test"))
@@ -300,7 +309,9 @@ class ChatStoreStreamingBaselineTest {
             override fun onNext(value: ChatLabel) {
                 labels.add(value)
             }
-            override fun onComplete() {}
+            override fun onComplete() {
+                // No-op: completion not tracked in this test
+            }
         })
 
         store.accept(ChatIntent.UpdateInputText("Test"))
@@ -360,9 +371,9 @@ class ChatStoreStreamingBaselineTest {
 
         val finalState = store.state
         assertEquals(
-            "R1C1R2C2",
+            "C1C2",
             finalState.messages[1].content,
-            "Reasoning and Content should interleave in order received (CURRENT BEHAVIOR: no separation)"
+            "Final message should contain only content chunks (NEW BEHAVIOR: reasoning is separated from content)"
         )
     }
 
@@ -515,7 +526,7 @@ private class FakeChatRepository : ChatRepository {
         settings: ApiSettings
     ): Flow<StreamChunk> = flow {
         if (shouldFailStreaming) {
-            throw RuntimeException("Streaming failed")
+            error("Streaming failed")
         }
         streamingChunks.forEach { chunk ->
             emit(chunk)

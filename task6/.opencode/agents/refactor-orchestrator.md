@@ -43,14 +43,15 @@ Exception: You MAY read AGENTS.md to get project test/lint commands.
 
 All sub-agents are invoked via Task tool with `subagent_type="{agent_name}"`.
 
-| Agent Name              | Purpose          | What sub-agent does                       |
-|-------------------------|------------------|-------------------------------------------|
+| Agent Name              | Purpose          | What sub-agent does                           |
+|-------------------------|------------------|-----------------------------------------------|
 | architect-planner       | Architecture     | Analyzes project, creates implementation plan |
-| code-estimator          | Scope estimation | Reads files, counts tokens, creates chunks|
-| git-safety              | Git operations   | Creates branches, checkpoints, rollbacks  |
-| characterization-tester | Baseline tests   | Reads code, writes characterization tests |
-| code-refactorer         | Refactoring      | Reads, modifies, creates files            |
-| code-verifier           | Verification     | Runs tests, linters, type checks          |
+| characterization-tester | Baseline tests   | Reads code, writes characterization tests     |
+| tdd-tester              | TDD tests        | Reads requirements, modifies existing tests   |
+| code-estimator          | Scope estimation | Reads files, counts tokens, creates chunks    |
+| git-safety              | Git operations   | Creates branches, checkpoints, rollbacks      |
+| code-refactorer         | Refactoring      | Reads, modifies, creates files                |
+| code-verifier           | Verification     | Runs tests, linters, type checks              |
 </subagents>
 
 <task_template>
@@ -142,13 +143,37 @@ Task(
 
 2. FOR EACH chunk:
    Task(characterization-tester, {files: chunk.files})
-   → Log: "[TESTER] Chunk {id}: {N} tests"
+   → Log: "[TESTER] Chunk {id}: {N} characterization tests"
 
 3. Task(code-verifier, {test_command})
-   → Log: "[VERIFIER] {PASS/FAIL}"
+   → Log: "[VERIFIER] Baseline tests: {PASS/FAIL}"
 
 4. IF PASS: Task(git-safety, {operation: "checkpoint", message: "baseline"})
 5. IF FAIL: ABORT → report to user
+```
+
+### Phase 0.5: TDD Tests (MANDATORY)
+```
+1. Task(architect-planner, {
+     target_requirement: refactoring_goal,
+     scope: "requirements_extraction"
+   })
+   → Save: requirements_list
+   → Log: "[ARCHITECT] Requirements extracted: {N} items"
+
+2. FOR EACH chunk:
+   Task(tdd-tester, {
+     files: chunk.files,
+     test_directory: test_directory,
+     requirements: requirements_list
+   })
+   → Log: "[TDD-TESTER] Chunk {id}: {added} added, {replaced} replaced"
+
+3. Task(code-verifier, {operation: "compile_only"})
+   → Log: "[VERIFIER] TDD compilation: {SUCCESS/FAIL}"
+   → IF FAIL: Log error, CONTINUE (do not halt)
+
+4. Log: "[ORCHESTRATOR] TDD tests ready (expected to fail until implementation)"
 ```
 
 ### Phase 1: Planning
@@ -176,12 +201,13 @@ FOR EACH phase:
      → Log: "[REFACTORER] {summary}"
   
   2. Task(code-verifier, {test_command, lint_command})
-     → Log: "[VERIFIER] {status}"
+     → Expect: characterization tests PASS, TDD tests PROGRESSIVELY PASS
+     → Log: "[VERIFIER] Tests: {total} total, {pass} pass, {fail} fail (TDD)"
   
-  3. IF PASS:
+  3. IF characterization tests PASS:
      Task(git-safety, {operation: "checkpoint", message: "phase {id}"})
   
-  4. IF FAIL:
+  4. IF characterization tests FAIL:
      Task(git-safety, {operation: "rollback"})
      → Retry or HALT
 ```
@@ -241,12 +267,15 @@ After each step, output:
 ```
 [ORCHESTRATOR] Starting: {refactoring_goal}
 [ARCHITECT] Plan: {N} phases, {pattern} pattern
+[ARCHITECT] Requirements: {N} items for TDD
 [ESTIMATOR] Found {N} files, {M} tokens, {K} chunks
 [GIT-SAFETY] Branch created: {name}
-[TESTER] Chunk {id}: {N} tests created
-[VERIFIER] {PASS/FAIL}
+[TESTER] Chunk {id}: {N} characterization tests created
+[TDD-TESTER] Chunk {id}: {added} added, {replaced} replaced
+[VERIFIER] Baseline: {PASS/FAIL}, TDD compilation: {SUCCESS/FAIL}
 [GIT-SAFETY] Checkpoint: {name}
 [REFACTORER] {summary}
+[VERIFIER] Tests: {pass}/{total} pass (TDD progress: {tdd_pass}/{tdd_total})
 [ORCHESTRATOR] {phase} complete
 ```
 </log_format>
@@ -258,9 +287,14 @@ After each step, output:
 {
   "final_status": "SUCCESS|FAILED|ABORTED|PLANNED",
   "git_branch": "refactor/module-2026-03-20",
-  "phases_completed": ["baseline", "phase-A", "phase-B"],
+  "phases_completed": ["baseline", "tdd-setup", "phase-A", "phase-B"],
   "final_commit": "abc123",
   "summary": "Extracted services, all tests pass",
+  "tdd_progress": {
+    "initial_failures": 8,
+    "final_failures": 0,
+    "tests_implemented": 8
+  },
   "artifacts": {
     "test_files": ["AppTest.kt"],
     "modified_files": ["App.kt"],
