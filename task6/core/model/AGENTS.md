@@ -32,13 +32,13 @@ core:model
 - `core:network` — All API models (ZAiRequest, ZAiResponse, etc.)
 - `composeApp` — tests
 
-## Ключевые файлы (178 строк)
+## Ключевые файлы (179 строк)
 
 | Файл | Строк | Назначение |
 |------|-------|------------|
-| `ChatMessage.kt` | 14 | Модель сообщения в чате (user/assistant/system) |
+| `ChatMessage.kt` | 17 | Модель сообщения в чате (user/assistant/system) с @Serializable |
 | `MetricRecord.kt` | 30 | Модель метрик запроса + ConstraintsInfo для display |
-| `ModelType.kt` | 14 | Enum доступных AI моделей (4 models) |
+| `ModelType.kt` | 12 | Enum доступных AI моделей (4 models) |
 | `ReasoningMode.kt` | 27 | Enum режимов рассуждения + ReasoningResult + ReasoningComparison |
 | `StreamChunk.kt` | 21 | Sealed class для streaming events (Content, Reasoning, Done) |
 | `ZAiRequest.kt` | 72 | API models (request, response, streaming, error) с @Serializable |
@@ -135,7 +135,6 @@ enum class ModelType(val id: String, val displayName: String, val level: String)
 
     companion object {
         fun fromId(id: String): ModelType = entries.find { it.id == id } ?: PRO
-        val allIds: List<String> get() = entries.map { it.id }
     }
 }
 ```
@@ -147,7 +146,6 @@ enum class ModelType(val id: String, val displayName: String, val level: String)
 
 **Companion Object Methods**:
 - `fromId(id: String)` — найти модель по ID (default: PRO)
-- `allIds: List<String>` — список всех ID
 
 **Usage**:
 - `feature:settings` — ModelSelector dropdown

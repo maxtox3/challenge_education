@@ -3,16 +3,30 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import settings.ApiSettings
 import settings.SettingsIntent
 import settings.SettingsState
 import settings.store.SettingsStore
 import settings.store.SettingsStoreFactory
+import storage.StorageService
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+
+private class FakeStorageService : StorageService {
+    private var storedSettings: String? = null
+
+    override suspend fun getApiSettings(): String? = storedSettings
+    override suspend fun setApiSettings(settings: String) {
+        storedSettings = settings
+    }
+    override suspend fun getChatHistory(): List<model.ChatMessage> = emptyList()
+    override suspend fun setChatHistory(messages: List<model.ChatMessage>) = Unit
+    override suspend fun clearChatHistory() = Unit
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsStoreTest {
@@ -21,6 +35,8 @@ class SettingsStoreTest {
         onSettingsSaved: (ApiSettings) -> Unit = {}
     ): SettingsStore = SettingsStoreFactory(
         storeFactory = DefaultStoreFactory(),
+        storageService = FakeStorageService(),
+        json = Json { ignoreUnknownKeys = true },
         onSettingsSaved = onSettingsSaved
     ).create(initialState)
 

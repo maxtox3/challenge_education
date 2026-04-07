@@ -4,9 +4,7 @@ rootProject.name = "zai-chat"
 include(":core")
 include(":core:model")
 include(":core:network")
-
-// Chat module (Decompose + MVIKotlin)
-include(":chat")
+include(":core:storage")
 
 // Feature modules
 include(":feature:chat")

@@ -65,6 +65,12 @@ interface ChatClient {
 - `sendMessage()` — regular HTTP request, returns `Result<ChatMessage>`
 - `sendMessageStreaming()` — SSE streaming request, returns `Flow<StreamChunk>`
 
+**Current Implementation Status**:
+- `sendMessage()` — ✅ USED by ChatRepository/ChatStoreFactory
+- `sendMessageStreaming()` — ⚠️ EXISTS in ChatClient but NOT YET CONSUMED by ChatStoreFactory
+
+**Implementation Gap**: Streaming infrastructure is ready but not yet integrated into the chat feature. ChatStoreFactory currently uses `sendMessage()` for all requests. To enable streaming UI, ChatStoreFactory needs to be updated to call `sendMessageStreaming()` and handle `Flow<StreamChunk>`.
+
 **Parameters**:
 - `apiKey: String` — API ключ для авторизации
 - `model: String` — ID модели (из ModelType)
@@ -243,6 +249,10 @@ val constraints = ResponseConstraints(
 ```
 
 ## Streaming Support (SSE)
+
+**Implementation Status**: ✅ Infrastructure READY, ⚠️ NOT YET INTEGRATED in ChatStoreFactory
+
+The streaming infrastructure (ChatClient.sendMessageStreaming) is fully implemented and tested, but ChatStoreFactory currently uses the non-streaming `sendMessage()` method. To enable streaming in the UI, ChatStoreFactory needs to be updated to consume the streaming API.
 
 ### StreamChunk Sealed Class
 
@@ -514,6 +524,8 @@ fun rememberChatViewModel(...): ChatViewModel {
 
 ### feature:chat (ChatRepository.kt)
 
+**NOTE**: ChatRepository currently uses `sendMessage()` (non-streaming). Streaming API (`sendMessageStreaming()`) is available in ChatClient but not yet consumed by ChatStoreFactory.
+
 ```kotlin
 import network.ChatClient
 
@@ -529,7 +541,7 @@ class ChatRepositoryImpl(
     ): SendMessageResult {
         val constraints = settings.toResponseConstraints()
         
-        return when (val result = client.sendMessage(
+        return when (val result = client.sendMessage(  // ← Uses sendMessage(), NOT sendMessageStreaming()
             apiKey = settings.apiKey,
             model = settings.model,
             messages = messages,
@@ -546,6 +558,8 @@ class ChatRepositoryImpl(
     }
 }
 ```
+
+**To Enable Streaming**: Replace `client.sendMessage()` with `client.sendMessageStreaming()` and collect `Flow<StreamChunk>` to update UI incrementally.
 
 ## Testing
 
@@ -709,6 +723,7 @@ ZAiRequest(
 - **Core infrastructure**: Базовый модуль для всех network operations
 - **Ktor-based**: Использует Ktor client для HTTP и SSE (version 3.4.1)
 - **Two modes**: Regular request (Result) и streaming (Flow)
+- **Implementation gap**: Streaming infrastructure EXISTS but NOT YET CONSUMED by ChatStoreFactory
 - **Comprehensive error handling**: Все exceptions мапятся в ChatException hierarchy
 - **SSE streaming**: Поддержка Server-Sent Events для streaming responses
 - **Reasoning content**: Поддержка reasoning/thinking content от моделей (GLM-5 thinking mode)

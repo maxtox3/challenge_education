@@ -34,6 +34,7 @@ kotlin {
                 implementation(project(":core"))
                 implementation(project(":core:model"))
                 implementation(project(":core:network"))
+                implementation(project(":core:storage"))
                 implementation(project(":feature:settings"))
                 implementation("org.jetbrains.compose.runtime:runtime:1.10.2")
                 implementation("org.jetbrains.compose.foundation:foundation:1.10.2")

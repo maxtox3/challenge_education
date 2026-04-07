@@ -24,9 +24,14 @@
 - `feature/*` → НЕ зависят друг от друга
 - `core/*` → общие модели, сеть, UI components
 
+**Current implementation status**:
+- ✅ SSE streaming infrastructure in `core/network`
+- ⚠️ Streaming not yet integrated in ChatStoreFactory
+- 📋 Planned: localStorage persistence for chat history
+
 ```
 composeApp/     # Entry point
-feature/        # chat, settings, metrics, reasoning
+feature/        # chat, settings
 core/           # model, network, ui (shared)
 ```
 
@@ -51,9 +56,7 @@ core/           # model, network, ui (shared)
 
 ### Feature Modules
 
-- **[feature/chat/AGENTS.md](./feature/chat/AGENTS.md)** — Chat module (MVI, streaming, UI components)
-- **[feature/metrics/AGENTS.md](./feature/metrics/AGENTS.md)** — Metrics module (UI-only, metrics comparison table)
-- **[feature/reasoning/AGENTS.md](./feature/reasoning/AGENTS.md)** — Reasoning module (UI-only, reasoning mode's comparison)
+- **[feature/chat/AGENTS.md](./feature/chat/AGENTS.md)** — Chat module (MVI, streaming infrastructure, UI components)
 - **[feature/settings/AGENTS.md](./feature/settings/AGENTS.md)** — Settings module (MVI, API settings, ModelSelector)
 
 ### Core Modules

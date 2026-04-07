@@ -6,10 +6,14 @@ import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import settings.ApiSettings
 import settings.SettingsIntent
 import settings.SettingsLabel
 import settings.SettingsState
+import storage.StorageService
 
 private sealed class Msg {
     data class UpdateSettings(val settings: ApiSettings) : Msg()
@@ -20,6 +24,8 @@ private sealed class Msg {
 
 class SettingsStoreFactory(
     private val storeFactory: StoreFactory,
+    private val storageService: StorageService,
+    private val json: Json = Json { ignoreUnknownKeys = true },
     private val onSettingsSaved: (ApiSettings) -> Unit,
 ) {
     fun create(initialState: SettingsState = SettingsState()): SettingsStore = object :
@@ -33,6 +39,26 @@ class SettingsStoreFactory(
         ) {}
 
     private inner class ExecutorImpl : CoroutineExecutor<SettingsIntent, Unit, SettingsState, Msg, SettingsLabel>() {
+        override fun executeAction(action: Unit) {
+            scope.launch {
+                loadSettings()
+            }
+        }
+
+        private suspend fun loadSettings() {
+            try {
+                val storedSettings = storageService.getApiSettings()
+                if (storedSettings != null) {
+                    val settings = json.decodeFromString<ApiSettings>(storedSettings)
+                    dispatch(Msg.UpdateSettings(settings))
+                }
+            } catch (e: SerializationException) {
+                publish(SettingsLabel.ValidationError("Failed to load settings: ${e.message}"))
+            } catch (e: IllegalArgumentException) {
+                publish(SettingsLabel.ValidationError("Invalid settings format: ${e.message}"))
+            }
+        }
+
         override fun executeIntent(intent: SettingsIntent) {
             when (intent) {
                 is SettingsIntent.UpdateApiKey -> {
@@ -70,6 +96,9 @@ class SettingsStoreFactory(
                 is SettingsIntent.ResetSettings -> {
                     dispatch(Msg.UpdateSettings(ApiSettings()))
                     dispatch(Msg.UpdateValidationError(null))
+                    scope.launch {
+                        clearSettings()
+                    }
                 }
 
                 is SettingsIntent.ClearValidationError -> {
@@ -98,8 +127,22 @@ class SettingsStoreFactory(
             if (error == null) {
                 onSettingsSaved(currentSettings)
                 scope.launch {
-                    publish(SettingsLabel.SettingsSaved)
+                    try {
+                        val encoded = json.encodeToString(currentSettings)
+                        storageService.setApiSettings(encoded)
+                        publish(SettingsLabel.SettingsSaved)
+                    } catch (e: SerializationException) {
+                        publish(SettingsLabel.ValidationError("Failed to save settings: ${e.message}"))
+                    }
                 }
+            }
+        }
+
+        private suspend fun clearSettings() {
+            try {
+                storageService.setApiSettings(json.encodeToString(ApiSettings()))
+            } catch (e: SerializationException) {
+                publish(SettingsLabel.ValidationError("Failed to clear settings: ${e.message}"))
             }
         }
     }

@@ -1,5 +1,6 @@
 package chat
 
+import model.ChatMessage
 import settings.ApiSettings
 
 sealed class ChatIntent {
@@ -11,4 +12,5 @@ sealed class ChatIntent {
     data class SetError(val message: String?) : ChatIntent()
     data object ClearError : ChatIntent()
     data class SetLoading(val loading: Boolean) : ChatIntent()
+    data class UpdateMessages(val messages: List<ChatMessage>) : ChatIntent()
 }

@@ -39,6 +39,7 @@ kotlin {
                 implementation(project(":core"))
                 implementation(project(":core:model"))
                 implementation(project(":core:network"))
+                implementation(project(":core:storage"))
                 implementation(project(":feature:chat"))
                 implementation(project(":feature:settings"))
                 implementation("org.jetbrains.compose.runtime:runtime:1.10.2")

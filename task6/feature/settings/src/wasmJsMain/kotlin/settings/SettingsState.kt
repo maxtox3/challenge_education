@@ -1,9 +1,11 @@
 package settings
 
+import kotlinx.serialization.Serializable
 import model.ModelType
 import model.ResponseFormat
 import network.ResponseConstraints
 
+@Serializable
 data class ApiSettings(
     val apiKey: String = "9cccc72cda3c456c9263fe143dbae7b1.9ir3VQrPquSuSyvZ",
     val model: String = ModelType.PRO.id,

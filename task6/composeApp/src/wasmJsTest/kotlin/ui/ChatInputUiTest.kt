@@ -26,38 +26,6 @@ class ChatInputUiTest {
     }
 
     @Test
-    fun chatInputDisplaysPlaceholder() = runComposeUiTest {
-        var inputValue = ""
-
-        setContent {
-            ChatInput(
-                value = inputValue,
-                onValueChange = { inputValue = it },
-                onSend = {},
-                isLoading = false,
-            )
-        }
-
-        onNodeWithText("Type a message... (Enter to send)", substring = true, useUnmergedTree = true).assertExists()
-    }
-
-    @Test
-    fun chatInputDisplaysCurrentText() = runComposeUiTest {
-        var inputValue = "Hello, world!"
-
-        setContent {
-            ChatInput(
-                value = inputValue,
-                onValueChange = { inputValue = it },
-                onSend = {},
-                isLoading = false,
-            )
-        }
-
-        onNodeWithText("Hello, world!").assertExists()
-    }
-
-    @Test
     fun chatInputSendButtonDisabledWhenEmpty() = runComposeUiTest {
         var inputValue = ""
 

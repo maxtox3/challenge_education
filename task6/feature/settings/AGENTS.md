@@ -4,6 +4,8 @@
 
 Settings feature — модуль для управления настройками API (API key, model, temperature, max tokens, stop sequences, response format). Содержит бизнес-логику (ViewModel + MVI) и reusable компонент ModelSelector.
 
+**⚠️ Current State**: Settings управляются в памяти (in-memory). localStorage persistence ЗАПЛАНИРОВАНА, но НЕ РЕАЛИЗОВАНА. Требуется модуль `:core:storage` для постоянного хранения.
+
 ## Команды
 
 ```bash
@@ -26,10 +28,65 @@ feature:settings
 └── core:ui      (shared components, AppColors, DialogSurface, primaryButtonColors)
 ```
 
+**Planned Dependencies** (NOT YET IMPLEMENTED):
+```
+feature:settings
+└── core:storage (localStorage integration - TODO)
+```
+
 **Integration**:
 - Used by: `feature:chat` → `App.kt`
 - Tested in: `composeApp/src/wasmJsTest/kotlin/ui/SettingsDialogUiRealTest.kt`
 - ViewModel: Опционально (dialog может использовать internal state или ViewModel)
+
+## Current State & Persistence
+
+**⚠️ IMPORTANT: Settings are NOT persisted to localStorage yet**
+
+### Current Behavior
+- Settings exist only in memory (ChatState.settings)
+- Settings are lost on page reload
+- `onSave` callback only notifies parent component
+- No `:core:storage` module dependency yet
+
+### Planned Integration (TODO)
+```kotlin
+// Future implementation
+class SettingsViewModel(
+    private val viewModelScope: CoroutineScope,
+    private val storage: SettingsStorage, // From :core:storage
+    private val onSettingsSaved: (ApiSettings) -> Unit = {},
+) {
+    init {
+        // Load from localStorage on init
+        viewModelScope.launch {
+            storage.loadSettings()?.let { loadSettings(it) }
+        }
+    }
+    
+    private fun saveToStorage(settings: ApiSettings) {
+        viewModelScope.launch {
+            storage.saveSettings(settings)
+        }
+    }
+}
+```
+
+### Required Changes for Persistence
+1. Create `:core:storage` module
+2. Implement `SettingsStorage` interface with localStorage backend
+3. Add `:core:storage` dependency to `feature:settings`
+4. Update `SettingsViewModel` to load/save from storage
+5. Add initialization logic in ViewModel init block
+
+### Current Storage Status
+| Feature | Status |
+|---------|--------|
+| In-memory state | ✅ Implemented |
+| onSave callback | ✅ Implemented |
+| localStorage read | ❌ NOT implemented |
+| localStorage write | ❌ NOT implemented |
+| :core:storage module | ❌ NOT created |
 
 ## Ключевые файлы
 
@@ -61,7 +118,7 @@ class SettingsViewModel(
 **Responsibilities**:
 - State management (ApiSettings, validation, loading)
 - Validation logic (API key, temperature range)
-- Settings persistence callback
+- Settings callback (NOTE: NOT persisted to localStorage yet)
 - Side effects (show toast, validation errors)
 
 ### SettingsState
@@ -325,6 +382,9 @@ onNodeWithTag(ModelSelectorTags.TEXT_FIELD).assertExists()
 ### Save/Cancel Actions
 - **Cancel**: вызывает `onDismiss()`
 - **Save**: вызывает `onSave(state.toApiSettings())`
+  - ⚠️ NOTE: Does NOT persist to localStorage yet
+  - Settings are only passed to parent component callback
+  - Will be lost on page reload
 
 ## Two Usage Modes
 
@@ -371,6 +431,8 @@ fun App(viewModel: ChatViewModel) {
             currentSettings = state.settings,
             onDismiss = { viewModel.processIntent(ToggleSettings(false)) },
             onSave = { newSettings ->
+                // ⚠️ NOTE: Settings NOT persisted to localStorage yet
+                // Only updates in-memory state
                 viewModel.processIntent(UpdateSettings(newSettings))
                 viewModel.processIntent(ToggleSettings(false))
             }
@@ -378,6 +440,8 @@ fun App(viewModel: ChatViewModel) {
     }
 }
 ```
+
+**⚠️ Current Limitation**: Settings are stored only in `ChatState.settings` (in-memory). They will be lost on page reload. localStorage persistence is planned but not yet implemented.
 
 ### ChatState integration
 ```kotlin
@@ -462,6 +526,17 @@ client.sendMessage(
 3. Добавить test tag
 4. Написать тесты
 
+### Добавить localStorage persistence (PLANNED)
+1. Создать модуль `:core:storage`
+2. Реализовать `SettingsStorage` interface с localStorage backend
+3. Добавить dependency: `feature:settings` → `:core:storage`
+4. Обновить `SettingsViewModel`:
+   - Добавить `storage: SettingsStorage` parameter
+   - Load settings в `init` block
+   - Save settings в `processIntent(SaveSettings)`
+5. Написать тесты для storage layer
+6. Обновить документацию
+
 ## Особенности модуля
 
 - **Business logic**: В отличие от metrics/reasoning, имеет полноценный ViewModel
@@ -472,3 +547,4 @@ client.sendMessage(
 - **Two chips**: Text/JSON selection для response format
 - **Temperature visual feedback**: Slider показывает текущее значение
 - **Comma-separated parsing**: Stop sequences парсятся из строки в список
+- **⚠️ No persistence**: Settings не сохраняются в localStorage (только in-memory)

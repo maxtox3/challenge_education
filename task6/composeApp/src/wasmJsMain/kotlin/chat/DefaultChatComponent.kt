@@ -13,15 +13,20 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import storage.StorageService
 
-class DefaultChatComponent(private val repository: ChatRepository, private val storeFactory: StoreFactory,) :
-    ChatComponent {
+class DefaultChatComponent(
+    private val repository: ChatRepository,
+    private val storage: StorageService,
+    private val storeFactory: StoreFactory,
+) : ChatComponent {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val store: ChatStore = ChatStoreFactory(
         storeFactory = storeFactory,
-        repository = repository
+        repository = repository,
+        storage = storage
     ).create()
 
     private val _state: MutableValue<ChatState> = MutableValue(store.state)
@@ -56,9 +61,10 @@ class DefaultChatComponent(private val repository: ChatRepository, private val s
     }
 }
 
-class DefaultChatComponentFactory(private val storeFactory: StoreFactory) {
+class DefaultChatComponentFactory(private val storeFactory: StoreFactory, private val storage: StorageService) {
     fun create(repository: ChatRepository): DefaultChatComponent = DefaultChatComponent(
         repository = repository,
+        storage = storage,
         storeFactory = storeFactory
     )
 }
