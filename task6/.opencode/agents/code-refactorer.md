@@ -1,10 +1,11 @@
 ---
 description: агент для проведения рефакторинга. Безопасно изменяет код и сохраненяет поведение.
 mode: subagent
-model: zai-coding-plan/glm-5
+model: openai/gpt-5.2-codex
 tools:
   task: false
   todowrite: false
+  bash: false
 ---
 
 # Code Refactorer Agent Prompt
@@ -71,6 +72,5 @@ tools:
 
 ## При неуверенности
 Если не уверен в изменении:
-1. Оставь TODO комментарий: `// TODO: verify this change`
-2. Добавь warning в вывод
-3. Не делай изменение если оно не критично для задачи
+1. Добавь warning в вывод
+2. Не делай изменение если оно не критично для задачи

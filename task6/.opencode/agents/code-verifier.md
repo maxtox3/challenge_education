@@ -1,10 +1,15 @@
 ---
 description: Агент для проверки кода. Запускает тесты, линтеры, typecheck.
 mode: subagent
-model: zai-coding-plan/glm-5
+model: openai/gpt-5.2-codex
 tools:
   task: false
   todowrite: false
+  edit: false
+  write: false
+  apply_patch: false
+  bash: true
+  grep: true
 ---
 
 # Code Verifier Agent Prompt
@@ -60,11 +65,11 @@ tools:
 
 ## Criteria Examples
 
-| Критерий | Команда |
-|----------|---------|
-| no println | `grep -r "println" src/main/` |
-| no TODO | `grep -r "TODO" src/main/` |
-| no hardcoded secrets | `grep -rE "(password|apiKey|secret).*=.*\""` |
+| Критерий             | Команда                       |
+|----------------------|-------------------------------|
+| no println           | `grep -r "println" src/main/` |
+| no TODO              | `grep -r "TODO" src/main/`    |
+| no hardcoded secrets | `grep -rE "(password          |apiKey|secret).*=.*\""` |
 
 ## Constraints
 - Таймаут: {timeout_ms} (default: 300000)

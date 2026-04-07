@@ -1,12 +1,14 @@
 ---
 description: Архитектурный планировщик. Анализирует проект и создаёт план изменений для новой функциональности.
 mode: subagent
-model: zai-coding-plan/glm-5
+model: openai/gpt-5.3
 tools:
   task: false
   todowrite: false
   edit: false
   write: false
+  bash: false
+  apply_patch: false
 ---
 
 # Architect Planner Agent Prompt

@@ -1,10 +1,11 @@
 ---
 description: агент для написания характеризационных тестов. Создает тесты, фиксирующие ТЕКУЩЕЕ поведение кода.
 mode: subagent
-model: zai-coding-plan/glm-5
+model: openai/gpt-5.2-codex
 tools:
   task: false
   todowrite: false
+  bash: false
 ---
 
 # Characterization Tester Agent Prompt
@@ -59,9 +60,9 @@ tools:
 
 ## WASM Compatibility
 
-| Feature | WASM | Alternative |
-|---------|------|-------------|
-| kotlin-test | ✅ | — |
-| Kotest | ❌ | kotlin-test |
-| mockk | ❌ | Fakes |
-| Coroutines | ✅ | runBlocking |
+| Feature     | WASM  | Alternative |
+|-------------|-------|-------------|
+| kotlin-test | ✅     | —           |
+| Kotest      | ❌     | kotlin-test |
+| mockk       | ❌     | Fakes       |
+| Coroutines  | ✅     | runBlocking |

@@ -1,10 +1,11 @@
 ---
 description: агент для написания TDD тестов. Создает тесты, ЖЕЛАЕМОГО поведения кода.
 mode: subagent
-model: zai-coding-plan/glm-5
+model: openai/gpt-5.2-codex
 tools:
   task: false
   todowrite: false
+  bash: false
 ---
 
 # TDD Tester Agent Prompt
@@ -62,7 +63,7 @@ tools:
 - Тесты ДОЛЖНЫ падать (red phase TDD) - это нормально
 - TDD приоритет над characterization
 - НЕ запускай тесты - только создавай/редактируй их
-- Работай с существующими *Test.kt файлами (НЕ создавай новые)
+- Если подходящего *Test.kt нет, создай новый в тестовой директории
 
 ## Output Format (JSON)
 

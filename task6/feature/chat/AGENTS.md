@@ -33,6 +33,7 @@ UI Event → Intent → Executor → Repository → Msg (internal) → Reducer �
 feature:chat
 ├── core:model        (ChatMessage, StreamChunk)
 ├── core:network      (ChatClient)
+├── core:storage      (StorageService)
 └── feature:settings  (ApiSettings)
 ```
 
@@ -105,7 +106,7 @@ interface ChatRepository {
         settings: ApiSettings
     ): SendMessageResult
     
-    // Streaming API (INFRASTRUCTURE EXISTS, NOT YET USED)
+    // Streaming API (USED for ZAI provider)
     fun sendMessageStreaming(
         prompt: String,
         messages: List<ChatMessage>,
@@ -120,7 +121,7 @@ interface ChatRepository {
 
 **Implementation Status**:
 - ✅ `sendMessage()` — используется в ChatStoreFactory
-- ⚠️ `sendMessageStreaming()` — infrastructure exists in core/network, но НЕ интегрирован в ChatStoreFactory
+- ✅ `sendMessageStreaming()` — используется в ChatStoreFactory для ZAI provider
 
 ## Implementation Details
 
@@ -144,12 +145,19 @@ interface ChatRepository {
 - Immutable state updates
 - Pattern matching on Msg types
 
-### Current Flow (Non-Streaming)
+### Current Flow (Non-Streaming, OpenRouter)
 1. User sends message → `SendMessage` intent
 2. Executor creates user message, adds to state
 3. Executor calls `repository.sendMessage()` (non-streaming)
 4. On success: adds assistant message to state
 5. On error: sets error message, publishes ShowToast label
+
+### Current Flow (Streaming, ZAI)
+1. User sends message → `SendMessage` intent
+2. Executor creates user message, adds to state
+3. Executor calls `repository.sendMessageStreaming()`
+4. Streaming chunks update `streamingContent/streamingReasoning`
+5. On Done: final assistant message added to state + history persisted
 
 ## Error Handling
 
@@ -160,8 +168,8 @@ interface ChatRepository {
 ## Критичные правила
 
 - **Detekt**: БЕЗ `@Suppress` (исключения: только тесты)
-- **No comments**: Код self-documenting
-- **KDoc**: документация приветствуется
+- **No comments**: Без inline-комментариев. KDoc только для public API
+- **KDoc**: Документация только для public API
 - **State updates**: Только через Reducer (pattern matching на Msg)
 - **Intents**: Обрабатываются в Executor (coroutineExecutorFactory)
 - **Labels**: Одноразовые события, не state
@@ -193,30 +201,26 @@ interface ChatRepository {
 3. Добавить обработку в reducer (если нужно)
 4. Обновить tests (когда появятся)
 
-## Planned Features
+## Feature Status
 
 ### Streaming Integration
-**Status**: Infrastructure exists, not integrated
+**Status**: Implemented for ZAI provider
 
 **What exists**:
 - `ChatClient.sendMessageStreaming()` в core/network
-- `ChatRepository.sendMessageStreaming()` interface method
+- `ChatRepository.sendMessageStreaming()` используется в ChatStoreFactory для ZAI
 - `StreamChunk` sealed class в core/model
 
 **What needs to be done**:
-- Integrate streaming in ChatStoreFactory executor
-- Add streaming state management (partial message display)
-- Update UI to show streaming tokens
 - Add cancel streaming support
+- Улучшить отображение streaming reasoning (если нужно)
 
 ### LocalStorage Persistence
-**Status**: Not implemented
+**Status**: Implemented
 
-**What needs to be done**:
-- Add localStorage integration for chat history
-- Persist messages across sessions
-- Add settings persistence (currently only in-memory)
-- Implement data migration strategy
+**What exists**:
+- Chat history сохраняется через `StorageService`
+- Settings persistence реализована в settings module
 
 ### Metrics Tracking
 **Status**: Not implemented
@@ -240,9 +244,9 @@ interface ChatRepository {
 ## Особенности модуля
 
 - **Framework**: MVIKotlin для MVI архитектуры
-- **Non-streaming**: Текущая реализация использует только `sendMessage()` (не streaming)
-- **Streaming ready**: Infrastructure для streaming существует, но не интегрирована
-- **No persistence**: Chat history НЕ сохраняется между сессиями
+- **Non-streaming**: Для OpenRouter используется `sendMessage()`
+- **Streaming**: Для ZAI используется `sendMessageStreaming()`
+- **Persistence**: Chat history сохраняется между сессиями
 - **Markdown**: Рендеринг markdown в MessageBubble
 - **Settings**: Настройки API (model, temperature, etc.)
 

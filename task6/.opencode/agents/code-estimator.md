@@ -1,10 +1,14 @@
 ---
 description: агент оценки кода. Анализирует объём и разбивает на чанки для параллельной/последовательной обработки.
 mode: subagent
-model: zai-coding-plan/glm-5
+model: openai/gpt-5.3
 tools:
   task: false
   todowrite: false
+  edit: false
+  write: false
+  bash: false
+  apply_patch: false
 ---
 
 # Code Estimator Agent Prompt

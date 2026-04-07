@@ -12,7 +12,7 @@
 ## Критичные правила
 
 - **Detekt**: БЕЗ `@Suppress`. Исключения: тесты, `AppColors.kt` (обосновано)
-- **No comments**: Код должен быть self-documenting. Только `@file:OptIn`
+- **No comments**: Без inline-комментариев. Допустим только KDoc для public API и `@file:OptIn`
 - **Принципы**: SOLID, KISS, DRY, YAGNI — строго
 
 ## Архитектура
@@ -23,11 +23,12 @@
 - `feature/*` → зависят только от `core/*`
 - `feature/*` → НЕ зависят друг от друга
 - `core/*` → общие модели, сеть, UI components
+- Текущее исключение: `feature:chat` использует `feature:settings` для `ApiSettings`
 
 **Current implementation status**:
 - ✅ SSE streaming infrastructure in `core/network`
-- ✅ Streaming integrated in ChatStoreFactory
-- ✅ localStorage persistence implemented in `core/storage`
+- ✅ Streaming интегрирован в ChatStoreFactory (для ZAI provider)
+- ✅ localStorage persistence реализован в `core/storage` и используется в chat/settings
 
 ```
 composeApp/     # Entry point
@@ -47,7 +48,7 @@ core/           # model, network, ui (shared)
 
 1. `feature/chat/.../ChatViewModel.kt` — MVI паттерн
 2. `feature/chat/.../ChatRepository.kt` — Repository + network layer
-3. `feature/chat/.../ui/App.kt` — Compose UI composition
+3. `composeApp/.../App.kt` — Compose UI composition
 4. `core/network/.../ChatClient.kt` — HTTP client
 
 ## Modules Documentation
