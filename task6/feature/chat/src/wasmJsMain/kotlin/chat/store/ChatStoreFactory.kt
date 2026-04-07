@@ -4,6 +4,7 @@ import chat.ChatIntent
 import chat.ChatLabel
 import chat.ChatRepository
 import chat.ChatState
+import chat.SendMessageResult
 import com.arkivanov.mvikotlin.core.store.Reducer
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
@@ -12,6 +13,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import model.ApiProvider
 import model.ChatMessage
 import model.StreamChunk
 import settings.ApiSettings
@@ -39,7 +41,6 @@ class ChatStoreFactory(
     private class ExecutorContext(
         val dispatchFn: (Msg) -> Unit,
         val publishFn: (ChatLabel) -> Unit,
-        val getStateFn: () -> ChatState,
         val launchBlock: (suspend () -> Unit) -> Unit
     )
 
@@ -57,7 +58,6 @@ class ChatStoreFactory(
 
         ctx.dispatchFn(Msg.InputTextChanged(""))
         ctx.dispatchFn(Msg.MessagesUpdated(updatedMessages))
-        ctx.dispatchFn(Msg.StreamingStarted)
         ctx.dispatchFn(Msg.ErrorChanged(null))
 
         launchBlock {
@@ -70,9 +70,52 @@ class ChatStoreFactory(
             }
         }
 
-        launchBlock {
-            startStreaming(currentInput, updatedMessages, currentState.settings, ctx, updatedMessages)
+        when (currentState.settings.provider) {
+            ApiProvider.OPENROUTER -> {
+                ctx.dispatchFn(Msg.LoadingChanged(true))
+                launchBlock {
+                    sendMessageNonStreaming(currentInput, updatedMessages, currentState.settings, ctx)
+                }
+            }
+
+            ApiProvider.ZAI -> {
+                ctx.dispatchFn(Msg.StreamingStarted)
+                launchBlock {
+                    startStreaming(currentInput, updatedMessages, currentState.settings, ctx, updatedMessages)
+                }
+            }
         }
+    }
+
+    private suspend fun sendMessageNonStreaming(
+        prompt: String,
+        messages: List<ChatMessage>,
+        settings: ApiSettings,
+        ctx: ExecutorContext
+    ) {
+        when (val result = repository.sendMessage(prompt, messages, settings)) {
+            is SendMessageResult.Success -> {
+                val finalMessages = messages + result.response
+                ctx.dispatchFn(Msg.MessagesUpdated(finalMessages))
+                ctx.launchBlock {
+                    try {
+                        storage.setChatHistory(finalMessages)
+                    } catch (e: IllegalStateException) {
+                        println("Failed to save chat history: ${e.message}")
+                    } catch (e: IllegalArgumentException) {
+                        println("Failed to save chat history: ${e.message}")
+                    }
+                }
+                ctx.publishFn(ChatLabel.ScrollToBottom)
+            }
+
+            is SendMessageResult.Error -> {
+                ctx.dispatchFn(Msg.ErrorChanged(result.message))
+                ctx.publishFn(ChatLabel.ShowToast(result.message))
+            }
+        }
+
+        ctx.dispatchFn(Msg.LoadingChanged(false))
     }
 
     private suspend fun startStreaming(
@@ -152,72 +195,65 @@ class ChatStoreFactory(
         ctx.publishFn(ChatLabel.ScrollToBottom)
     }
 
-    fun create(): ChatStore {
-        lateinit var store: ChatStore
-
-        store = object :
-            ChatStore,
-            Store<ChatIntent, ChatState, ChatLabel> by storeFactory.create(
-                name = "ChatStore",
-                initialState = ChatState(),
-                executorFactory = coroutineExecutorFactory {
-                    onIntent<ChatIntent.UpdateInputText> {
-                        println("handle intent UpdateInputText")
-                        dispatch(Msg.InputTextChanged(it.text))
-                    }
-                    onIntent<ChatIntent.SendMessage> {
-                        val ctx = ExecutorContext(
-                            { dispatch(it) },
-                            { publish(it) },
-                            { state() },
-                            { block -> launch { block() } }
-                        )
-                        handleSendMessage(state().inputText, state(), ctx) { block -> launch { block() } }
-                    }
-                    onIntent<ChatIntent.ClearChat> {
-                        dispatch(Msg.MessagesUpdated(emptyList()))
-                        dispatch(Msg.ErrorChanged(null))
-                        launch {
-                            try {
-                                storage.clearChatHistory()
-                            } catch (e: IllegalStateException) {
-                                println("Failed to clear chat history: ${e.message}")
-                            } catch (e: IllegalArgumentException) {
-                                println("Failed to clear chat history: ${e.message}")
-                            }
+    fun create(): ChatStore = object :
+        ChatStore,
+        Store<ChatIntent, ChatState, ChatLabel> by storeFactory.create(
+            name = "ChatStore",
+            initialState = ChatState(),
+            executorFactory = coroutineExecutorFactory {
+                onIntent<ChatIntent.UpdateInputText> {
+                    println("handle intent UpdateInputText")
+                    dispatch(Msg.InputTextChanged(it.text))
+                }
+                onIntent<ChatIntent.SendMessage> {
+                    val ctx = ExecutorContext(
+                        { dispatch(it) },
+                        { publish(it) },
+                        { block -> launch { block() } }
+                    )
+                    handleSendMessage(state().inputText, state(), ctx) { block -> launch { block() } }
+                }
+                onIntent<ChatIntent.ClearChat> {
+                    dispatch(Msg.MessagesUpdated(emptyList()))
+                    dispatch(Msg.ErrorChanged(null))
+                    launch {
+                        try {
+                            storage.clearChatHistory()
+                        } catch (e: IllegalStateException) {
+                            println("Failed to clear chat history: ${e.message}")
+                        } catch (e: IllegalArgumentException) {
+                            println("Failed to clear chat history: ${e.message}")
                         }
                     }
-                    onIntent<ChatIntent.UpdateMessages> {
-                        dispatch(Msg.MessagesUpdated(it.messages))
-                    }
-                    onIntent<ChatIntent.UpdateSettings> { dispatch(Msg.SettingsUpdated(it.settings)) }
-                    onIntent<ChatIntent.ToggleSettings> { dispatch(Msg.SettingsToggled(it.show)) }
-                    onIntent<ChatIntent.SetError> { dispatch(Msg.ErrorChanged(it.message)) }
-                    onIntent<ChatIntent.ClearError> { dispatch(Msg.ErrorChanged(null)) }
-                    onIntent<ChatIntent.SetLoading> { dispatch(Msg.LoadingChanged(it.loading)) }
-                },
-                reducer = MessageReducer
-            ) {}
-
-        return store
-    }
+                }
+                onIntent<ChatIntent.UpdateMessages> {
+                    dispatch(Msg.MessagesUpdated(it.messages))
+                }
+                onIntent<ChatIntent.UpdateSettings> { dispatch(Msg.SettingsUpdated(it.settings)) }
+                onIntent<ChatIntent.ToggleSettings> { dispatch(Msg.SettingsToggled(it.show)) }
+                onIntent<ChatIntent.SetError> { dispatch(Msg.ErrorChanged(it.message)) }
+                onIntent<ChatIntent.ClearError> { dispatch(Msg.ErrorChanged(null)) }
+                onIntent<ChatIntent.SetLoading> { dispatch(Msg.LoadingChanged(it.loading)) }
+            },
+            reducer = MessageReducer
+        ) {}
 
     private object MessageReducer : Reducer<ChatState, Msg> {
-        override fun ChatState.reduce(message: Msg): ChatState = when (message) {
+        override fun ChatState.reduce(msg: Msg): ChatState = when (msg) {
             is Msg.InputTextChanged -> {
                 println("handle msg UpdateInputText")
-                copy(inputText = message.text)
+                copy(inputText = msg.text)
             }
 
-            is Msg.MessagesUpdated -> copy(messages = message.messages)
+            is Msg.MessagesUpdated -> copy(messages = msg.messages)
 
-            is Msg.LoadingChanged -> copy(isLoading = message.isLoading)
+            is Msg.LoadingChanged -> copy(isLoading = msg.isLoading)
 
-            is Msg.ErrorChanged -> copy(errorMessage = message.error)
+            is Msg.ErrorChanged -> copy(errorMessage = msg.error)
 
-            is Msg.SettingsToggled -> copy(showSettings = message.show)
+            is Msg.SettingsToggled -> copy(showSettings = msg.show)
 
-            is Msg.SettingsUpdated -> copy(settings = message.settings)
+            is Msg.SettingsUpdated -> copy(settings = msg.settings)
 
             is Msg.StreamingStarted -> copy(
                 isStreaming = true,
@@ -226,9 +262,9 @@ class ChatStoreFactory(
                 isLoading = true
             )
 
-            is Msg.StreamingReasoningUpdated -> copy(streamingReasoning = message.content)
+            is Msg.StreamingReasoningUpdated -> copy(streamingReasoning = msg.content)
 
-            is Msg.StreamingContentUpdated -> copy(streamingContent = message.content)
+            is Msg.StreamingContentUpdated -> copy(streamingContent = msg.content)
 
             is Msg.StreamingFinished -> copy(
                 isStreaming = false,

@@ -22,7 +22,8 @@ class DefaultChatComponent(
     private val storage: StorageService,
     private val storeFactory: StoreFactory,
     componentContext: ComponentContext,
-) : ChatComponent, ComponentContext by componentContext {
+) : ChatComponent,
+    ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -65,10 +66,11 @@ class DefaultChatComponent(
 }
 
 class DefaultChatComponentFactory(private val storeFactory: StoreFactory, private val storage: StorageService) {
-    fun create(repository: ChatRepository, componentContext: ComponentContext): DefaultChatComponent = DefaultChatComponent(
-        repository = repository,
-        storage = storage,
-        storeFactory = storeFactory,
-        componentContext = componentContext,
-    )
+    fun create(repository: ChatRepository, componentContext: ComponentContext): DefaultChatComponent =
+        DefaultChatComponent(
+            repository = repository,
+            storage = storage,
+            storeFactory = storeFactory,
+            componentContext = componentContext,
+        )
 }

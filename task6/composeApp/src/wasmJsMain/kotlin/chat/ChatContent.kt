@@ -49,13 +49,7 @@ import ui.theme.AppTheme
 fun ChatContent(component: ChatComponent, onOpenSettings: () -> Unit) {
     val state by component.state.subscribeAsState()
 
-    val settings = remember(state.settings) {
-        ApiSettings(
-            model = state.settings.model,
-            maxTokens = state.settings.maxTokens,
-            temperature = state.settings.temperature
-        )
-    }
+    val settings = remember(state.settings) { state.settings }
 
     val listState = rememberLazyListState()
 
@@ -119,10 +113,15 @@ private fun ChatHeader(settings: ApiSettings, component: ChatComponent, onOpenSe
     ) {
         Column {
             Text(
-                text = "Z.ai Chat",
+                text = "AI Chat",
                 style = MaterialTheme.typography.h5,
                 color = AppColors.TextPrimary,
                 modifier = Modifier.testTag(ChatContentTags.TITLE),
+            )
+            Text(
+                text = "Provider: ${settings.provider.displayName}",
+                style = MaterialTheme.typography.caption,
+                color = AppColors.TextMuted,
             )
             Text(
                 text = "Model: ${settings.model}",

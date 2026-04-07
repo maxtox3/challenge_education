@@ -11,7 +11,6 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.plugins.sse.SSEBufferPolicy
 import io.ktor.client.plugins.sse.sse
-import io.ktor.client.request.header
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -27,6 +26,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import model.ApiProvider
 import model.ChatMessage
 import model.Message
 import model.StreamChunk
@@ -35,7 +35,7 @@ import model.ZAiRequest
 import model.ZAiResponse
 import model.ZAiStreamChunk
 
-class ChatClientImpl(val apiKeyProvider: () -> String) : ChatClient {
+class ChatClientImpl : ChatClient {
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
@@ -51,7 +51,19 @@ class ChatClientImpl(val apiKeyProvider: () -> String) : ChatClient {
         }
     }
 
-    private val baseUrl = "https://api.z.ai/api/coding/paas/v4/chat/completions"
+    private fun baseUrl(provider: ApiProvider): String = when (provider) {
+        ApiProvider.ZAI -> "https://api.z.ai/api/coding/paas/v4/chat/completions"
+        ApiProvider.OPENROUTER -> "https://openrouter.ai/api/v1/chat/completions"
+    }
+
+    private fun buildHeaders(headers: io.ktor.http.HeadersBuilder, apiKey: String, provider: ApiProvider) {
+        headers.append(HttpHeaders.Authorization, "Bearer $apiKey")
+        headers.append(HttpHeaders.AcceptLanguage, "en-US,en")
+        if (provider == ApiProvider.OPENROUTER) {
+            headers.append("HTTP-Referer", "http://localhost")
+            headers.append("X-Title", "challenge_education")
+        }
+    }
 
     private fun buildAllMessages(messages: List<ChatMessage>, systemPrompt: String?): List<Message> = buildList {
         systemPrompt?.let { prompt ->
@@ -113,6 +125,8 @@ class ChatClientImpl(val apiKeyProvider: () -> String) : ChatClient {
     }
 
     override suspend fun sendMessage(
+        apiKey: String,
+        provider: ApiProvider,
         model: String,
         messages: List<ChatMessage>,
         constraints: ResponseConstraints,
@@ -121,14 +135,15 @@ class ChatClientImpl(val apiKeyProvider: () -> String) : ChatClient {
         val allMessages = buildAllMessages(messages, systemPrompt)
         val request = buildRequest(model, allMessages, constraints)
 
+        val url = baseUrl(provider)
+
         val requestBody = json.encodeToString(request)
-        println("[ChatClient] Sending request to: $baseUrl")
+        println("[ChatClient] Sending request to: $url")
         println("[ChatClient] Request body: $requestBody")
 
-        val response: HttpResponse = client.post(baseUrl) {
+        val response: HttpResponse = client.post(url) {
             headers {
-                append(HttpHeaders.Authorization, "Bearer ${apiKeyProvider.invoke()}")
-                append(HttpHeaders.AcceptLanguage, "en-US,en")
+                buildHeaders(this, apiKey, provider)
             }
             contentType(ContentType.Application.Json)
             setBody(requestBody)
@@ -207,6 +222,8 @@ class ChatClientImpl(val apiKeyProvider: () -> String) : ChatClient {
     }
 
     override fun sendMessageStreaming(
+        apiKey: String,
+        provider: ApiProvider,
         model: String,
         messages: List<ChatMessage>,
         constraints: ResponseConstraints,
@@ -215,16 +232,19 @@ class ChatClientImpl(val apiKeyProvider: () -> String) : ChatClient {
         val allMessages = buildAllMessages(messages, systemPrompt)
         val request = buildRequest(model, allMessages, constraints, stream = true)
 
+        val url = baseUrl(provider)
+
         val requestBody = json.encodeToString(request)
-        println("[ChatClient] Sending SSE request to: $baseUrl")
+        println("[ChatClient] Sending SSE request to: $url")
 
         client.sse(
             request = {
-                url { takeFrom(baseUrl) }
+                url { takeFrom(url) }
                 method = HttpMethod.Post
                 contentType(ContentType.Application.Json)
-                header(HttpHeaders.Authorization, "Bearer ${apiKeyProvider.invoke()}")
-                header(HttpHeaders.AcceptLanguage, "en-US,en")
+                headers {
+                    buildHeaders(this, apiKey, provider)
+                }
                 setBody(requestBody)
             }
         ) {

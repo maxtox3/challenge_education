@@ -17,13 +17,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import model.ApiProvider
 import model.ModelType
 import ui.theme.AppColors
 
 @Composable
-fun ModelSelector(selectedModelId: String, onModelSelected: (String) -> Unit, modifier: Modifier = Modifier) {
+fun ModelSelector(
+    selectedModelId: String,
+    provider: ApiProvider,
+    onModelSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var expanded by remember { mutableStateOf(false) }
-    val selectedModel = remember(selectedModelId) { ModelType.fromId(selectedModelId) }
+    val selectedModel = remember(selectedModelId, provider) {
+        val resolved = ModelType.fromId(selectedModelId)
+        if (resolved.provider == provider) resolved else ModelType.defaultFor(provider)
+    }
+    val models = remember(provider) { ModelType.forProvider(provider) }
 
     Box(
         modifier = modifier
@@ -55,7 +65,7 @@ fun ModelSelector(selectedModelId: String, onModelSelected: (String) -> Unit, mo
                 .background(AppColors.Surface)
                 .testTag(ModelSelectorTags.DROPDOWN),
         ) {
-            ModelType.entries.forEach { model ->
+            models.forEach { model ->
                 DropdownMenuItem(
                     onClick = {
                         onModelSelected(model.id)

@@ -1,5 +1,6 @@
 package baseline
 
+import model.ApiProvider
 import model.ResponseFormat
 import settings.ApiSettings
 import settings.SettingsIntent
@@ -27,6 +28,7 @@ class SettingsBaselineTest {
             settings.apiKey,
             "Default apiKey should match ApiSettings default",
         )
+        assertEquals(ApiProvider.ZAI, settings.provider, "Default provider should be ZAI")
         assertEquals("glm-5", settings.model, "Default model should be glm-5")
         assertNull(settings.maxTokens, "Default maxTokens should be null")
         assertEquals(1.0, settings.temperature, "Default temperature should be 1.0")
@@ -38,6 +40,7 @@ class SettingsBaselineTest {
     fun apiSettingsCopyPreservesValues() {
         val original = ApiSettings(
             apiKey = "test-key",
+            provider = ApiProvider.OPENROUTER,
             model = "custom-model",
             maxTokens = 500,
             temperature = 0.7,
@@ -46,6 +49,7 @@ class SettingsBaselineTest {
         )
         val copied = original.copy(temperature = 0.5)
         assertEquals("test-key", copied.apiKey, "apiKey should be preserved")
+        assertEquals(ApiProvider.OPENROUTER, copied.provider, "provider should be preserved")
         assertEquals("custom-model", copied.model, "model should be preserved")
         assertEquals(500, copied.maxTokens, "maxTokens should be preserved")
         assertEquals(0.5, copied.temperature, "temperature should be updated")

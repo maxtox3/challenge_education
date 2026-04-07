@@ -4,6 +4,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import model.ApiProvider
 import settings.ApiSettings
 import settings.SettingsIntent
 import settings.SettingsState
@@ -44,6 +45,7 @@ class SettingsStoreTest {
     fun testInitialState() = runTest {
         val store = createStore()
         assertEquals("9cccc72cda3c456c9263fe143dbae7b1.9ir3VQrPquSuSyvZ", store.state.settings.apiKey)
+        assertEquals(ApiProvider.ZAI, store.state.settings.provider)
         assertEquals("glm-5", store.state.settings.model)
         assertEquals(1.0, store.state.settings.temperature)
         assertFalse(store.state.isLoading)

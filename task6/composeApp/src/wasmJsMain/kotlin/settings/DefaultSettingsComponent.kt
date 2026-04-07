@@ -19,13 +19,14 @@ import settings.store.SettingsStoreFactory
 import storage.StorageService
 
 class DefaultSettingsComponent(
-    private val initialSettings: ApiSettings = ApiSettings(),
+    initialSettings: ApiSettings = ApiSettings(),
     private val storeFactory: StoreFactory,
-    private val storage: StorageService,
+    storage: StorageService,
     private val json: Json,
     private val onSettingsSaved: (ApiSettings) -> Unit = {},
     componentContext: ComponentContext,
-) : SettingsComponent, ComponentContext by componentContext {
+) : SettingsComponent,
+    ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 

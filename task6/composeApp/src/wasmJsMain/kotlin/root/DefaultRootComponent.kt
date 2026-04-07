@@ -18,12 +18,13 @@ import storage.StorageService
 
 class DefaultRootComponent(
     private val repository: ChatRepository,
-    private val chatComponentFactory: DefaultChatComponentFactory,
+    chatComponentFactory: DefaultChatComponentFactory,
     private val storeFactory: StoreFactory,
     private val storage: StorageService,
     private val json: Json,
     componentContext: ComponentContext,
-) : RootComponent, ComponentContext by componentContext {
+) : RootComponent,
+    ComponentContext by componentContext {
 
     override val chatComponent: ChatComponent = chatComponentFactory.create(
         repository = repository,

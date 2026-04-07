@@ -7,8 +7,8 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import model.ModelType
 import settings.ApiSettings
 import settings.SettingsIntent
 import settings.SettingsLabel
@@ -59,10 +59,26 @@ class SettingsStoreFactory(
             }
         }
 
+        @Suppress("CyclomaticComplexMethod")
         override fun executeIntent(intent: SettingsIntent) {
             when (intent) {
                 is SettingsIntent.UpdateApiKey -> {
                     dispatch(Msg.UpdateSettings(state().settings.copy(apiKey = intent.apiKey)))
+                }
+
+                is SettingsIntent.UpdateProvider -> {
+                    val currentSettings = state().settings
+                    val models = ModelType.forProvider(intent.provider)
+                    val nextModel = if (models.any { it.id == currentSettings.model }) {
+                        currentSettings.model
+                    } else {
+                        ModelType.defaultFor(intent.provider).id
+                    }
+                    dispatch(
+                        Msg.UpdateSettings(
+                            currentSettings.copy(provider = intent.provider, model = nextModel)
+                        )
+                    )
                 }
 
                 is SettingsIntent.UpdateModel -> {

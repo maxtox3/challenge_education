@@ -1,0 +1,47 @@
+[versions]
+kotlin = "2.3.20"
+compose = "1.10.2"
+compose-material3 = "1.10.0-alpha05"
+detekt = "1.23.8"
+ktlint = "14.2.0"
+coroutines = "1.10.2"
+serialization = "1.10.0"
+ktor = "3.4.2"
+decompose = "3.5.0"
+essenty = "2.5.0"
+mvikotlin = "4.3.0"
+markdown = "0.39.2"
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+
+[libraries]
+compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "compose" }
+compose-foundation = { group = "org.jetbrains.compose.foundation", name = "foundation", version.ref = "compose" }
+compose-material = { group = "org.jetbrains.compose.material", name = "material", version.ref = "compose" }
+compose-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "compose-material3" }
+compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "compose" }
+compose-ui-test = { group = "org.jetbrains.compose.ui", name = "ui-test", version.ref = "compose" }
+
+coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
+
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+decompose = { group = "com.arkivanov.decompose", name = "decompose", version.ref = "decompose" }
+decompose-compose = { group = "com.arkivanov.decompose", name = "extensions-compose", version.ref = "decompose" }
+essenty-lifecycle = { group = "com.arkivanov.essenty", name = "lifecycle", version.ref = "essenty" }
+
+mvikotlin = { group = "com.arkivanov.mvikotlin", name = "mvikotlin", version.ref = "mvikotlin" }
+mvikotlin-main = { group = "com.arkivanov.mvikotlin", name = "mvikotlin-main", version.ref = "mvikotlin" }
+mvikotlin-extensions-coroutines = { group = "com.arkivanov.mvikotlin", name = "mvikotlin-extensions-coroutines", version.ref = "mvikotlin" }
+
+markdown-renderer-m3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "markdown" }

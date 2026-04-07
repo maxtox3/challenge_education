@@ -12,6 +12,7 @@ import androidx.compose.ui.test.runComposeUiTest
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
+import model.ApiProvider
 import model.ModelType
 import settings.ApiSettings
 import settings.SettingsComponent
@@ -34,6 +35,7 @@ class SettingsDialogUiRealTest {
 
     private val defaultSettings = ApiSettings(
         apiKey = "test-key",
+        provider = ApiProvider.ZAI,
         model = "glm-5",
         maxTokens = 1000,
         temperature = 0.7,
@@ -53,6 +55,10 @@ class SettingsDialogUiRealTest {
             when (intent) {
                 is SettingsIntent.UpdateApiKey -> {
                     _state.update { it.copy(settings = it.settings.copy(apiKey = intent.apiKey)) }
+                }
+
+                is SettingsIntent.UpdateProvider -> {
+                    _state.update { it.copy(settings = it.settings.copy(provider = intent.provider)) }
                 }
 
                 is SettingsIntent.UpdateModel -> {

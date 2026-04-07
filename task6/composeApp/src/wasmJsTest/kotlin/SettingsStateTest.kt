@@ -1,3 +1,4 @@
+import model.ApiProvider
 import model.ResponseFormat
 import settings.ApiSettings
 import kotlin.test.Test
@@ -9,6 +10,7 @@ class SettingsStateTest {
     fun testApiSettingsDefaults() {
         val settings = ApiSettings()
         assertEquals("9cccc72cda3c456c9263fe143dbae7b1.9ir3VQrPquSuSyvZ", settings.apiKey)
+        assertEquals(ApiProvider.ZAI, settings.provider)
         assertEquals("glm-5", settings.model)
         assertNull(settings.maxTokens)
         assertEquals(1.0, settings.temperature)
@@ -20,6 +22,7 @@ class SettingsStateTest {
     fun testApiSettingsCustomValues() {
         val settings = ApiSettings(
             apiKey = "test-key",
+            provider = ApiProvider.OPENROUTER,
             model = "custom-model",
             maxTokens = 500,
             temperature = 0.7,
@@ -27,6 +30,7 @@ class SettingsStateTest {
             responseFormat = "json",
         )
         assertEquals("test-key", settings.apiKey)
+        assertEquals(ApiProvider.OPENROUTER, settings.provider)
         assertEquals("custom-model", settings.model)
         assertEquals(500, settings.maxTokens)
         assertEquals(0.7, settings.temperature)

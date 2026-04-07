@@ -2,6 +2,7 @@ package settings
 
 sealed class SettingsIntent {
     data class UpdateApiKey(val apiKey: String) : SettingsIntent()
+    data class UpdateProvider(val provider: model.ApiProvider) : SettingsIntent()
     data class UpdateModel(val model: String) : SettingsIntent()
     data class UpdateMaxTokens(val maxTokens: Int?) : SettingsIntent()
     data class UpdateTemperature(val temperature: Double) : SettingsIntent()

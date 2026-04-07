@@ -30,6 +30,8 @@ class ChatRepositoryImpl(private val client: ChatClient) : ChatRepository {
 
         return try {
             val result = client.sendMessage(
+                apiKey = settings.apiKey,
+                provider = settings.provider,
                 model = settings.model,
                 messages = messages,
                 constraints = constraints,
@@ -55,6 +57,8 @@ class ChatRepositoryImpl(private val client: ChatClient) : ChatRepository {
     ): Flow<StreamChunk> {
         val constraints = settings.toResponseConstraints()
         return client.sendMessageStreaming(
+            apiKey = settings.apiKey,
+            provider = settings.provider,
             model = settings.model,
             messages = messages,
             constraints = constraints,
