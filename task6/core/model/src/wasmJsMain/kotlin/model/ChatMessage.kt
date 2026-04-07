@@ -14,4 +14,5 @@ data class ChatMessage(
     val isReasoningContent: Boolean = false,
     val isStreaming: Boolean = false,
     val model: String? = null,
+    val reasoningContent: String? = null,
 )

@@ -40,6 +40,7 @@ import chat.ui.icons.Close
 import chat.ui.icons.Delete
 import chat.ui.icons.Settings
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import model.ChatMessage
 import settings.ApiSettings
 import settings.SettingsComponent
 import settings.ui.SettingsDialog
@@ -63,6 +64,13 @@ fun ChatContent(component: ChatComponent, settingsComponent: SettingsComponent) 
     LaunchedEffect(state.messages.size) {
         if (state.messages.isNotEmpty()) {
             listState.animateScrollToItem(state.messages.size - 1)
+        }
+    }
+
+    LaunchedEffect(state.streamingContent, state.streamingReasoning) {
+        if (state.isStreaming && state.messages.isNotEmpty()) {
+            val streamingItemIndex = state.messages.size
+            listState.animateScrollToItem(streamingItemIndex)
         }
     }
 
@@ -226,7 +234,25 @@ private fun MessageList(state: ChatState, listState: androidx.compose.foundation
             MessageBubble(message = message)
         }
 
-        if (state.isLoading) {
+        if (state.isStreaming &&
+            (!state.streamingReasoning.isNullOrBlank() || !state.streamingContent.isNullOrBlank())
+        ) {
+            item {
+                Box(modifier = Modifier.testTag(ChatContentTags.STREAMING_MESSAGE)) {
+                    MessageBubble(
+                        message = ChatMessage(
+                            role = "assistant",
+                            content = state.streamingContent ?: "",
+                            reasoningContent = state.streamingReasoning,
+                            isStreaming = true,
+                            model = state.settings.model,
+                        ),
+                    )
+                }
+            }
+        }
+
+        if (state.isLoading && !state.isStreaming) {
             item {
                 Box(modifier = Modifier.testTag(ChatContentTags.LOADING_INDICATOR)) {
                     TypingIndicator()
@@ -286,4 +312,5 @@ object ChatContentTags {
     const val ERROR_TEXT = "chat_content_error_text"
     const val ERROR_DISMISS_BUTTON = "chat_content_error_dismiss_button"
     const val LOADING_INDICATOR = "chat_content_loading_indicator"
+    const val STREAMING_MESSAGE = "chat_content_streaming_message"
 }

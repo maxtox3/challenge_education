@@ -195,9 +195,9 @@ class ChatStoreFactory(
                     onIntent<ChatIntent.SetError> { dispatch(Msg.ErrorChanged(it.message)) }
                     onIntent<ChatIntent.ClearError> { dispatch(Msg.ErrorChanged(null)) }
                     onIntent<ChatIntent.SetLoading> { dispatch(Msg.LoadingChanged(it.loading)) }
-                 },
-                 reducer = MessageReducer
-             ) {}
+                },
+                reducer = MessageReducer
+            ) {}
 
         return store
     }

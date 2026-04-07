@@ -163,15 +163,37 @@ private fun ReasoningContent(message: ChatMessage) {
 
 @Composable
 private fun MessageContent(message: ChatMessage) {
-    if (message.isReasoningContent) {
-        ReasoningContent(message)
-    } else {
-        Markdown(
-            content = message.content,
-            colors = markdownColor(text = AppColors.TextPrimary),
-            typography = markdownTypography(),
-            modifier = Modifier.testTag(MessageBubbleTags.MARKDOWN_CONTENT),
-        )
+    val reasoningContent = message.reasoningContent
+    when {
+        reasoningContent != null && reasoningContent.isNotBlank() -> {
+            Column {
+                ReasoningContent(
+                    message.copy(content = reasoningContent),
+                )
+                if (message.content.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Markdown(
+                        content = message.content,
+                        colors = markdownColor(text = AppColors.TextPrimary),
+                        typography = markdownTypography(),
+                        modifier = Modifier.testTag(MessageBubbleTags.MARKDOWN_CONTENT),
+                    )
+                }
+            }
+        }
+
+        message.isReasoningContent -> {
+            ReasoningContent(message)
+        }
+
+        else -> {
+            Markdown(
+                content = message.content,
+                colors = markdownColor(text = AppColors.TextPrimary),
+                typography = markdownTypography(),
+                modifier = Modifier.testTag(MessageBubbleTags.MARKDOWN_CONTENT),
+            )
+        }
     }
 }
 
