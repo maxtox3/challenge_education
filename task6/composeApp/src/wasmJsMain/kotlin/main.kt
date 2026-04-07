@@ -2,13 +2,15 @@
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
-import chat.ChatContent
 import chat.ChatRepositoryImpl
 import chat.DefaultChatComponentFactory
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import kotlinx.serialization.json.Json
 import network.ChatClientImpl
 import root.DefaultRootComponent
+import root.RootContent
 import storage.LocalStorageService
 
 fun main() {
@@ -19,18 +21,19 @@ fun main() {
     val storage = LocalStorageService(json)
     val chatComponentFactory = DefaultChatComponentFactory(storeFactory, storage)
 
+    val lifecycle = LifecycleRegistry()
+    val componentContext = DefaultComponentContext(lifecycle = lifecycle)
+
     val rootComponent = DefaultRootComponent(
         repository = repository,
         chatComponentFactory = chatComponentFactory,
         storeFactory = storeFactory,
         storage = storage,
-        json = json
+        json = json,
+        componentContext = componentContext,
     )
 
     ComposeViewport("ComposeTarget") {
-        ChatContent(
-            component = rootComponent.chatComponent,
-            settingsComponent = rootComponent.settingsComponent
-        )
+        RootContent(rootComponent)
     }
 }

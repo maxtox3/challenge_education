@@ -38,7 +38,7 @@ import ui.theme.AppColors
 import kotlin.math.roundToInt
 
 @Composable
-fun SettingsDialog(component: SettingsComponent, onDismiss: () -> Unit,) {
+fun SettingsDialog(component: SettingsComponent, onDismiss: () -> Unit) {
     val state by component.state.subscribeAsState()
 
     Dialog(onDismissRequest = onDismiss) {
@@ -73,7 +73,7 @@ fun SettingsDialog(component: SettingsComponent, onDismiss: () -> Unit,) {
 }
 
 @Composable
-private fun SettingsDialogContent(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit,) {
+private fun SettingsDialogContent(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit) {
     Text(
         text = "API Settings",
         style = MaterialTheme.typography.h6,
@@ -95,7 +95,7 @@ private fun SettingsDialogContent(state: settings.ApiSettings, onIntent: (Settin
 }
 
 @Composable
-private fun ApiKeyInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit,) {
+private fun ApiKeyInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit) {
     OutlinedTextField(
         value = state.apiKey,
         onValueChange = { onIntent(SettingsIntent.UpdateApiKey(it)) },
@@ -109,7 +109,7 @@ private fun ApiKeyInput(state: settings.ApiSettings, onIntent: (SettingsIntent) 
 }
 
 @Composable
-private fun MaxTokensInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit,) {
+private fun MaxTokensInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit) {
     OutlinedTextField(
         value = state.maxTokens?.toString() ?: "",
         onValueChange = {
@@ -132,7 +132,7 @@ private fun MaxTokensInput(state: settings.ApiSettings, onIntent: (SettingsInten
 }
 
 @Composable
-private fun TemperatureInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit,) {
+private fun TemperatureInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit) {
     Text(
         text = "Temperature: ${(state.temperature * 100).roundToInt() / 100.0}",
         color = AppColors.TextSecondary,
@@ -154,7 +154,7 @@ private fun TemperatureInput(state: settings.ApiSettings, onIntent: (SettingsInt
 }
 
 @Composable
-private fun StopSequencesInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit,) {
+private fun StopSequencesInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit) {
     OutlinedTextField(
         value = state.stopSequences,
         onValueChange = { onIntent(SettingsIntent.UpdateStopSequences(it)) },
@@ -173,7 +173,7 @@ private fun StopSequencesInput(state: settings.ApiSettings, onIntent: (SettingsI
 }
 
 @Composable
-private fun ResponseFormatInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit,) {
+private fun ResponseFormatInput(state: settings.ApiSettings, onIntent: (SettingsIntent) -> Unit) {
     Text(
         text = "Response Format",
         color = AppColors.TextSecondary,
@@ -199,7 +199,7 @@ private fun ResponseFormatInput(state: settings.ApiSettings, onIntent: (Settings
 }
 
 @Composable
-private fun SettingsDialogButtons(onDismiss: () -> Unit, onSave: () -> Unit,) {
+private fun SettingsDialogButtons(onDismiss: () -> Unit, onSave: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
@@ -226,7 +226,7 @@ private fun SettingsDialogButtons(onDismiss: () -> Unit, onSave: () -> Unit,) {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun ResponseFormatChip(selected: Boolean, onClick: () -> Unit, label: String, modifier: Modifier = Modifier,) {
+private fun ResponseFormatChip(selected: Boolean, onClick: () -> Unit, label: String, modifier: Modifier = Modifier) {
     Surface(
         color = if (selected) AppColors.Primary else AppColors.SurfaceLight,
         shape = RoundedCornerShape(16.dp),

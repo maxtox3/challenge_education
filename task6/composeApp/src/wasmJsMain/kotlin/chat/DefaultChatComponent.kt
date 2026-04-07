@@ -2,8 +2,10 @@ package chat
 
 import chat.store.ChatStore
 import chat.store.ChatStoreFactory
+import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.arkivanov.mvikotlin.extensions.coroutines.states
@@ -19,7 +21,8 @@ class DefaultChatComponent(
     private val repository: ChatRepository,
     private val storage: StorageService,
     private val storeFactory: StoreFactory,
-) : ChatComponent {
+    componentContext: ComponentContext,
+) : ChatComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -34,6 +37,10 @@ class DefaultChatComponent(
     override val state: Value<ChatState> = _state
 
     init {
+        lifecycle.doOnDestroy {
+            scope.cancel()
+        }
+
         store.states
             .onEach { newState ->
                 println("handle state = $newState")
@@ -55,16 +62,13 @@ class DefaultChatComponent(
     override fun accept(intent: ChatIntent) {
         store.accept(intent)
     }
-
-    fun dispose() {
-        scope.cancel()
-    }
 }
 
 class DefaultChatComponentFactory(private val storeFactory: StoreFactory, private val storage: StorageService) {
-    fun create(repository: ChatRepository): DefaultChatComponent = DefaultChatComponent(
+    fun create(repository: ChatRepository, componentContext: ComponentContext): DefaultChatComponent = DefaultChatComponent(
         repository = repository,
         storage = storage,
-        storeFactory = storeFactory
+        storeFactory = storeFactory,
+        componentContext = componentContext,
     )
 }

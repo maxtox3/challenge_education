@@ -3,11 +3,11 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
-    kotlin("multiplatform")
-    id("org.jetbrains.compose")
-    id("org.jetbrains.kotlin.plugin.compose")
-    id("io.gitlab.arturbosch.detekt")
-    id("org.jlleitschuh.gradle.ktlint")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.ktlint)
 }
 
 group = "com.zai"
@@ -30,11 +30,11 @@ kotlin {
     sourceSets {
         val wasmJsMain by getting {
             dependencies {
-                implementation("org.jetbrains.compose.runtime:runtime:1.10.2")
-                implementation("org.jetbrains.compose.foundation:foundation:1.10.2")
-                implementation("org.jetbrains.compose.ui:ui:1.10.2")
-                implementation("org.jetbrains.compose.material:material:1.10.2")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+                implementation(libs.compose.runtime)
+                implementation(libs.compose.foundation)
+                implementation(libs.compose.ui)
+                implementation(libs.compose.material)
+                implementation(libs.coroutines.core)
             }
         }
 

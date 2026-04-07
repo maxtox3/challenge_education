@@ -1,7 +1,7 @@
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
-    id("io.gitlab.arturbosch.detekt")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.detekt)
 }
 
 group = "com.example"
@@ -17,7 +17,7 @@ kotlin {
         val wasmJsMain by getting {
             dependencies {
                 implementation(project(":core:model"))
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0")
+                implementation(libs.serialization.json)
             }
         }
     }

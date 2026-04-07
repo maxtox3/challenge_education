@@ -1,7 +1,9 @@
 package settings
 
+import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.arkivanov.mvikotlin.extensions.coroutines.states
@@ -22,7 +24,8 @@ class DefaultSettingsComponent(
     private val storage: StorageService,
     private val json: Json,
     private val onSettingsSaved: (ApiSettings) -> Unit = {},
-) : SettingsComponent {
+    componentContext: ComponentContext,
+) : SettingsComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -38,6 +41,10 @@ class DefaultSettingsComponent(
     override val state: Value<SettingsState> = _state
 
     init {
+        lifecycle.doOnDestroy {
+            scope.cancel()
+        }
+
         store.states
             .onEach { newState ->
                 _state.value = newState
@@ -57,9 +64,5 @@ class DefaultSettingsComponent(
 
     override fun accept(intent: SettingsIntent) {
         store.accept(intent)
-    }
-
-    fun dispose() {
-        scope.cancel()
     }
 }

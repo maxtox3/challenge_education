@@ -3,10 +3,10 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
-    id("io.gitlab.arturbosch.detekt")
-    id("org.jlleitschuh.gradle.ktlint")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.ktlint)
 }
 
 group = "com.zai"
@@ -31,11 +31,11 @@ kotlin {
             dependencies {
                 implementation(project(":core"))
                 implementation(project(":core:model"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
-                implementation("io.ktor:ktor-client-core:3.4.1")
-                implementation("io.ktor:ktor-client-content-negotiation:3.4.1")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:3.4.1")
+                implementation(libs.coroutines.core)
+                implementation(libs.serialization.json)
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
             }
         }
 

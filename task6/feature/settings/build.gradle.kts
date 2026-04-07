@@ -3,12 +3,12 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
-    id("org.jetbrains.compose")
-    id("org.jetbrains.kotlin.plugin.compose")
-    id("io.gitlab.arturbosch.detekt")
-    id("org.jlleitschuh.gradle.ktlint")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.ktlint)
 }
 
 group = "com.zai"
@@ -35,24 +35,24 @@ kotlin {
                 implementation(project(":core:model"))
                 implementation(project(":core:network"))
                 implementation(project(":core:storage"))
-                implementation("org.jetbrains.compose.runtime:runtime:1.10.2")
-                implementation("org.jetbrains.compose.foundation:foundation:1.10.2")
-                implementation("org.jetbrains.compose.material:material:1.10.2")
-                implementation("org.jetbrains.compose.material3:material3:1.10.0-alpha05")
-                implementation("org.jetbrains.compose.ui:ui:1.10.2")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
-                implementation("com.arkivanov.decompose:decompose:3.2.2")
-                implementation("com.arkivanov.decompose:extensions-compose:3.2.2")
-                implementation("com.arkivanov.mvikotlin:mvikotlin:4.2.0")
-                implementation("com.arkivanov.mvikotlin:mvikotlin-extensions-coroutines:4.2.0")
+                implementation(libs.compose.runtime)
+                implementation(libs.compose.foundation)
+                implementation(libs.compose.material)
+                implementation(libs.compose.material3)
+                implementation(libs.compose.ui)
+                implementation(libs.coroutines.core)
+                implementation(libs.serialization.json)
+                implementation(libs.decompose)
+                implementation(libs.decompose.compose)
+                implementation(libs.mvikotlin)
+                implementation(libs.mvikotlin.extensions.coroutines)
             }
         }
 
         val wasmJsTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("org.jetbrains.compose.ui:ui-test:1.10.2")
+                implementation(libs.compose.ui.test)
             }
         }
     }

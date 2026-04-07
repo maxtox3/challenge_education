@@ -42,13 +42,11 @@ import chat.ui.icons.Settings
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import model.ChatMessage
 import settings.ApiSettings
-import settings.SettingsComponent
-import settings.ui.SettingsDialog
 import ui.theme.AppColors
 import ui.theme.AppTheme
 
 @Composable
-fun ChatContent(component: ChatComponent, settingsComponent: SettingsComponent) {
+fun ChatContent(component: ChatComponent, onOpenSettings: () -> Unit) {
     val state by component.state.subscribeAsState()
 
     val settings = remember(state.settings) {
@@ -75,18 +73,7 @@ fun ChatContent(component: ChatComponent, settingsComponent: SettingsComponent) 
     }
 
     AppTheme {
-        DialogsOverlay(state, component, settingsComponent)
-        ChatScreen(state, settings, component, listState)
-    }
-}
-
-@Composable
-private fun DialogsOverlay(state: ChatState, component: ChatComponent, settingsComponent: SettingsComponent) {
-    if (state.showSettings) {
-        SettingsDialog(
-            component = settingsComponent,
-            onDismiss = { component.accept(ChatIntent.ToggleSettings(false)) },
-        )
+        ChatScreen(state, settings, component, listState, onOpenSettings)
     }
 }
 
@@ -95,7 +82,8 @@ private fun ChatScreen(
     state: ChatState,
     settings: ApiSettings,
     component: ChatComponent,
-    listState: androidx.compose.foundation.lazy.LazyListState
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    onOpenSettings: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -104,7 +92,7 @@ private fun ChatScreen(
             .padding(16.dp)
             .testTag(ChatContentTags.ROOT),
     ) {
-        ChatHeader(settings, component)
+        ChatHeader(settings, component, onOpenSettings)
         MessageListArea(state, listState)
         state.errorMessage?.let { error ->
             ErrorBanner(error, component)
@@ -120,7 +108,7 @@ private fun ChatScreen(
 }
 
 @Composable
-private fun ChatHeader(settings: ApiSettings, component: ChatComponent) {
+private fun ChatHeader(settings: ApiSettings, component: ChatComponent, onOpenSettings: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -144,12 +132,12 @@ private fun ChatHeader(settings: ApiSettings, component: ChatComponent) {
             )
         }
 
-        HeaderActionButtons(component)
+        HeaderActionButtons(component, onOpenSettings)
     }
 }
 
 @Composable
-private fun HeaderActionButtons(component: ChatComponent) {
+private fun HeaderActionButtons(component: ChatComponent, onOpenSettings: () -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         IconButton(
             onClick = { component.accept(ChatIntent.ClearChat) },
@@ -166,7 +154,7 @@ private fun HeaderActionButtons(component: ChatComponent) {
         }
 
         IconButton(
-            onClick = { component.accept(ChatIntent.ToggleSettings(true)) },
+            onClick = onOpenSettings,
             modifier = Modifier
                 .background(AppColors.Primary, CircleShape)
                 .size(40.dp)
