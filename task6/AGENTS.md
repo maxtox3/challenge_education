@@ -26,8 +26,8 @@
 
 **Current implementation status**:
 - ✅ SSE streaming infrastructure in `core/network`
-- ⚠️ Streaming not yet integrated in ChatStoreFactory
-- 📋 Planned: localStorage persistence for chat history
+- ✅ Streaming integrated in ChatStoreFactory
+- ✅ localStorage persistence implemented in `core/storage`
 
 ```
 composeApp/     # Entry point
@@ -63,6 +63,7 @@ core/           # model, network, ui (shared)
 
 - **[core/model/AGENTS.md](./core/model/AGENTS.md)** — Model module (data classes, enums, API models)
 - **[core/network/AGENTS.md](./core/network/AGENTS.md)** — Network module (HTTP client, SSE streaming, error handling)
+- **[core/storage/AGENTS.md](./core/storage/AGENTS.md)** — Storage module (localStorage persistence, chat history, settings)
 
 ## Workflow
 
